@@ -45,4 +45,4 @@ Vue.use(Quasar, {
   plugins: {
     Dialog
   }
- })
+ });

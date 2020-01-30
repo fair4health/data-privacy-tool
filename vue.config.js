@@ -4,11 +4,11 @@ module.exports = {
       treeShake: true
     },
     electronBuilder: {
-      appId: 'fair4health-data-curation-tool',
+      appId: 'fair4health-data-privacy-tool',
       customFileProtocol: 'fair4health://./',
       mainProcessFile: 'src/electron-main.ts',
       builderOptions: {
-        productName: 'FAIR4Health Data Curation Tool',
+        productName: 'FAIR4Health Data Privacy Tool',
         mac: {
           icon: './dist_electron/bundled/icons/icon.icns'
         },
@@ -32,4 +32,4 @@ module.exports = {
   transpileDependencies: [
     /[\\\/]node_modules[\\\/]quasar[\\\/]/
   ]
-}
+};

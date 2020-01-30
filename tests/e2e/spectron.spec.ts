@@ -2,28 +2,28 @@ import testWithSpectron from 'vue-cli-plugin-electron-builder/lib/testWithSpectr
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-chai.should()
-chai.use(chaiAsPromised)
+chai.should();
+chai.use(chaiAsPromised);
 
 describe('Application launch', function () {
-  this.timeout(120000)
+  this.timeout(120000);
 
   beforeEach(function () {
     return testWithSpectron().then((instance: any) => {
-      this.app = instance.app
+      this.app = instance.app;
       this.stopServe = instance.stopServe
     })
-  })
+  });
 
   beforeEach(function () {
     chaiAsPromised.transferPromiseness = this.app.transferPromiseness
-  })
+  });
 
   afterEach(function () {
     if (this.app && this.app.isRunning()) {
       return this.stopServe()
     }
-  })
+  });
 
   it('opens a window', function () {
     return this.app.client
@@ -38,4 +38,4 @@ describe('Application launch', function () {
       .should.eventually.have.property('height')
       .and.be.above(0)
   })
-})
+});

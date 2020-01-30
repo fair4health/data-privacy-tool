@@ -1,15 +1,15 @@
-# FAIR4Health Data Curation & Validation Tool
+# FAIR4Health Data Privacy Tool
 
 ![alt text](https://www.fair4health.eu/images/logo.png)
 
 ## About
 
 This is a standalone, desktop application developed by the FAIR4Health project (https://www.fair4health.eu/).
-The tool is used to connect the health data sources which can be in various formats (Excel files,
-CSV files, SQL databases) and migrate data into a HL7 FHIR Repository. The tool shows the available 
-FHIR profiles to the user so that he/she can perform mappings appropriately. The tool can also
-contact a Terminology Server (which is actually another HL7 FHIR Repository) so that data fields
-can be annotated if coding schemes such as ICD10 or SNOMED-CT are in use.
+The tool aims to handle the privacy challenges exposed by the sensitive health data.
+It is designed to work on an HL7 FHIR API so that it can be used on top of any standard FHIR Repository
+as a data de-identification, anonymization and related actions toolset.
+The tool accesses FHIR resources, presents metadata to the user, guide the user about the configuration to be
+applied and then output the processed FHIR resources.
 
 ## Project setup
 ```
