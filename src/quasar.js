@@ -20,11 +20,58 @@ import {
   QItem,
   QItemSection,
   QItemLabel,
-  Dialog
+  Dialog,
+  QAvatar,
+  QSeparator,
+  QCard,
+  QCardSection,
+  QInput,
+  QExpansionItem,
+  QStepper,
+  QStep,
+  QStepperNavigation,
+  LoadingBar,
+  Loading,
+  QSplitter,
+  QSelect,
+  QSpinner,
+  QSpinnerTail,
+  QTable,
+  QTd,
+  QTr,
+  QTh,
+  QBadge,
+  QPopupEdit,
+  QSpace,
+  QTooltip,
+  Notify,
+  AppFullscreen,
+  QTree,
+  QScrollArea,
+  QMenu,
+  QChip,
+  ClosePopup,
+  QPageSticky
 } from 'quasar'
 
 Vue.use(Quasar, {
-  config: {},
+  config: {
+    loadingBar: {
+      color: 'primary',
+      size: '4px'
+    },
+    loading: {
+      spinner: QSpinnerTail,
+      spinnerSize: '65px'
+    },
+    notify: {
+      textColor: 'white',
+      timeout: 1500,
+      position: 'top',
+      classes: 'notify-opacity',
+      actions: [ { icon: 'clear', color: 'white' } ]
+    }
+  },
   components: {
     QLayout,
     QHeader,
@@ -39,10 +86,41 @@ Vue.use(Quasar, {
     QItem,
     QItemSection,
     QItemLabel,
+    QAvatar,
+    QSeparator,
+    QCard,
+    QCardSection,
+    QInput,
+    QExpansionItem,
+    QStepper,
+    QStep,
+    QStepperNavigation,
+    QSplitter,
+    QSelect,
+    QSpinner,
+    QSpinnerTail,
+    QTable,
+    QTd,
+    QTr,
+    QTh,
+    QBadge,
+    QPopupEdit,
+    QSpace,
+    QTooltip,
+    QTree,
+    QScrollArea,
+    QMenu,
+    QChip,
+    QPageSticky
   },
   directives: {
+    ClosePopup
   },
   plugins: {
-    Dialog
+    Dialog,
+    LoadingBar,
+    Loading,
+    Notify,
+    AppFullscreen
   }
- });
+});

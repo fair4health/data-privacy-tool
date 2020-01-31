@@ -17,6 +17,11 @@ const routes = [
         path: '/about',
         name: 'about',
         component: () => import('@/views/About.vue')
+      },
+      {
+        path: '/deidentification',
+        name: 'deidentification',
+        component: () => import('@/views/Deidentifier.vue')
       }
     ]
   }
