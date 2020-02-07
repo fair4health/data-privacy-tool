@@ -21,7 +21,7 @@ const routes = [
       {
         path: '/deidentification',
         name: 'deidentification',
-        component: () => import('@/views/Deidentifier.vue')
+        component: () => import('@/views/PrivacyStepper.vue')
       }
     ]
   }

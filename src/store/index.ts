@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+import fhir from './fhirStore'
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -19,10 +21,13 @@ export default new Vuex.Store({
     decrementStep (state) {
       state.privacyStep -= 1
     },
+    resetStep (state) {
+      state.privacyStep = 1
+    },
     updateLog (state, message) {
       state.log += message + '<br/>'
     }
   },
   actions: {},
-  modules: {},
+  modules: {fhir},
 })

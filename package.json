@@ -33,7 +33,7 @@
     "vue-property-decorator": "^8.3.0",
     "vue-router": "^3.1.5",
     "vuex": "^3.1.2",
-    "xlsx": "^0.15.1"
+    "xlsx": "^0.15.5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-catch-binding": "^7.8.3",

@@ -1,6 +1,6 @@
 # FAIR4Health Data Privacy Tool
 
-![alt text](https://www.fair4health.eu/images/logo.png)
+![alt text](src/assets/FAIR4Health-logo.png)
 
 ## About
 
