@@ -16,7 +16,8 @@ const fhirStore = {
     currentProfile: '',
     selectedResources: [],
     selectedProfiles: [],
-    selectedElements: []
+    selectedElements: [],
+    attributeMappings: {}
   },
   getters: {
     resourceList: state => state.resourceList || [],
@@ -27,7 +28,8 @@ const fhirStore = {
     currentProfile: state => state.currentProfile || '',
     selectedResources: state => state.selectedResources || [],
     selectedProfiles: state => state.selectedProfiles || [],
-    selectedElements: state => state.selectedElements || []
+    selectedElements: state => state.selectedElements || [],
+    attributeMappings: state => state.attributeMappings || {}
   },
   mutations: {
     setResourceList (state, list) {
@@ -42,6 +44,9 @@ const fhirStore = {
     },
     setSelectedElements (state, list) {
       state.selectedElements = list
+    },
+    setAttributeMappings (state, value) {
+      state.attributeMappings = value
     },
     setSelectedResources (state, list) {
       state.selectedResources = list
