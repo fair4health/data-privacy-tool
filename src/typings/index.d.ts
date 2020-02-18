@@ -4756,7 +4756,8 @@ declare namespace fhir {
     max?: string
     type?: string[]
     selectedType?: string
-    children?: ElementTree[]
+    children?: ElementTree[],
+    required: boolean
   }
   type Resource = (DomainResource|Account|ActivityDefinition|AllergyIntolerance|Appointment|AppointmentResponse|
     AuditEvent|Basic|Binary|BodySite|Bundle|CarePlan|CareTeam|Claim|ClaimResponse|ClinicalImpression|CodeSystem|

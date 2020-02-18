@@ -12,24 +12,36 @@ const fhirStore = {
     profileList: null,
     elementList: null,
     elementListFlat: null,
+    quasiElementList: null,
+    sensitiveElementList: null,
     currentResource: '',
     currentProfile: '',
+    currentAttribute: '',
+    currentNode: null,
     selectedResources: [],
     selectedProfiles: [],
-    selectedElements: [],
-    attributeMappings: {}
+    rareElements: [],
+    attributeMappings: {},
+    parameterMappings: {},
+    kValue: 5
   },
   getters: {
     resourceList: state => state.resourceList || [],
     profileList: state => state.profileList || [],
     elementList: state => state.elementList || [],
     elementListFlat: state => state.elementListFlat || [],
+    quasiElementList: state => state.quasiElementList || [],
+    sensitiveElementList: state => state.sensitiveElementList || [],
     currentResource: state => state.currentResource || '',
     currentProfile: state => state.currentProfile || '',
+    currentAttribute: state => state.currentAttribute || '',
+    currentNode: state => state.currentNode || null,
     selectedResources: state => state.selectedResources || [],
     selectedProfiles: state => state.selectedProfiles || [],
-    selectedElements: state => state.selectedElements || [],
-    attributeMappings: state => state.attributeMappings || {}
+    rareElements: state => state.rareElements || [],
+    attributeMappings: state => state.attributeMappings || {},
+    parameterMappings: state => state.parameterMappings || {},
+    kValue: state => state.kValue || 5
   },
   mutations: {
     setResourceList (state, list) {
@@ -40,13 +52,18 @@ const fhirStore = {
     },
     setElementList (state, list) {
       state.elementList = list;
-      state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : []
+      state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
+      state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings, environment.attributeTypes.QUASI) : [];
+      state.sensitiveElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings, environment.attributeTypes.SENSITIVE) : [];
     },
-    setSelectedElements (state, list) {
-      state.selectedElements = list
+    setRareElements (state, list) {
+      state.rareElements = list;
     },
     setAttributeMappings (state, value) {
       state.attributeMappings = value
+    },
+    setParameterMappings (state, value) {
+      state.parameterMappings = value
     },
     setSelectedResources (state, list) {
       state.selectedResources = list
@@ -59,6 +76,15 @@ const fhirStore = {
     },
     setCurrentProfile (state, value) {
       state.currentProfile = value
+    },
+    setCurrentAttribute (state, value) {
+      state.currentAttribute = value
+    },
+    setCurrentNode (state, value) {
+      state.currentNode = value
+    },
+    setKValue (state, value) {
+      state.kValue = value;
     }
   },
   actions: {
@@ -147,6 +173,8 @@ const fhirStore = {
             if (bundle.entry?.length) {
               const resource = bundle.entry[0].resource as fhir.StructureDefinition;
               const list: fhir.ElementTree[] = [];
+              const attributes: {} = {};
+              let attributeChanged = false;
               resource?.snapshot?.element.forEach((element) => {
                 const parts = element?.id?.split('.') || [];
                 let part: any;
@@ -156,7 +184,7 @@ const fhirStore = {
                   let match = tmpList.findIndex(l => l.label === part);
                   if (match === -1) {
                     match = 0;
-                    tmpList.push({
+                    const tmpObj = {
                       value: element?.id,
                       label: part,
                       definition: element?.definition,
@@ -165,15 +193,24 @@ const fhirStore = {
                       min: element?.min,
                       max: element?.max,
                       type: element.type?.map(_ => _.code) || [],
-                      children: []
-                    })
+                      selectedType: (element.type && element.type[0]) ? element.type[0].code : undefined,
+                      children: [],
+                      required: !!element?.min
+                    };
+                    tmpList.push(tmpObj);
+                    if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj) && !attributes[tmpObj.value]) {
+                      attributes[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+                      attributeChanged = true;
+                    }
                   }
                   tmpList = tmpList[match].children as fhir.ElementTree[];
                   part = parts.shift()
                 }
               });
-
-              commit('setElementList', list)
+              commit('setElementList', list);
+              if (attributeChanged) {
+                commit('setAttributeMappings', attributes);
+              }
             }
             resolve(true)
           })

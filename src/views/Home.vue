@@ -7,7 +7,7 @@
           Welcome to <span class="text-primary text-weight-bold">FAIR4Health Data Privacy Tool</span>
         </q-toolbar-title>
         <q-space />
-        <q-btn unelevated rounded to="/deidentification" color="primary" label="Quick Start" icon-right="fas fa-angle-right" />
+        <q-btn unelevated rounded to="/deidentification" @click="$store.commit('resetStep')" color="primary" label="Quick Start" icon-right="fas fa-angle-right" />
       </q-toolbar>
       <q-separator />
     </div>

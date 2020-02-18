@@ -72,7 +72,7 @@
     })
     export default class MetadataAnalyzer extends Vue {
         private fhirURL: string = 'http://f4h.srdc.com.tr/fhir/';
-        private metaStep: number = 1;
+        private metaStep: number = this.$store.getters.previousStep === 0 ? 1 : 3;
 
         handleSteps(isNext: boolean) {
             if (isNext) {

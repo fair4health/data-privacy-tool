@@ -1,8 +1,8 @@
 <template>
 	<div class="splitter-slot">
 		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-      <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Remove attributes that will be
-      excluded from de-identified data. Select types of attributes from privacy point of view. </span>
+      <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Select types of attributes from
+	      privacy point of view. Note that you can only configure primitive types. </span>
 		</q-item-label>
 
 		<q-card flat class="bg-white">
@@ -78,14 +78,15 @@
 									<div class="col-1">
 										<span class="text-white">{{attributeTypes.SENSITIVE}}</span>
 									</div>
+									<div class="col-1">
+										<span class="text-white">{{attributeTypes.INSENSITIVE}}</span>
+									</div>
 								</div>
 								<q-scroll-area style="height: 50vh">
 									<q-tree :nodes="fhirElementList"
 									        ref="fhirTree"
 									        node-key="value"
 									        label-key="label"
-									        tick-strategy="strict"
-									        :ticked.sync="tickedFHIRAttr"
 									        :selected.sync="selectedStr"
 									        :expanded.sync="expanded"
 									        :filter="filter"
@@ -96,45 +97,36 @@
 									        default-expand-all
 									>
 										<template v-slot:default-header="prop">
-											<div class="row items-center full-width bg-grey-1 q-pa-xs" :disabled="!willBeDeidentified(prop.key)">
+											<div class="row items-center full-width bg-grey-1 q-pa-xs" >
 												<div class="col">
 													<q-icon :name="prop.node.children && prop.node.children.length ? 'account_tree' : 'lens'"
 													        color="orange-5"
 													        :size="prop.node.children && prop.node.children.length ? 'sm' : 'xs'"
 													        class="q-mr-sm"
 													/>
-													<span>{{ prop.node.label }}</span>
+													<span>{{ prop.node.label }} <span class="text-red">{{ prop.node.required ? '*' : '' }}</span></span>
 												</div>
 												<div class="text-center col-5">
-													<span v-if="prop.node.type" class="text-caption text-primary">{{ prop.node.type.join(', ') }}</span>
+													<span v-if="prop.node.type && prop.node.type.length === 1" class="text-caption text-primary">{{ prop.node.type[0] }}</span>
+													<q-select v-if="prop.node.type && prop.node.type.length > 1" v-model="prop.node.selectedType" :options="prop.node.type"
+													          dense options-dense borderless class="customDropdownText" />
 												</div>
 												<div class="text-center col-1">
-													<q-radio v-model="attributeMappings[prop.key]" :val="attributeTypes.ID"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.ID)" :disable="!willBeDeidentified(prop.key)" />
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.ID"
+													         @input="onAttributeTypeSelected(prop.key, attributeTypes.ID)" :disable="prop.node.required" />
 												</div>
 												<div class="text-center col-2">
-													<q-radio v-model="attributeMappings[prop.key]" :val="attributeTypes.QUASI"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.QUASI)" :disable="!willBeDeidentified(prop.key)" />
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.QUASI"
+													         @input="onAttributeTypeSelected(prop.key, attributeTypes.QUASI)" />
 												</div>
 												<div class="col-1">
-													<q-radio v-model="attributeMappings[prop.key]" :val="attributeTypes.SENSITIVE"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.SENSITIVE)" :disable="!willBeDeidentified(prop.key)" />
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.SENSITIVE"
+													         @input="onAttributeTypeSelected(prop.key, attributeTypes.SENSITIVE)" />
 												</div>
-											</div>
-										</template>
-										<template v-slot:default-body="prop">
-											<div v-if="prop.node.type && prop.node.type.length>1">
-												<q-list dense bordered class="q-ma-sm">
-													<q-item v-for="(type, index) in prop.node.type" :key="index">
-														<q-radio v-model="prop.node.selectedType" class="text-grey-8" :val="type" :label="type" size="xs" />
-													</q-item>
-													<q-separator />
-													<q-item>
-														<q-btn flat label="Save" color="primary" @click="fhirElementList=fhirElementList" :disabled="prop.node.selectedType===''" />
-														<q-space />
-														<q-btn flat label="Clear" color="red-6" @click="prop.node.selectedType=''" :disabled="prop.node.selectedType===''" />
-													</q-item>
-												</q-list>
+												<div class="col-1">
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.INSENSITIVE"
+													         @input="onAttributeTypeSelected(prop.key, attributeTypes.INSENSITIVE)" />
+												</div>
 											</div>
 										</template>
 									</q-tree>
@@ -147,9 +139,9 @@
 									<div>
 										<q-toolbar class="bg-grey-2">
 											<q-item-label class="text-weight-bold text-grey-7">
-                      <span class="text-weight-regular text-primary">
-                        [{{ selectedElem.min }}..{{ selectedElem.max }}]
-                      </span>
+												<span class="text-weight-regular text-primary">
+							                        [{{ selectedElem.min }}..{{ selectedElem.max }}]
+							                    </span>
 												<u>
 													{{ selectedElem.value }}
 													<q-tooltip>{{ selectedElem.value }}</q-tooltip>
@@ -194,14 +186,12 @@
 
 <script lang="ts">
   import { Component, Vue, Watch } from 'vue-property-decorator'
+  import {environment} from '@/common/environment'
+  import {FHIRUtils} from '@/common/utils/fhir-util';
 
   @Component
   export default class FhirAttributeTable extends Vue {
-    private attributeTypes = {
-      ID: 'Identifier',
-      QUASI: 'Quasi-identifier',
-      SENSITIVE: 'Sensitive',
-    };
+    private attributeTypes = environment.attributeTypes;
     private splitterModel = 70;
     private loadingFhir: boolean = false;
     private selectedStr: string = '';
@@ -227,11 +217,11 @@
 
     get fhirElementListFlat (): any { return this.$store.getters['fhir/elementListFlat'] }
 
-    get tickedFHIRAttr (): any { return this.$store.getters['fhir/selectedElements'] }
-    set tickedFHIRAttr (value) { this.$store.commit('fhir/setSelectedElements', value) }
-
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+
+	get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
+	set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
     created () {
       for (const resource of this.fhirResourceList) {
@@ -295,6 +285,12 @@
 
     onAttributeTypeSelected (prop: string, val: string) {
       this.attributeMappings[prop] = val;
+      if (val === this.attributeTypes.SENSITIVE) {
+          this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
+      } else if (val === this.attributeTypes.QUASI) {
+          this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.PASS_THROUGH));
+      }
+      this.fhirElementList = this.fhirElementList;
     }
 
     onSelected (target) {
@@ -302,10 +298,21 @@
       this.selectedElem = filtered.length ? filtered[0] : null
     }
 
-    willBeDeidentified(attribute: string): boolean {
-      return this.tickedFHIRAttr.indexOf(attribute) !== -1;
+    willBeDeidentified(node): boolean {
+      return FHIRUtils.isPrimitive(node);
     }
 
   }
 </script>
+
+<style lang="stylus">
+	.customDropdownText {
+		.q-field__native {
+			color: #10a1df // Cannot import primary color
+			font-size: smaller
+			align-items: center
+			justify-content: center
+		}
+	}
+</style>
 

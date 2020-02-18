@@ -21,11 +21,12 @@ import {
   QItem,
   QItemSection,
   QItemLabel,
-  Dialog,
+  QDialog,
   QAvatar,
   QSeparator,
   QCard,
   QCardSection,
+  QCardActions,
   QInput,
   QExpansionItem,
   QStepper,
@@ -53,7 +54,16 @@ import {
   QChip,
   ClosePopup,
   QPageSticky,
-  QRadio
+  QRadio,
+  QBreadcrumbs,
+  QBreadcrumbsEl,
+  QTabs,
+  QTab,
+  QRouteTab,
+  QTabPanels,
+  QTabPanel,
+  QToggle,
+  QField
 } from 'quasar'
 
 Vue.use(Quasar, {
@@ -89,10 +99,12 @@ Vue.use(Quasar, {
     QItem,
     QItemSection,
     QItemLabel,
+    QDialog,
     QAvatar,
     QSeparator,
     QCard,
     QCardSection,
+    QCardActions,
     QInput,
     QExpansionItem,
     QStepper,
@@ -115,13 +127,21 @@ Vue.use(Quasar, {
     QMenu,
     QChip,
     QPageSticky,
-    QRadio
+    QRadio,
+    QBreadcrumbs,
+    QBreadcrumbsEl,
+    QTabs,
+    QTab,
+    QRouteTab,
+    QTabPanels,
+    QTabPanel,
+    QToggle,
+    QField
   },
   directives: {
     ClosePopup
   },
   plugins: {
-    Dialog,
     LoadingBar,
     Loading,
     Notify,
