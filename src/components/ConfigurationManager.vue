@@ -98,7 +98,6 @@
     </div>
 </template>
 
-
 <script lang="ts">
 import {Component, Vue, Watch} from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';

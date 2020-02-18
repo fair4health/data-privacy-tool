@@ -29,21 +29,21 @@
 
 			<q-card>
 				<template v-for="profile in resources[key]">
-						<q-item>
-							<q-item-section avatar class="q-ml-sm">
-								<q-checkbox size="md" v-model="selectedProfiles" :val="profile.id" color="secondary" />
-							</q-item-section>
-							<q-item-section>
-								<q-item-label>{{profile.title}}</q-item-label>
-							</q-item-section>
-							<q-item-section side>
-								<q-btn flat round
-								       icon="fas fa-eye"
-								       color="secondary"
-								       @click="getProfileInfo(profile)"
-								/>
-							</q-item-section>
-						</q-item>
+					<q-item>
+						<q-item-section avatar class="q-ml-sm">
+							<q-checkbox size="md" v-model="selectedProfiles" :val="profile.id" color="secondary" />
+						</q-item-section>
+						<q-item-section>
+							<q-item-label>{{profile.title}}</q-item-label>
+						</q-item-section>
+						<q-item-section side>
+							<q-btn flat round
+							       icon="fas fa-eye"
+							       color="secondary"
+							       @click="getProfileInfo(profile)"
+							/>
+						</q-item-section>
+					</q-item>
 					<q-separator />
 				</template>
 			</q-card>
@@ -53,10 +53,10 @@
 </template>
 
 <script lang="ts">
-  import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue } from 'vue-property-decorator'
 
-  @Component
-  export default class FhirProfileTable extends Vue {
+@Component
+export default class FhirProfileTable extends Vue {
     private searchString: string = '';
     private resources = {};
     private currentResources: string[] = [];
@@ -69,45 +69,45 @@
     get selectedProfiles (): string[] { return this.$store.getters['fhir/selectedProfiles'].map(r => JSON.parse(JSON.stringify(r))) }
     set selectedProfiles (value) { this.$store.commit('fhir/setSelectedProfiles', value) }
 
-    created() {
-      this.$store.dispatch('fhir/getResources').then(res => {
-        this.currentResources = JSON.parse(JSON.stringify(this.fhirResourceList));
-        this.selectedResources = this.selectedResources;
-        for (const resource of this.fhirResourceList) {
-          this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-            this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
-            this.selectedProfiles = this.selectedProfiles;
-            this.$forceUpdate();
-          });
-        }
-      });
+    created () {
+        this.$store.dispatch('fhir/getResources').then(res => {
+            this.currentResources = JSON.parse(JSON.stringify(this.fhirResourceList));
+            this.selectedResources = this.selectedResources;
+            for (const resource of this.fhirResourceList) {
+                this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
+                    this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
+                    this.selectedProfiles = this.selectedProfiles;
+                    this.$forceUpdate();
+                });
+            }
+        });
     }
 
-    resourceSelected(resource) {
-      const resourceIndex = this.selectedResources.indexOf(resource);
-        for (let profile of this.resources[resource]) {
-          const profileIndex = this.selectedProfiles.indexOf(profile.id);
-          if (resourceIndex !== -1) { // all profiles should be selected
-            if (profileIndex === -1) {
-              this.selectedProfiles.push(profile.id);
-            }
-          } else { // all profiles should be removed
-            if (profileIndex !== -1) {
-              this.selectedProfiles.splice(profileIndex, 1);
+    resourceSelected (resource) {
+        const resourceIndex = this.selectedResources.indexOf(resource);
+        for (const profile of this.resources[resource]) {
+            const profileIndex = this.selectedProfiles.indexOf(profile.id);
+            if (resourceIndex !== -1) { // all profiles should be selected
+                if (profileIndex === -1) {
+                    this.selectedProfiles.push(profile.id);
+                }
+            } else { // all profiles should be removed
+                if (profileIndex !== -1) {
+                    this.selectedProfiles.splice(profileIndex, 1);
+                }
             }
           }
-        }
-      this.selectedProfiles = this.selectedProfiles;
+        this.selectedProfiles = this.selectedProfiles;
     }
 
-    getProfileInfo(profile: any) {
-      // TODO provide info about corresponding profile
-      console.log(profile);
+    getProfileInfo (profile: any) {
+        // TODO provide info about corresponding profile
+        console.log(profile);
     }
 
-    searchResources() {
-      this.currentResources = this.fhirResourceList.filter(resource => resource.toUpperCase().startsWith(this.searchString.toUpperCase()));
+    searchResources () {
+        this.currentResources = this.fhirResourceList.filter(resource => resource.toUpperCase().startsWith(this.searchString.toUpperCase()));
     }
 
-  }
+}
 </script>

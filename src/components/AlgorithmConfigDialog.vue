@@ -98,87 +98,84 @@
 </template>
 
 <script lang="ts">
-    import {Component, Vue} from 'vue-property-decorator'
-    import {environment} from '@/common/environment'
+import {Component, Vue} from 'vue-property-decorator'
+import {environment} from '@/common/environment'
 
-    @Component
-    export default class AlgorithmConfigDialog extends Vue {
-        private tempLengthPreserved: boolean = true;
-        private tempAlgorithmName: string = '';
-        private envAlgorithms = environment.algorithms;
-        private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(function(key) {
-            return environment.algorithms[key].name;
-        });
-        private dateUnitOptions: string[] = ['Years', 'Months', 'Days'];
+@Component
+export default class AlgorithmConfigDialog extends Vue {
+    private tempLengthPreserved: boolean = true;
+    private tempAlgorithmName: string = '';
+    private envAlgorithms = environment.algorithms;
+    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
+    private dateUnitOptions: string[] = ['Years', 'Months', 'Days'];
 
-        get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
-        set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
+    get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
+    set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
 
-        get currentNode (): any { return this.$store.getters['fhir/currentNode'] }
-        set currentNode (value) { this.$store.commit('fhir/setCurrentNode', value) }
+    get currentNode (): any { return this.$store.getters['fhir/currentNode'] }
+    set currentNode (value) { this.$store.commit('fhir/setCurrentNode', value) }
 
-        get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
-        set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
+    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
 
-        get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-        set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
+    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
-        created() {
-            if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
-                this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved;
-                this.tempAlgorithmName = this.parameterMappings[this.currentAttribute].algorithm.name;
-            } else {
-                this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].lengthPreserved;
-                this.tempAlgorithmName = this.parameterMappings[this.currentAttribute].name;
-            }
+    created () {
+        if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
+            this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved;
+            this.tempAlgorithmName = this.parameterMappings[this.currentAttribute].algorithm.name;
+        } else {
+            this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].lengthPreserved;
+            this.tempAlgorithmName = this.parameterMappings[this.currentAttribute].name;
         }
-
-        generateBreadcrumb(attribute: string): string[] {
-            return attribute.split('.');
-        }
-
-        onLengthPreservedSelected() {
-            if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
-                this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved = this.tempLengthPreserved;
-            } else {
-                this.parameterMappings[this.currentAttribute].lengthPreserved = this.tempLengthPreserved;
-            }
-        }
-
-        updateParameters () {
-            const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempAlgorithmName);
-            if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
-                this.parameterMappings[this.currentAttribute].algorithm = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
-                this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved;
-            } else {
-                this.parameterMappings[this.currentAttribute] = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
-                this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].lengthPreserved;
-            }
-        }
-
-        filterPossibleAlgorithms (opt): boolean {
-            if (this.currentNode.required && opt === environment.algorithms.REDACTION.name) {
-                return true;
-            } else if (this.currentNode.selectedType !== 'date' && this.currentNode.selectedType !== 'dateTime' && this.currentNode.selectedType !== 'time' &&
-                this.currentNode.selectedType !== 'instant' && opt === environment.algorithms.DATE_SHIFTING.name) {
-                return true;
-            }
-            // if (this.attributeMappings[this.currentAttribute] === environment.attributeTypes.QUASI) { // Quasi-identifiers
-			//
-            // } else {  // Sensitive Rare attributes
-			//
-            // }
-            return false;
-        }
-
-        getAlgorithmName(attribute: string): string {
-            if (this.parameterMappings[attribute].name === environment.algorithms.SENSITIVE.name) {
-                return this.parameterMappings[attribute].algorithm.name;
-            } else {
-                return this.parameterMappings[attribute].name;
-            }
-        }
-
     }
 
+    generateBreadcrumb (attribute: string): string[] {
+        return attribute.split('.');
+    }
+
+    onLengthPreservedSelected () {
+        if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
+            this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved = this.tempLengthPreserved;
+        } else {
+            this.parameterMappings[this.currentAttribute].lengthPreserved = this.tempLengthPreserved;
+        }
+    }
+
+    updateParameters () {
+        const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempAlgorithmName);
+        if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
+            this.parameterMappings[this.currentAttribute].algorithm = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
+            this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].algorithm.lengthPreserved;
+        } else {
+            this.parameterMappings[this.currentAttribute] = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
+            this.tempLengthPreserved = this.parameterMappings[this.currentAttribute].lengthPreserved;
+        }
+    }
+
+    filterPossibleAlgorithms (opt): boolean {
+        if (this.currentNode.required && opt === environment.algorithms.REDACTION.name) {
+            return true;
+        } else if (this.currentNode.selectedType !== 'date' && this.currentNode.selectedType !== 'dateTime' && this.currentNode.selectedType !== 'time' &&
+            this.currentNode.selectedType !== 'instant' && opt === environment.algorithms.DATE_SHIFTING.name) {
+            return true;
+        }
+        // if (this.attributeMappings[this.currentAttribute] === environment.attributeTypes.QUASI) { // Quasi-identifiers
+        //
+        // } else {  // Sensitive Rare attributes
+        //
+        // }
+        return false;
+    }
+
+    getAlgorithmName (attribute: string): string {
+        if (this.parameterMappings[attribute].name === environment.algorithms.SENSITIVE.name) {
+            return this.parameterMappings[attribute].algorithm.name;
+        } else {
+            return this.parameterMappings[attribute].name;
+        }
+    }
+
+}
 </script>

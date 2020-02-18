@@ -194,31 +194,31 @@ export default class SensitiveAttributeTable extends Vue {
     get rareElements (): any { return this.$store.getters['fhir/rareElements'] }
     set rareElements (value) { this.$store.commit('fhir/setRareElements', value) }
 
-	@Watch('currentFHIRRes')
-	onFHIRResourceChanged (): void {
-		([this.currentFHIRProf, this.selectedStr] = ['', '']);
-	}
+    @Watch('currentFHIRRes')
+    onFHIRResourceChanged (): void {
+        ([this.currentFHIRProf, this.selectedStr] = ['', '']);
+    }
 
-	@Watch('currentFHIRProf')
-	onFHIRProfileChanged (newVal: any): void {
-		if (newVal) {
-			this.selectedElem = null;
-		}
-	}
+    @Watch('currentFHIRProf')
+    onFHIRProfileChanged (newVal: any): void {
+        if (newVal) {
+            this.selectedElem = null;
+        }
+    }
 
-    configureAlgorithm(node: fhir.ElementTree) {
+    configureAlgorithm (node: fhir.ElementTree) {
         this.currentNode = node;
-        let attribute = node.value ? node.value : '';
+        const attribute = node.value ? node.value : '';
         this.currentAttribute = attribute;
         this.configDialog = true;
     }
 
     onSelected (target) {
-		const filtered = this.fhirElementListFlat.filter(item => item.value === target);
-		this.selectedElem = filtered.length ? filtered[0] : null
+        const filtered = this.fhirElementListFlat.filter(item => item.value === target);
+        this.selectedElem = filtered.length ? filtered[0] : null
     }
 
-    setRareness(attribute: string) {
+    setRareness (attribute: string) {
         this.parameterMappings[attribute].isRare = this.rareElements.indexOf(attribute) !== -1;
     }
 

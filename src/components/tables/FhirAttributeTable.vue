@@ -1,8 +1,8 @@
 <template>
 	<div class="splitter-slot">
 		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-      <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Select types of attributes from
-	      privacy point of view. Note that you can only configure primitive types. </span>
+			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Select types of attributes from
+				privacy point of view. Note that you can only configure primitive types. </span>
 		</q-item-label>
 
 		<q-card flat class="bg-white">
@@ -185,12 +185,12 @@
 </template>
 
 <script lang="ts">
-  import { Component, Vue, Watch } from 'vue-property-decorator'
-  import {environment} from '@/common/environment'
-  import {FHIRUtils} from '@/common/utils/fhir-util';
+import { Component, Vue, Watch } from 'vue-property-decorator'
+import {environment} from '@/common/environment'
+import {FHIRUtils} from '@/common/utils/fhir-util';
 
-  @Component
-  export default class FhirAttributeTable extends Vue {
+@Component
+export default class FhirAttributeTable extends Vue {
     private attributeTypes = environment.attributeTypes;
     private splitterModel = 70;
     private loadingFhir: boolean = false;
@@ -220,86 +220,86 @@
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
 
-	get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-	set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
+    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
     created () {
-      for (const resource of this.fhirResourceList) {
-        this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-          const availableProfiles = this.allfhirProfilesList.filter(profile => this.fhirProfileList.indexOf(profile) !== -1);
-          this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(availableProfiles));
-          this.$forceUpdate();
-        });
-      }
+        for (const resource of this.fhirResourceList) {
+            this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
+                const availableProfiles = this.allfhirProfilesList.filter(profile => this.fhirProfileList.indexOf(profile) !== -1);
+                this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(availableProfiles));
+                this.$forceUpdate();
+            });
+        }
     }
 
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
-      ([this.currentFHIRProf, this.selectedStr, this.fhirElementList] = ['', '', []]);
-      this.loadingFhir = true;
-      this.$store.dispatch('fhir/getProfilesByRes', this.currentFHIRRes)
-        .then(result => {
-          if (result) {
-            this.loadingFhir = false;
-            this.currentFHIRProf = (this.resources[this.currentFHIRRes] && this.resources[this.currentFHIRRes].length) ? this.resources[this.currentFHIRRes][0] : '';
-            // Fetch elements of base resources
-            if (!this.currentFHIRProf) {
-              this.$store.dispatch('fhir/getElements', this.currentFHIRRes)
-                .then(() => this.loadingFhir = false )
-                .catch(err => {
-                  this.loadingFhir = false;
-                  throw err
-                })
-            }
-          }
-        })
-        .catch(err => {
-          this.loadingFhir = false;
-          throw err
-        })
+        ([this.currentFHIRProf, this.selectedStr, this.fhirElementList] = ['', '', []]);
+        this.loadingFhir = true;
+        this.$store.dispatch('fhir/getProfilesByRes', this.currentFHIRRes)
+            .then(result => {
+                if (result) {
+                    this.loadingFhir = false;
+                    this.currentFHIRProf = (this.resources[this.currentFHIRRes] && this.resources[this.currentFHIRRes].length) ? this.resources[this.currentFHIRRes][0] : '';
+                    // Fetch elements of base resources
+                    if (!this.currentFHIRProf) {
+                        this.$store.dispatch('fhir/getElements', this.currentFHIRRes)
+                            .then(() => this.loadingFhir = false )
+                            .catch(err => {
+                                this.loadingFhir = false;
+                                throw err
+                            })
+                    }
+                }
+            })
+            .catch(err => {
+              this.loadingFhir = false;
+              throw err
+            })
     }
 
     @Watch('currentFHIRProf')
     onFHIRProfileChanged (newVal: any): void {
-      if (newVal) {
-        ([this.selectedElem, this.expanded] = [null, [this.currentFHIRRes]]);
-        this.loadingFhir = true;
-        this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
-          .then(() => {
-            this.loadingFhir = false
-          })
-          .catch(err => {
-            this.loadingFhir = false;
-            throw err
-          })
-      }
+        if (newVal) {
+            ([this.selectedElem, this.expanded] = [null, [this.currentFHIRRes]]);
+            this.loadingFhir = true;
+            this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
+                .then(() => {
+                    this.loadingFhir = false
+                })
+                .catch(err => {
+                    this.loadingFhir = false;
+                    throw err
+                })
+        }
     }
 
     filterFn (val, update) {
-      if (val === '') {
-        update(_ => this.fhirResourceOptions = this.fhirResourceList);
-        return
-      }
-      update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().indexOf(val.toLowerCase()) > -1))
+        if (val === '') {
+            update(_ => this.fhirResourceOptions = this.fhirResourceList);
+            return
+        }
+        update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().indexOf(val.toLowerCase()) > -1))
     }
 
     onAttributeTypeSelected (prop: string, val: string) {
-      this.attributeMappings[prop] = val;
-      if (val === this.attributeTypes.SENSITIVE) {
-          this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
-      } else if (val === this.attributeTypes.QUASI) {
-          this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.PASS_THROUGH));
-      }
-      this.fhirElementList = this.fhirElementList;
+        this.attributeMappings[prop] = val;
+        if (val === this.attributeTypes.SENSITIVE) {
+            this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
+        } else if (val === this.attributeTypes.QUASI) {
+            this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.PASS_THROUGH));
+        }
+        this.fhirElementList = this.fhirElementList;
     }
 
     onSelected (target) {
-      const filtered = this.fhirElementListFlat.filter(item => item.value === target);
-      this.selectedElem = filtered.length ? filtered[0] : null
+        const filtered = this.fhirElementListFlat.filter(item => item.value === target);
+        this.selectedElem = filtered.length ? filtered[0] : null
     }
 
-    willBeDeidentified(node): boolean {
-      return FHIRUtils.isPrimitive(node);
+    willBeDeidentified (node): boolean {
+        return FHIRUtils.isPrimitive(node);
     }
 
   }

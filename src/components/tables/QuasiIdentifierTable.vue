@@ -158,9 +158,7 @@ export default class QuasiIdentifierTable extends Vue {
     private selectedElem: any = null;
     private filter: string = '';
     private envAlgorithms = environment.algorithms;
-    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(function(key) {
-		return environment.algorithms[key].name;
-    });
+    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -183,21 +181,21 @@ export default class QuasiIdentifierTable extends Vue {
     get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
     set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
-	@Watch('currentFHIRRes')
-	onFHIRResourceChanged (): void {
-		([this.currentFHIRProf, this.selectedStr] = ['', '']);
-	}
+    @Watch('currentFHIRRes')
+    onFHIRResourceChanged (): void {
+        ([this.currentFHIRProf, this.selectedStr] = ['', '']);
+    }
 
-	@Watch('currentFHIRProf')
-	onFHIRProfileChanged (newVal: any): void {
-		if (newVal) {
-			this.selectedElem = null;
-		}
-	}
+    @Watch('currentFHIRProf')
+    onFHIRProfileChanged (newVal: any): void {
+        if (newVal) {
+            this.selectedElem = null;
+        }
+    }
 
     configureAlgorithm (node: fhir.ElementTree) {
         this.currentNode = node;
-        let attribute = node.value ? node.value : '';
+        const attribute = node.value ? node.value : '';
         this.currentAttribute = attribute;
         const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.parameterMappings[attribute].name);
         Object.keys(environment.algorithms[algorithm]).forEach(key => {
@@ -205,12 +203,12 @@ export default class QuasiIdentifierTable extends Vue {
                 this.parameterMappings[attribute][key] = JSON.parse(JSON.stringify(environment.algorithms[algorithm][key]))
             }
         });
-		this.configDialog = true;
+        this.configDialog = true;
     }
 
     onSelected (target) {
-		const filtered = this.fhirElementListFlat.filter(item => item.value === target);
-		this.selectedElem = filtered.length ? filtered[0] : null
+        const filtered = this.fhirElementListFlat.filter(item => item.value === target);
+        this.selectedElem = filtered.length ? filtered[0] : null
     }
 
     filterPossibleAlgorithms (opt, node): boolean {
