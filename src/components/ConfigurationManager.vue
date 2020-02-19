@@ -4,17 +4,6 @@
             <q-toolbar-title class="text-grey-8">
                 Configuration Manager
             </q-toolbar-title>
-            <q-space />
-            <q-btn flat round
-                   icon="fas fa-arrow-alt-circle-left"
-                   color="secondary"
-                   @click="$store.commit('decrementStep')"
-            />
-            <q-btn flat round
-                   icon="fas fa-arrow-alt-circle-right"
-                   color="primary"
-                   @click="$store.commit('incrementStep')"
-            />
         </q-toolbar>
 
         <div class="q-ma-sm">
@@ -93,6 +82,11 @@
                         </div>
                     </q-card-section>
                 </q-card>
+            </div>
+            <div class="row q-ma-md">
+                <q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+                <q-space />
+                <q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
             </div>
         </div>
     </div>

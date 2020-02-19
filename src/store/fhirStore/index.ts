@@ -3,8 +3,6 @@ import { environment } from '@/common/environment'
 import StructureDefinition = fhir.StructureDefinition;
 import { FHIRUtils } from '@/common/utils/fhir-util'
 
-const fhirService = new FhirService();
-
 const fhirStore = {
     namespaced: true,
     state: {
@@ -23,7 +21,9 @@ const fhirStore = {
         rareElements: [],
         attributeMappings: {},
         parameterMappings: {},
-        kValue: 5
+        kValue: 5,
+        fhirBase: environment.server.config.baseUrl,
+        fhirService: new FhirService(),
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -41,7 +41,9 @@ const fhirStore = {
         rareElements: state => state.rareElements || [],
         attributeMappings: state => state.attributeMappings || {},
         parameterMappings: state => state.parameterMappings || {},
-        kValue: state => state.kValue || 5
+        kValue: state => state.kValue || 5,
+        fhirBase: state => state.fhirBase,
+        fhirService: state => state.fhirService
     },
     mutations: {
         setResourceList (state, list) {
@@ -85,12 +87,16 @@ const fhirStore = {
         },
         setKValue (state, value) {
             state.kValue = value;
+        },
+        updateFhirBase (state, baseUrl: string) {
+            state.fhirBase = baseUrl;
+            state.fhirService = new FhirService(baseUrl)
         }
     },
     actions: {
-        getResources ({ commit }): Promise<boolean> {
+        getResources ({ commit, state }): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                fhirService.search('CapabilityStatement', null)
+                state.fhirService.search('CapabilityStatement', null)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         const resource = bundle.entry?.length ? bundle.entry[0].resource as fhir.CapabilityStatement : null;
@@ -98,7 +104,7 @@ const fhirStore = {
                             Promise.all(resource.rest[0].resource.map(item => {
                                 const resourceType = item.type;
                                 return new Promise<any>((resolve1, reject1) => {
-                                    fhirService.search(resourceType, null)
+                                    state.fhirService.search(resourceType, null)
                                         .then(response => {
                                             const count: number = response.data.entry.length;
                                             resolve1({resourceType, count});
@@ -120,9 +126,9 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        getProfilesByRes ({ commit }, resource: string): Promise<boolean> {
+        getProfilesByRes ({ commit, state }, resource: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                fhirService.search('StructureDefinition',
+                state.fhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
@@ -135,7 +141,7 @@ const fhirStore = {
                         //   const url = item.resource.url;
                         //   // console.log(resourceType, url);
                         //   return new Promise<any>((resolve1, reject1) => {
-                        //     fhirService.search(resourceType, {_profile: url})
+                        //     state.fhirService.search(resourceType, {_profile: url})
                         //       .then(response => {
                         //         // console.log(url, response);
                         //         const count: number = response.data.entry.length;
@@ -165,9 +171,9 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        getElements ({ commit }, profileId: string): Promise<boolean> {
+        getElements ({ commit, state }, profileId: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                fhirService.search('StructureDefinition', {_id: profileId}, true)
+                state.fhirService.search('StructureDefinition', {_id: profileId}, true)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         if (bundle.entry?.length) {
@@ -215,6 +221,13 @@ const fhirStore = {
                         resolve(true)
                     })
                     .catch(err => reject(err) )
+            })
+        },
+        searchResource ({ commit, state }, resourceType: string): Promise<any> {
+            return new Promise((resolve, reject) => {
+                state.fhirService.search(resourceType, {}, true)
+                    .then(res => resolve(res))
+                    .catch(err => reject(err))
             })
         }
     }
