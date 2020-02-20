@@ -90,6 +90,7 @@
 									        :selected.sync="selectedStr"
 									        :expanded.sync="expanded"
 									        :filter="filter"
+									        :filter-method="filterTree"
 									        no-nodes-label="Please select a resource"
 									        no-results-label="No result found"
 									        selected-color="primary"
@@ -300,6 +301,12 @@ export default class FhirAttributeTable extends Vue {
 
     willBeDeidentified (node): boolean {
         return FHIRUtils.isPrimitive(node);
+    }
+
+    filterTree (node, filter) {
+        const filt = filter.toLowerCase();
+        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
+            (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
     }
 
   }

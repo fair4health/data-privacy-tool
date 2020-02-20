@@ -39,6 +39,7 @@
 						        label-key="label"
 						        :selected.sync="selectedStr"
 						        :filter="filter"
+						        :filter-method="filterTree"
 						        no-nodes-label="Please select a resource"
 						        no-results-label="No result found"
 						        selected-color="primary"
@@ -220,6 +221,12 @@ export default class SensitiveAttributeTable extends Vue {
 
     setRareness (attribute: string) {
         this.parameterMappings[attribute].isRare = this.rareElements.indexOf(attribute) !== -1;
+    }
+
+    filterTree (node, filter) {
+        const filt = filter.toLowerCase();
+        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
+            (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
     }
 
 }

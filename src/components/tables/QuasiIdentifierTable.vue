@@ -33,6 +33,7 @@
 						        label-key="label"
 						        :selected.sync="selectedStr"
 						        :filter="filter"
+						        :filter-method="filterTree"
 						        no-nodes-label="Please select a resource"
 						        no-results-label="No result found"
 						        selected-color="primary"
@@ -71,7 +72,8 @@
 									<div class="text-center col-1">
 										<q-btn v-if="parameterMappings[prop.key] && parameterMappings[prop.key].name &&
 													(parameterMappings[prop.key].name !== envAlgorithms.PASS_THROUGH.name) &&
-													(parameterMappings[prop.key].name !== envAlgorithms.REDACTION.name)"
+													(parameterMappings[prop.key].name !== envAlgorithms.REDACTION.name) &&
+										            (parameterMappings[prop.key].name !== envAlgorithms.RECOVERABLE_SUBSTITUTION.name)"
 										       unelevated
 										       color="accent"
 										       text-color="white"
@@ -214,11 +216,14 @@ export default class QuasiIdentifierTable extends Vue {
     filterPossibleAlgorithms (opt, node): boolean {
         if (node.required && opt === environment.algorithms.REDACTION.name) {
             return true;
-        } else if (node.selectedType !== 'date' && node.selectedType !== 'dateTime' && node.selectedType !== 'time' &&
-                    node.selectedType !== 'instant' && opt === environment.algorithms.DATE_SHIFTING.name) {
-            return true;
         }
-        return false;
+        return environment.primitiveTypes[node.selectedType].supports.indexOf(opt) === -1;
+    }
+
+    filterTree (node, filter) {
+        const filt = filter.toLowerCase();
+        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
+	        (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
     }
 
 }
