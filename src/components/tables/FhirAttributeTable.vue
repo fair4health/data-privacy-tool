@@ -88,7 +88,6 @@
 									        node-key="value"
 									        label-key="label"
 									        :selected.sync="selectedStr"
-									        :expanded.sync="expanded"
 									        :filter="filter"
 									        :filter-method="filterTree"
 									        no-nodes-label="Please select a resource"
@@ -113,19 +112,19 @@
 													          dense options-dense borderless class="customDropdownText" />
 												</div>
 												<div class="text-center col-1">
-													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.ID"
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.ID"
 													         @input="onAttributeTypeSelected(prop.key, attributeTypes.ID)" :disable="prop.node.required" />
 												</div>
 												<div class="text-center col-2">
-													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.QUASI"
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.QUASI"
 													         @input="onAttributeTypeSelected(prop.key, attributeTypes.QUASI)" />
 												</div>
 												<div class="col-1">
-													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.SENSITIVE"
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.SENSITIVE"
 													         @input="onAttributeTypeSelected(prop.key, attributeTypes.SENSITIVE)" />
 												</div>
 												<div class="col-1">
-													<q-radio v-if="willBeDeidentified(prop.node)" v-model="attributeMappings[prop.key]" :val="attributeTypes.INSENSITIVE"
+													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.INSENSITIVE"
 													         @input="onAttributeTypeSelected(prop.key, attributeTypes.INSENSITIVE)" />
 												</div>
 											</div>
@@ -201,6 +200,7 @@ export default class FhirAttributeTable extends Vue {
     private filter: string = '';
     private fhirResourceOptions: string[] = [];
     private resources = {};
+    private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
 
     get fhirResourceList (): string[] { return this.$store.getters['fhir/selectedResources'] }
     get fhirProfileList (): string[] { return this.$store.getters['fhir/selectedProfiles'] }
@@ -263,7 +263,7 @@ export default class FhirAttributeTable extends Vue {
     @Watch('currentFHIRProf')
     onFHIRProfileChanged (newVal: any): void {
         if (newVal) {
-            ([this.selectedElem, this.expanded] = [null, [this.currentFHIRRes]]);
+            this.selectedElem = null;
             this.loadingFhir = true;
             this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
                 .then(() => {
@@ -285,13 +285,13 @@ export default class FhirAttributeTable extends Vue {
     }
 
     onAttributeTypeSelected (prop: string, val: string) {
+        console.log(prop, val);
         this.attributeMappings[prop] = val;
         if (val === this.attributeTypes.SENSITIVE) {
             this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
         } else if (val === this.attributeTypes.QUASI) {
             this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.PASS_THROUGH));
         }
-        this.fhirElementList = this.fhirElementList;
     }
 
     onSelected (target) {

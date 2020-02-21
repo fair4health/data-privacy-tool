@@ -40,7 +40,7 @@
 						        :selected.sync="selectedStr"
 						        :filter="filter"
 						        :filter-method="filterTree"
-						        no-nodes-label="Please select a resource"
+						        no-nodes-label="No sensitive attribute was selected"
 						        no-results-label="No result found"
 						        selected-color="primary"
 						        @update:selected="onSelected"
@@ -152,10 +152,10 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Watch} from 'vue-property-decorator'
-import Loading from '@/components/Loading.vue';
+    import {Component, Vue, Watch} from 'vue-property-decorator'
+    import Loading from '@/components/Loading.vue';
 
-@Component({
+    @Component({
     components: {
         AlgorithmConfigDialog: () => ({
             component: import('@/components/AlgorithmConfigDialog.vue'),
@@ -209,8 +209,7 @@ export default class SensitiveAttributeTable extends Vue {
 
     configureAlgorithm (node: fhir.ElementTree) {
         this.currentNode = node;
-        const attribute = node.value ? node.value : '';
-        this.currentAttribute = attribute;
+        this.currentAttribute = node.value ? node.value : '';
         this.configDialog = true;
     }
 

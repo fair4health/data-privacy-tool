@@ -34,7 +34,7 @@
 						        :selected.sync="selectedStr"
 						        :filter="filter"
 						        :filter-method="filterTree"
-						        no-nodes-label="Please select a resource"
+						        no-nodes-label="No quasi-identifier was selected"
 						        no-results-label="No result found"
 						        selected-color="primary"
 						        @update:selected="onSelected"
@@ -54,8 +54,8 @@
 										<span class="text-caption text-primary">{{ prop.node.selectedType }}</span>
 									</div>
 									<div class="text-center col-5">
-										<q-select v-if="parameterMappings[prop.key]" outlined dense @input="$forceUpdate()"
-										          v-model="parameterMappings[prop.key].name" :options="algorithms"
+										<q-select v-if="tempParameterMappings[prop.key]" outlined dense @input="onAlgorithmSelected(prop.key)"
+										          v-model="tempParameterMappings[prop.key].name" :options="algorithms"
 										          :option-disable="opt => filterPossibleAlgorithms(opt, prop.node)" >
 											<template v-slot:option="scope">
 												<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
@@ -70,10 +70,10 @@
 										</q-select>
 									</div>
 									<div class="text-center col-1">
-										<q-btn v-if="parameterMappings[prop.key] && parameterMappings[prop.key].name &&
-													(parameterMappings[prop.key].name !== envAlgorithms.PASS_THROUGH.name) &&
-													(parameterMappings[prop.key].name !== envAlgorithms.REDACTION.name) &&
-										            (parameterMappings[prop.key].name !== envAlgorithms.RECOVERABLE_SUBSTITUTION.name)"
+										<q-btn v-if="tempParameterMappings[prop.key] && tempParameterMappings[prop.key].name &&
+													(tempParameterMappings[prop.key].name !== envAlgorithms.PASS_THROUGH.name) &&
+													(tempParameterMappings[prop.key].name !== envAlgorithms.REDACTION.name) &&
+										            (tempParameterMappings[prop.key].name !== envAlgorithms.RECOVERABLE_SUBSTITUTION.name)"
 										       unelevated
 										       color="accent"
 										       text-color="white"
@@ -161,6 +161,7 @@ export default class QuasiIdentifierTable extends Vue {
     private filter: string = '';
     private envAlgorithms = environment.algorithms;
     private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
+    private tempParameterMappings = JSON.parse(JSON.stringify(this.parameterMappings));
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -199,10 +200,11 @@ export default class QuasiIdentifierTable extends Vue {
         this.currentNode = node;
         const attribute = node.value ? node.value : '';
         this.currentAttribute = attribute;
-        const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.parameterMappings[attribute].name);
+        const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempParameterMappings[attribute].name);
         Object.keys(environment.algorithms[algorithm]).forEach(key => {
-            if (!this.parameterMappings[attribute][key]) {
-                this.parameterMappings[attribute][key] = JSON.parse(JSON.stringify(environment.algorithms[algorithm][key]))
+            if (!this.tempParameterMappings[attribute][key]) {
+                this.tempParameterMappings[attribute][key] = JSON.parse(JSON.stringify(environment.algorithms[algorithm][key]));
+                this.parameterMappings[attribute][key] = this.tempParameterMappings[attribute][key];
             }
         });
         this.configDialog = true;
@@ -211,6 +213,10 @@ export default class QuasiIdentifierTable extends Vue {
     onSelected (target) {
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
+    }
+
+    onAlgorithmSelected (attribute: string) {
+        this.parameterMappings[attribute] = this.tempParameterMappings[attribute];
     }
 
     filterPossibleAlgorithms (opt, node): boolean {

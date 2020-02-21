@@ -46,8 +46,9 @@
 					<q-radio v-model="tempLengthPreserved" :val="false" label="Fixed Length" @input="onLengthPreservedSelected" />
 				</div>
 				<div class="col-2">
-					<q-input v-if="parameterMappings[currentAttribute].name !== envAlgorithms.SENSITIVE.name" v-model="parameterMappings[currentAttribute].fixedLength" type="number" dense outlined />
-					<q-input v-else v-model="parameterMappings[currentAttribute].algorithm.fixedLength" type="number" dense outlined />
+					<q-input v-if="parameterMappings[currentAttribute].name !== envAlgorithms.SENSITIVE.name" type="number" dense outlined
+					         v-model="parameterMappings[currentAttribute].fixedLength" :disable="tempLengthPreserved" />
+					<q-input v-else v-model="parameterMappings[currentAttribute].algorithm.fixedLength" type="number" dense outlined :disable="tempLengthPreserved" />
 				</div>
 			</div>
 		</q-card-section>

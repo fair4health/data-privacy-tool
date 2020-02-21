@@ -179,19 +179,18 @@ const fhirStore = {
                         if (bundle.entry?.length) {
                             const resource = bundle.entry[0].resource as fhir.StructureDefinition;
                             const list: fhir.ElementTree[] = [];
-                            const attributes: {} = {};
-                            let attributeChanged = false;
                             resource?.snapshot?.element.forEach((element) => {
                                 const parts = element?.id?.split('.') || [];
-                                let part: any;
+                                parts[0] = profileId;
+                                const newId = parts.join('.');
                                 let tmpList = list;
-                                part = parts.shift();
+                                let part = parts.shift();
                                 while (part) {
                                     let match = tmpList.findIndex(l => l.label === part);
                                     if (match === -1) {
                                         match = 0;
                                         const tmpObj = {
-                                            value: element?.id,
+                                            value: newId,
                                             label: part,
                                             definition: element?.definition,
                                             comment: element?.comment,
@@ -204,9 +203,8 @@ const fhirStore = {
                                             required: !!element?.min
                                         };
                                         tmpList.push(tmpObj);
-                                        if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj) && !attributes[tmpObj.value]) {
-                                            attributes[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
-                                            attributeChanged = true;
+                                        if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj) && !state.attributeMappings[tmpObj.value]) {
+                                            state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
                                         }
                                     }
                                     tmpList = tmpList[match].children as fhir.ElementTree[];
@@ -214,9 +212,6 @@ const fhirStore = {
                                 }
                             });
                             commit('setElementList', list);
-                            if (attributeChanged) {
-                                commit('setAttributeMappings', attributes);
-                            }
                         }
                         resolve(true)
                     })

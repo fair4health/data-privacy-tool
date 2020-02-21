@@ -134,7 +134,15 @@ export default class ConfigurationManager extends Vue {
             this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
                 const availableProfiles = this.allfhirProfilesList.filter(profile => this.fhirProfileList.indexOf(profile) !== -1);
                 this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(availableProfiles));
-                this.$forceUpdate();
+                this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
+                    .then(() => {
+                        this.loadingFhir = false;
+                        this.$forceUpdate();
+                    })
+                    .catch(err => {
+                        this.loadingFhir = false;
+                        throw err
+                    });
             });
         }
     }
