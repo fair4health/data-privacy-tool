@@ -1,27 +1,122 @@
 <template>
-    <div>
-        <q-toolbar class="bg-grey-4">
-            <q-toolbar-title class="text-grey-8">
-                De-identifier
-            </q-toolbar-title>
-            <q-space />
-            <q-btn flat round
-                   icon="fas fa-arrow-alt-circle-left"
-                   color="secondary"
-                   @click="$store.commit('decrementStep')"
-            />
-            <q-btn flat round
-                   icon="fas fa-arrow-alt-circle-right"
-                   color="primary"
-                   @click="$store.commit('incrementStep')"
-            />
-        </q-toolbar>
-    </div>
+	<div>
+		<q-toolbar class="bg-grey-4">
+			<q-toolbar-title class="text-grey-8">
+				De-identifier
+			</q-toolbar-title>
+		</q-toolbar>
+		<div v-if="deidentificationService.loading" class="q-mt-xl row justify-center items-center">
+			<div class="row q-col-gutter-lg">
+				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
+					<div class="row justify-start q-col-gutter-md">
+						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
+							<div class="q-mt-xl q-mb-md row justify-center items-center">
+								<div class="spinner-comp flex flex-center"></div>
+							</div>
+							<div class="row justify-center items-center">
+								{{deidentificationService.progressMessage}}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div v-if="!deidentificationService.loading" class="q-ma-sm">
+			<div class="row q-ma-md">
+				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+				<q-space />
+				<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+			</div>
+		</div>
+	</div>
 </template>
 
-<script>
-    export default {
-        name: 'Deidentifier'
+<script lang="ts">
+import {Component, Vue} from 'vue-property-decorator';
+import {environment} from '@/common/environment';
+import {DeidentificationService} from '@/common/services/deidentification.service';
+
+@Component
+export default class Deidentifier extends Vue {
+    private willBeAnonyed: string[] = [];
+    private groupedByProfiles: string[] = [];
+    private deidentificationService: DeidentificationService = new DeidentificationService(this.isArrayMappings, this.typeMappings, this.parameterMappings);
+
+    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
+    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+
+    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
+    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+
+    get isArrayMappings (): any { return this.$store.getters['fhir/isArrayMappings'] }
+    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
+
+    created () {
+        Object.keys(this.attributeMappings).forEach(key => {
+            if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
+                this.willBeAnonyed.push(key);
+            }
+        });
+        if (this.willBeAnonyed.length) {
+            this.groupedByProfiles = this.groupBy(this.willBeAnonyed, item => {
+                return [item.split('.')[1]];
+            });
+            this.deidentifyAll();
+        } else {
+            this.deidentificationService.loading = false;
+        }
     }
+
+    deidentifyAll () {
+        this.groupedByProfiles.forEach(attributes => {
+            const resource: string = attributes[0].split('.')[0];
+            const profile: string = attributes[0].split('.')[1];
+            const identifiers: string[][] = [];
+            const quasis: string[][] = [];
+            const sensitives: string[][] = [];
+            for (const key of attributes) {
+                if (this.attributeMappings[key] === environment.attributeTypes.ID) {
+                    identifiers.push(key.split('.').slice(2));
+                } else if (this.attributeMappings[key] === environment.attributeTypes.QUASI) {
+                    quasis.push(key.split('.').slice(2));
+                } else if (this.attributeMappings[key] === environment.attributeTypes.SENSITIVE) {
+                    sensitives.push(key.split('.').slice(2));
+                }
+            }
+            this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives);
+        });
+    }
+
+    groupBy (array, f) {
+        const groups = {};
+        array.forEach(o => {
+            const group = JSON.stringify(f(o));
+            groups[group] = groups[group] || [];
+            groups[group].push(o);
+        });
+        return Object.keys(groups).map(group => {
+            return groups[group];
+        });
+    }
+
+}
+
 </script>
 
+<style lang="stylus">
+	.spinner-comp
+		opacity 1
+	.spinner-comp:before
+		content ''
+		width 45px
+		height 45px
+		box-sizing border-box
+		position absolute
+		border-radius 50%
+		border-top 5px solid #d8d8d8
+		border-right 5px solid transparent
+		animation spinner .6s linear infinite
+	@keyframes spinner-comp
+		to
+			transform rotate(360deg)
+</style>

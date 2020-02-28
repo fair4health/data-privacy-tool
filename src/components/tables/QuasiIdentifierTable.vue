@@ -51,7 +51,7 @@
 										<span>{{ prop.node.label }} <span class="text-red">{{ prop.node.required ? '*' : '' }}</span></span>
 									</div>
 									<div class="text-center col-5">
-										<span class="text-caption text-primary">{{ prop.node.selectedType }}</span>
+										<span class="text-caption text-primary">{{ typeMappings[prop.key] }}</span>
 									</div>
 									<div class="text-center col-5">
 										<q-select v-if="tempParameterMappings[prop.key]" outlined dense @input="onAlgorithmSelected(prop.key)"
@@ -184,6 +184,9 @@ export default class QuasiIdentifierTable extends Vue {
     get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
     set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
+    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
+    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
         ([this.currentFHIRProf, this.selectedStr] = ['', '']);
@@ -196,17 +199,21 @@ export default class QuasiIdentifierTable extends Vue {
         }
     }
 
-    configureAlgorithm (node: fhir.ElementTree) {
-        this.currentNode = node;
-        const attribute = node.value ? node.value : '';
-        this.currentAttribute = attribute;
+    copyEmptyParameters (attribute: string) {
         const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempParameterMappings[attribute].name);
         Object.keys(environment.algorithms[algorithm]).forEach(key => {
-            if (!this.tempParameterMappings[attribute][key]) {
+            if (this.tempParameterMappings[attribute][key] === undefined) {
                 this.tempParameterMappings[attribute][key] = JSON.parse(JSON.stringify(environment.algorithms[algorithm][key]));
                 this.parameterMappings[attribute][key] = this.tempParameterMappings[attribute][key];
             }
         });
+    }
+
+    configureAlgorithm (node: fhir.ElementTree) {
+        this.currentNode = node;
+        const attribute = node.value ? node.value : '';
+        this.currentAttribute = attribute;
+		this.copyEmptyParameters(attribute);
         this.configDialog = true;
     }
 
@@ -216,6 +223,7 @@ export default class QuasiIdentifierTable extends Vue {
     }
 
     onAlgorithmSelected (attribute: string) {
+        this.copyEmptyParameters(attribute);
         this.parameterMappings[attribute] = this.tempParameterMappings[attribute];
     }
 
@@ -223,13 +231,13 @@ export default class QuasiIdentifierTable extends Vue {
         if (node.required && opt === environment.algorithms.REDACTION.name) {
             return true;
         }
-        return environment.primitiveTypes[node.selectedType].supports.indexOf(opt) === -1;
+        return environment.primitiveTypes[this.typeMappings[node.value]].supports.indexOf(opt) === -1;
     }
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
         return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-	        (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
     }
 
 }

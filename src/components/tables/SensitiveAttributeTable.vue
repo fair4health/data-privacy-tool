@@ -57,7 +57,7 @@
 										<span>{{ prop.node.label }} <span class="text-red">{{ prop.node.required ? '*' : '' }}</span></span>
 									</div>
 									<div class="text-center col-5">
-										<span class="text-caption text-primary">{{ prop.node.selectedType }}</span>
+										<span class="text-caption text-primary">{{ typeMappings[prop.key] }}</span>
 									</div>
 									<div class="text-center col-1">
 										<q-checkbox v-if="parameterMappings[prop.key]" v-model="rareElements"
@@ -195,6 +195,9 @@ export default class SensitiveAttributeTable extends Vue {
     get rareElements (): any { return this.$store.getters['fhir/rareElements'] }
     set rareElements (value) { this.$store.commit('fhir/setRareElements', value) }
 
+    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
+    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
         ([this.currentFHIRProf, this.selectedStr] = ['', '']);
@@ -225,7 +228,7 @@ export default class SensitiveAttributeTable extends Vue {
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
         return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-            (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
     }
 
 }

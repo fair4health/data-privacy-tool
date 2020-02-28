@@ -4754,8 +4754,7 @@ declare namespace fhir {
         short?: string
         min?: integer
         max?: string
-        type?: string[]
-        selectedType?: string
+        type?: string
         children?: ElementTree[],
         required: boolean
     }

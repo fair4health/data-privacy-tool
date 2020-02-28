@@ -107,9 +107,7 @@
 													<span>{{ prop.node.label }} <span class="text-red">{{ prop.node.required ? '*' : '' }}</span></span>
 												</div>
 												<div class="text-center col-5">
-													<span v-if="prop.node.type && prop.node.type.length === 1" class="text-caption text-primary">{{ prop.node.type[0] }}</span>
-													<q-select v-if="prop.node.type && prop.node.type.length > 1" v-model="prop.node.selectedType" :options="prop.node.type"
-													          dense options-dense borderless class="customDropdownText" />
+													<span class="text-caption text-primary">{{ prop.node.type }}</span>
 												</div>
 												<div class="text-center col-1">
 													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.ID"
@@ -196,11 +194,11 @@ export default class FhirAttributeTable extends Vue {
     private loadingFhir: boolean = false;
     private selectedStr: string = '';
     private selectedElem: any = null;
-    private expanded: string[] = [];
     private filter: string = '';
     private fhirResourceOptions: string[] = [];
     private resources = {};
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
+    private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
 
     get fhirResourceList (): string[] { return this.$store.getters['fhir/selectedResources'] }
     get fhirProfileList (): string[] { return this.$store.getters['fhir/selectedProfiles'] }
@@ -224,6 +222,9 @@ export default class FhirAttributeTable extends Vue {
     get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
     set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
+    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
+    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+
     created () {
         for (const resource of this.fhirResourceList) {
             this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
@@ -246,7 +247,11 @@ export default class FhirAttributeTable extends Vue {
                     // Fetch elements of base resources
                     if (!this.currentFHIRProf) {
                         this.$store.dispatch('fhir/getElements', this.currentFHIRRes)
-                            .then(() => this.loadingFhir = false )
+                            .then(() => {
+                                this.loadingFhir = false;
+                                this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
+                                this.tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
+                            })
                             .catch(err => {
                                 this.loadingFhir = false;
                                 throw err
@@ -267,7 +272,9 @@ export default class FhirAttributeTable extends Vue {
             this.loadingFhir = true;
             this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
                 .then(() => {
-                    this.loadingFhir = false
+                    this.loadingFhir = false;
+                    this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
+                    this.tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
                 })
                 .catch(err => {
                     this.loadingFhir = false;
@@ -285,7 +292,6 @@ export default class FhirAttributeTable extends Vue {
     }
 
     onAttributeTypeSelected (prop: string, val: string) {
-        console.log(prop, val);
         this.attributeMappings[prop] = val;
         if (val === this.attributeTypes.SENSITIVE) {
             this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
@@ -300,13 +306,13 @@ export default class FhirAttributeTable extends Vue {
     }
 
     willBeDeidentified (node): boolean {
-        return FHIRUtils.isPrimitive(node);
+        return FHIRUtils.isPrimitive(node, this.typeMappings);
     }
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
         return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-            (node.selectedType && node.selectedType.toLowerCase().indexOf(filt) > -1);
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
     }
 
   }

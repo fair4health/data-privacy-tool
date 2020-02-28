@@ -2,8 +2,8 @@ import {environment} from '@/common/environment';
 
 export class FHIRUtils {
 
-    static isPrimitive (tree: fhir.ElementTree): boolean {
-        return !!(tree.selectedType && environment.primitiveTypes[tree.selectedType]);
+    static isPrimitive (tree, typeMappings): boolean {
+        return !!(typeMappings[tree.value] && environment.primitiveTypes[typeMappings[tree.value]]);
     }
 
     static flatten (tree: fhir.ElementTree[]): fhir.ElementTree[] {
@@ -26,23 +26,23 @@ export class FHIRUtils {
         return tree;
     }
 
-    static includesPrivacyType (tree, attributeMappings, type: string): boolean {
+    static includesPrivacyType (tree, attributeMappings, type: string, typeMappings): boolean {
         if (!tree.children || !tree.children.length) {
-            return this.isPrimitive(tree) && attributeMappings[tree.value] === type;
+            return this.isPrimitive(tree, typeMappings) && attributeMappings[tree.value] === type;
         } else {
             let result = false;
             tree.children.map(node => {
-                result = result || this.includesPrivacyType(node, attributeMappings, type);
+                result = result || this.includesPrivacyType(node, attributeMappings, type, typeMappings);
             });
             return result;
         }
     }
 
-    static filterByAttributeType (tree: fhir.ElementTree[], attributeMappings, type: string): fhir.ElementTree[] {
-        tree = JSON.parse(JSON.stringify(tree)).filter(obj => this.includesPrivacyType(obj, attributeMappings, type));
+    static filterByAttributeType (tree: fhir.ElementTree[], attributeMappings, type: string, typeMappings): fhir.ElementTree[] {
+        tree = JSON.parse(JSON.stringify(tree)).filter(obj => this.includesPrivacyType(obj, attributeMappings, type, typeMappings));
         tree.map(node => {
             if (node.children && node.children.length) {
-                node.children = this.filterByAttributeType(JSON.parse(JSON.stringify(node.children)), attributeMappings, type);
+                node.children = this.filterByAttributeType(JSON.parse(JSON.stringify(node.children)), attributeMappings, type, typeMappings);
             }
         });
         return tree;

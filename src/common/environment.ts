@@ -1,4 +1,5 @@
 const onfhirBase = 'http://f4h.srdc.com.tr/fhir';
+// const onfhirBase = 'http://192.168.1.105:8080/fhir';
 
 export const environment = {
     server: {
@@ -12,11 +13,6 @@ export const environment = {
         }
     },
     hl7: 'http://hl7.org/fhir',
-    profiles: {
-        patient_uv_ips: 'http://hl7.org/fhir/uv/ips/StructureDefinition/patient-uv-ips',
-        practitioner_uv_ips: 'http://hl7.org/fhir/uv/ips/StructureDefinition/practitioner-uv-ips',
-        condition_uv_ips: 'http://hl7.org/fhir/uv/ips/StructureDefinition/condition-uv-ips'
-    },
     attributeTypes: {
         ID: 'Identifier',
         QUASI: 'Quasi-identifier',

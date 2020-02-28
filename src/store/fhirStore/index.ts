@@ -4,6 +4,36 @@ import StructureDefinition = fhir.StructureDefinition;
 import { FHIRUtils } from '@/common/utils/fhir-util'
 
 const fhirStore = {
+    capitalizeFirstLetter (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    saveObject (newId, part, state, element, type, isMultiple) {
+        if (isMultiple) {
+            // remove [x] at the end and put Boolean, Integer etc. instead
+            newId = newId.substring(0, newId.length - 3) + fhirStore.capitalizeFirstLetter(type.code);
+            part = part?.substring(0, part?.length - 3) + fhirStore.capitalizeFirstLetter(type.code);
+        }
+        const tmpObj = {
+            value: newId,
+            label: part,
+            definition: element?.definition,
+            comment: element?.comment,
+            short: element?.short,
+            min: element?.min,
+            max: element?.max,
+            type: type ? type.code : undefined,
+            children: [],
+            required: !!element?.min
+        };
+        if (tmpObj.value && !state.typeMappings[tmpObj.value]) {
+            state.typeMappings[tmpObj.value] = tmpObj.type;
+        }
+        if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
+            state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+        }
+        state.isArrayMappings[tmpObj.value] = element.max === '*';
+        return tmpObj;
+    },
     namespaced: true,
     state: {
         resourceList: null,
@@ -24,6 +54,8 @@ const fhirStore = {
         kValue: 5,
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
+        isArrayMappings: {},
+        typeMappings: {}
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -43,7 +75,9 @@ const fhirStore = {
         parameterMappings: state => state.parameterMappings || {},
         kValue: state => state.kValue || 5,
         fhirBase: state => state.fhirBase,
-        fhirService: state => state.fhirService
+        fhirService: state => state.fhirService,
+        isArrayMappings: state => state.isArrayMappings || {},
+        typeMappings: state => state.typeMappings || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -55,8 +89,10 @@ const fhirStore = {
         setElementList (state, list) {
             state.elementList = list;
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
-            state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings, environment.attributeTypes.QUASI) : [];
-            state.sensitiveElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings, environment.attributeTypes.SENSITIVE) : [];
+            state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
+                                                        environment.attributeTypes.QUASI, state.typeMappings) : [];
+            state.sensitiveElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
+                                                        environment.attributeTypes.SENSITIVE, state.typeMappings) : [];
         },
         setRareElements (state, list) {
             state.rareElements = list;
@@ -91,6 +127,9 @@ const fhirStore = {
         updateFhirBase (state, baseUrl: string) {
             state.fhirBase = baseUrl;
             state.fhirService = new FhirService(baseUrl)
+        },
+        setTypeMappings (state, value) {
+            state.typeMappings = value
         }
     },
     actions: {
@@ -181,7 +220,7 @@ const fhirStore = {
                             const list: fhir.ElementTree[] = [];
                             resource?.snapshot?.element.forEach((element) => {
                                 const parts = element?.id?.split('.') || [];
-                                parts[0] = profileId;
+                                parts.splice(1, 0, profileId);
                                 const newId = parts.join('.');
                                 let tmpList = list;
                                 let part = parts.shift();
@@ -189,22 +228,14 @@ const fhirStore = {
                                     let match = tmpList.findIndex(l => l.label === part);
                                     if (match === -1) {
                                         match = 0;
-                                        const tmpObj = {
-                                            value: newId,
-                                            label: part,
-                                            definition: element?.definition,
-                                            comment: element?.comment,
-                                            short: element?.short,
-                                            min: element?.min,
-                                            max: element?.max,
-                                            type: element.type?.map(_ => _.code) || [],
-                                            selectedType: (element.type && element.type[0]) ? element.type[0].code : undefined,
-                                            children: [],
-                                            required: !!element?.min
-                                        };
-                                        tmpList.push(tmpObj);
-                                        if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj) && !state.attributeMappings[tmpObj.value]) {
-                                            state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+                                        if (element.type && element.type.length > 1) { // multiple types
+                                            element.type.forEach(type => {
+                                                const tmpObj = fhirStore.saveObject(newId, part, state, element, type, true);
+                                                tmpList.push(tmpObj);
+                                            });
+                                        } else {
+                                            const tmpObj = fhirStore.saveObject(newId, part, state, element, element.type ? element.type[0] : undefined, false);
+                                            tmpList.push(tmpObj);
                                         }
                                     }
                                     tmpList = tmpList[match].children as fhir.ElementTree[];
