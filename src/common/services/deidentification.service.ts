@@ -8,17 +8,19 @@ export class DeidentificationService {
     isArrayMappings: any;
     typeMappings: any;
     parameterMappings: any;
+    rareValueMappings: any;
     loading: boolean;
     progressMessage: string;
     identifiers: string[][];
     quasis: string[][];
     sensitives: string[][];
 
-    constructor (isArrayMappings: any, typeMappings: any, parameterMappings: any) {
+    constructor (isArrayMappings: any, typeMappings: any, parameterMappings: any, rareValueMappings: any) {
         this.fhirService = new FhirService();
         this.isArrayMappings = isArrayMappings;
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
+        this.rareValueMappings = rareValueMappings;
         this.loading = true;
         this.progressMessage = '';
         this.identifiers = [];
@@ -94,6 +96,15 @@ export class DeidentificationService {
                 attribute = this.handleQuasis(key, attribute, paths, i++, paths.length - 1);
             }
         });
+        this.sensitives.forEach(paths => {
+            let key = prefix;
+            let attribute = attributes;
+            let i = 0;
+            while (i < paths.length && attribute) {
+                key += '.' + paths[i];
+                attribute = this.handleSensitives(key, attribute, paths, i++, paths.length - 1);
+            }
+        });
         this.identifiers.forEach(paths => {
             let key = prefix;
             let attribute = attributes;
@@ -133,6 +144,21 @@ export class DeidentificationService {
         return attribute;
     }
 
+    handleSensitives (key: string, attribute, paths, index: number, end: number) {
+        if (this.isArrayMappings[key] && attribute[paths[index]]) { // array
+            for (let elem of attribute[paths[index]]) {
+                elem = this.handleSensitives(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+            }
+        } else if (index === end && attribute[paths[index]]) {
+            if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length) {
+                if (this.rareValueMappings[key].indexOf(attribute[paths[index]]) !== -1) {
+                    attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, attribute[paths[index]], this.typeMappings[key]);
+                }
+            }
+        }
+        return attribute;
+    }
+
     executeAlgorithm (key, parameters, data, primitiveType) {
         const regex = environment.primitiveTypes[primitiveType].regex;
         switch (parameters.name) {
@@ -145,7 +171,7 @@ export class DeidentificationService {
                 if (regex) {
                     data = new RandExp(regex).gen();
                 } else {
-                    data = new Array((parameters.lengthPreserved ? data.length : parameters.fixedLength) + 1)
+                    data = new Array(Number(parameters.lengthPreserved ? data.length : parameters.fixedLength) + 1)
                         .join( parameters.substitutionChar );
                 }
                 break;
@@ -214,13 +240,6 @@ export class DeidentificationService {
                     data = moment(tempDate).tz(moment.tz.guess()).format(day ? 'YYYY-MM-DD' : (month ? 'YYYY-MM' : 'YYYY'));
                 }
                 break;
-            // case 'Sensitive':
-            //     if (parameters.isRare) {
-            //         // parameters.algorithm: {name: 'Pass Through'}}
-            //     } else {
-            //         // parameters.l_diversity: null, parameters.t_closeness: null
-            //     }
-            //     break;
         }
         return data;
     }

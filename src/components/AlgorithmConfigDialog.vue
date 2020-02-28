@@ -35,6 +35,35 @@
 				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs q-mb-sm" /> {{getInfoText()}} </span>
 			</q-item-label>
 		</q-card-section>
+		<q-card-section v-if="isSensitive()" class="q-pt-none">
+			<q-select
+				v-model="rareValues"
+				multiple
+				use-chips
+				use-input
+				new-value-mode="add"
+				stack-label
+				hide-dropdown-icon
+				placeholder="Enter rare values here..."
+				label="Rare Values"
+				@input.native="rareInput = $event.target.value"
+				@new-value="createValue"
+			>
+				<template v-slot:selected-item="scope">
+					<q-chip
+						removable
+						dense
+						@remove="scope.removeAtIndex(scope.index)"
+						:tabindex="scope.tabindex"
+						color="white"
+						text-color="accent"
+						class="q-mb-none"
+					>
+						{{ scope.opt }}
+					</q-chip>
+				</template>
+			</q-select>
+		</q-card-section>
 
 		<!--  SUBSTITUTION  -->
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.SUBSTITUTION.name && !hasRegex()" class="q-pt-none">
@@ -139,7 +168,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 import {environment} from '@/common/environment'
 
 @Component
@@ -148,6 +177,8 @@ export default class AlgorithmConfigDialog extends Vue {
     private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
     private tempParameterMappings;
     private dateUnitOptions: string[] = [];
+    private rareValues: string[] = JSON.parse(JSON.stringify(this.rareValueMappings[this.currentAttribute]));
+    private rareInput: string = '';
 
     get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
     set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
@@ -164,8 +195,11 @@ export default class AlgorithmConfigDialog extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
 
+    get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
+    set rareValueMappings (value) { this.$store.commit('fhir/setRareValueMappings', value) }
+
     created () {
-        if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
+        if (this.isSensitive()) {
             this.tempParameterMappings = this.parameterMappings[this.currentAttribute].algorithm;
         } else {
             this.tempParameterMappings = this.parameterMappings[this.currentAttribute];
@@ -177,6 +211,11 @@ export default class AlgorithmConfigDialog extends Vue {
         return this.currentAttribute.split('.');
     }
 
+    @Watch('rareValues')
+    onRareValuesChanged () {
+        this.rareValueMappings[this.currentAttribute] = this.rareValues;
+    }
+
     onAlgorithmSelected () {
         const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempParameterMappings.name);
         this.tempParameterMappings = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
@@ -185,7 +224,7 @@ export default class AlgorithmConfigDialog extends Vue {
 
     updateParameters () {
         this.$forceUpdate();
-        if (this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name) {
+        if (this.isSensitive()) {
             this.parameterMappings[this.currentAttribute].algorithm = JSON.parse(JSON.stringify(this.tempParameterMappings));
         } else {
             this.parameterMappings[this.currentAttribute] = JSON.parse(JSON.stringify(this.tempParameterMappings));
@@ -210,6 +249,10 @@ export default class AlgorithmConfigDialog extends Vue {
 
     isInteger (): boolean {
         return this.typeMappings[this.currentAttribute] !== 'decimal';
+    }
+
+    isSensitive (): boolean {
+        return this.parameterMappings[this.currentAttribute].name === environment.algorithms.SENSITIVE.name;
     }
 
     getAlgorithmName (): string {
@@ -246,27 +289,38 @@ export default class AlgorithmConfigDialog extends Vue {
         }
     }
 
-    getInfoText () {
+    getInfoText (): string {
+        let info: string = '';
         if (this.getAlgorithmName() === this.envAlgorithms.PASS_THROUGH.name) {
-            return 'The attribute will be saved with no change.';
+            info = 'The attribute will be saved with no change.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.REDACTION.name) {
-            return 'The attribute will be completely removed.';
+            info = 'The attribute will be completely removed.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.RECOVERABLE_SUBSTITUTION.name) {
-            return 'New value will be generated automatically.';
+            info = 'New value will be generated automatically.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.SUBSTITUTION.name && !this.hasRegex()) {
-            return 'Attribute value will be replaced with the substitution character that you provide.';
+            info = 'Attribute value will be replaced with the substitution character that you provide.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.SUBSTITUTION.name && this.hasRegex()) {
-            return 'Attribute value will be replaced with a randomly generated value that fits attribute\'s regular expression.';
+            info = 'Attribute value will be replaced with a randomly generated value that fits attribute\'s regular expression.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.FUZZING.name) {
-            return 'A noise will be added to the attribute within the range of the percentage you provide.';
+            info = 'A noise will be added to the attribute within the range of the percentage you provide.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && !this.isDateType() && this.isInteger()) {
-            return 'Last digits of the integer will be rounded by your choice.';
+            info = 'Last digits of the integer will be rounded by your choice.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && !this.isDateType() && !this.isInteger()) {
-            return 'Decimal places of the floating number will be rounded by your choice. \'0\' means rounding to an integer.';
+            info = 'Decimal places of the floating number will be rounded by your choice. \'0\' means rounding to an integer.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && this.isDateType()) {
-            return 'Only the information of the date unit that you provide will be kept.';
+            info = 'Only the information of the date unit that you provide will be kept.';
         } else if (this.getAlgorithmName() === this.envAlgorithms.DATE_SHIFTING.name) {
-            return 'Date will be shifted randomly within a range that you provide.';
+            info = 'Date will be shifted randomly within a range that you provide.';
+        }
+        if (this.isSensitive()) {
+            return  'You should provide the rare values for this attribute below. ' + info;
+        }
+        return info;
+    }
+
+    createValue (val, done) {
+        if (done) {
+            done(val)
         }
     }
 

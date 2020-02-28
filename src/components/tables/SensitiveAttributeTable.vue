@@ -23,7 +23,7 @@
 							<span class="text-white">Type</span>
 						</div>
 						<div class="text-center col-2">
-							<span class="text-white">Is Rare?</span>
+							<span class="text-white">Has Rare Values?</span>
 						</div>
 						<div class="text-center col-2">
 							<span class="text-white">L-diversity (l)</span>
@@ -64,7 +64,7 @@
 										            :val="prop.key" @input="setRareness(prop.key)" />
 									</div>
 									<div class="col-1">
-										<q-btn v-if="parameterMappings[prop.key] && parameterMappings[prop.key].isRare && attributeMappings[prop.key]"
+										<q-btn v-if="parameterMappings[prop.key] && parameterMappings[prop.key].hasRare && attributeMappings[prop.key]"
 										       unelevated
 										       color="accent"
 										       text-color="white"
@@ -79,7 +79,6 @@
 											outlined
 											dense
 											style="max-width: 60px"
-											:disable="parameterMappings[prop.key].isRare"
 										/>
 									</div>
 									<div class="row justify-center items-center col-2">
@@ -89,7 +88,6 @@
 											outlined
 											dense
 									        style="max-width: 100px"
-											:disable="parameterMappings[prop.key].isRare"
 										/>
 									</div>
 								</div>
@@ -222,7 +220,7 @@ export default class SensitiveAttributeTable extends Vue {
     }
 
     setRareness (attribute: string) {
-        this.parameterMappings[attribute].isRare = this.rareElements.indexOf(attribute) !== -1;
+        this.parameterMappings[attribute].hasRare = this.rareElements.indexOf(attribute) !== -1;
     }
 
     filterTree (node, filter) {

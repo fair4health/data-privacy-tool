@@ -27,7 +27,7 @@ export const environment = {
         GENERALIZATION: {name: 'Generalization', roundedToFloor: true, dateUnit: 'Years', roundDigits: 1}, // dates and numbers
         DATE_SHIFTING: {name: 'Date Shifting', dateUnit: 'Months', range: 3}, // dates
         REDACTION: {name: 'Redaction'},
-        SENSITIVE: {name: 'Sensitive', isRare: false, l_diversity: null, t_closeness: null, algorithm: {name: 'Pass Through'}}
+        SENSITIVE: {name: 'Sensitive', hasRare: false, l_diversity: null, t_closeness: null, algorithm: {name: 'Pass Through'}}
     },
     primitiveTypes: {
         boolean: {type: 'boolean', supports: ['Pass Through', 'Redaction']},

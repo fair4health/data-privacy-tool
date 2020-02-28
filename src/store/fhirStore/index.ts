@@ -55,7 +55,8 @@ const fhirStore = {
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
         isArrayMappings: {},
-        typeMappings: {}
+        typeMappings: {},
+        rareValueMappings: {}
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -77,7 +78,8 @@ const fhirStore = {
         fhirBase: state => state.fhirBase,
         fhirService: state => state.fhirService,
         isArrayMappings: state => state.isArrayMappings || {},
-        typeMappings: state => state.typeMappings || {}
+        typeMappings: state => state.typeMappings || {},
+        rareValueMappings: state => state.rareValueMappings || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -130,6 +132,9 @@ const fhirStore = {
         },
         setTypeMappings (state, value) {
             state.typeMappings = value
+        },
+        setRareValueMappings (state, value) {
+            state.rareValueMappings = value
         }
     },
     actions: {
