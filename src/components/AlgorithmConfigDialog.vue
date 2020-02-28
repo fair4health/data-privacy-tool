@@ -180,7 +180,7 @@ export default class AlgorithmConfigDialog extends Vue {
     onAlgorithmSelected () {
         const algorithm: any = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === this.tempParameterMappings.name);
         this.tempParameterMappings = JSON.parse(JSON.stringify(environment.algorithms[algorithm]));
-		this.updateParameters();
+        this.updateParameters();
     }
 
     updateParameters () {
@@ -196,7 +196,7 @@ export default class AlgorithmConfigDialog extends Vue {
         if (this.currentNode.required && opt === environment.algorithms.REDACTION.name) {
             return true;
         }
-		return environment.primitiveTypes[this.typeMappings[this.currentAttribute]].supports.indexOf(opt) === -1;
+        return environment.primitiveTypes[this.typeMappings[this.currentAttribute]].supports.indexOf(opt) === -1;
     }
 
     hasRegex (): boolean {

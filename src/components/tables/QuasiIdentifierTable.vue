@@ -213,7 +213,7 @@ export default class QuasiIdentifierTable extends Vue {
         this.currentNode = node;
         const attribute = node.value ? node.value : '';
         this.currentAttribute = attribute;
-		this.copyEmptyParameters(attribute);
+        this.copyEmptyParameters(attribute);
         this.configDialog = true;
     }
 
