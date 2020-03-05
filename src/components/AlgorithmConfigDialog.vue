@@ -177,7 +177,7 @@ export default class AlgorithmConfigDialog extends Vue {
     private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
     private tempParameterMappings;
     private dateUnitOptions: string[] = [];
-    private rareValues: string[] = JSON.parse(JSON.stringify(this.rareValueMappings[this.currentAttribute]));
+    private rareValues: string[] = this.rareValueMappings[this.currentAttribute] ? JSON.parse(JSON.stringify(this.rareValueMappings[this.currentAttribute])) : [];
     private rareInput: string = '';
 
     get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
@@ -291,25 +291,25 @@ export default class AlgorithmConfigDialog extends Vue {
 
     getInfoText (): string {
         let info: string = '';
-        if (this.getAlgorithmName() === this.envAlgorithms.PASS_THROUGH.name) {
+        if (this.getAlgorithmName() === environment.algorithms.PASS_THROUGH.name) {
             info = 'The attribute will be saved with no change.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.REDACTION.name) {
+        } else if (this.getAlgorithmName() === environment.algorithms.REDACTION.name) {
             info = 'The attribute will be completely removed.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.RECOVERABLE_SUBSTITUTION.name) {
+        } else if (this.getAlgorithmName() === environment.algorithms.RECOVERABLE_SUBSTITUTION.name) {
             info = 'New value will be generated automatically.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.SUBSTITUTION.name && !this.hasRegex()) {
+        } else if (this.getAlgorithmName() === environment.algorithms.SUBSTITUTION.name && !this.hasRegex()) {
             info = 'Attribute value will be replaced with the substitution character that you provide.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.SUBSTITUTION.name && this.hasRegex()) {
+        } else if (this.getAlgorithmName() === environment.algorithms.SUBSTITUTION.name && this.hasRegex()) {
             info = 'Attribute value will be replaced with a randomly generated value that fits attribute\'s regular expression.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.FUZZING.name) {
+        } else if (this.getAlgorithmName() === environment.algorithms.FUZZING.name) {
             info = 'A noise will be added to the attribute within the range of the percentage you provide.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && !this.isDateType() && this.isInteger()) {
+        } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && !this.isDateType() && this.isInteger()) {
             info = 'Last digits of the integer will be rounded by your choice.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && !this.isDateType() && !this.isInteger()) {
+        } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && !this.isDateType() && !this.isInteger()) {
             info = 'Decimal places of the floating number will be rounded by your choice. \'0\' means rounding to an integer.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.GENERALIZATION.name && this.isDateType()) {
+        } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && this.isDateType()) {
             info = 'Only the information of the date unit that you provide will be kept.';
-        } else if (this.getAlgorithmName() === this.envAlgorithms.DATE_SHIFTING.name) {
+        } else if (this.getAlgorithmName() === environment.algorithms.DATE_SHIFTING.name) {
             info = 'Date will be shifted randomly within a range that you provide.';
         }
         if (this.isSensitive()) {

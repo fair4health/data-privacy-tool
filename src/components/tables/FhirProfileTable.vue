@@ -26,7 +26,6 @@
 					{{key}}
 				</q-item-section>
 			</template>
-
 			<q-card>
 				<template v-for="profile in resources[key]">
 					<q-item>
@@ -47,8 +46,20 @@
 					<q-separator />
 				</template>
 			</q-card>
-
 		</q-expansion-item>
+
+		<q-dialog v-model="infoDialog">
+			<q-card>
+				<q-card-section class="row items-center q-pb-none text-primary" >
+					<div class="text-h5">{{infoProfile.title}}</div>
+					<q-space />
+					<q-btn icon="close" flat round dense v-close-popup />
+				</q-card-section>
+				<q-card-section>
+					{{infoProfile.description}}
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 	</div>
 </template>
 
@@ -60,6 +71,8 @@ export default class FhirProfileTable extends Vue {
     private searchString: string = '';
     private resources = {};
     private currentResources: string[] = [];
+    private infoDialog: boolean = false;
+    private infoProfile = {title: '', description: ''};
 
     get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
     get selectedResources (): string[] { return this.$store.getters['fhir/selectedResources'] }
@@ -101,8 +114,8 @@ export default class FhirProfileTable extends Vue {
     }
 
     getProfileInfo (profile: any) {
-        // TODO provide info about corresponding profile
-        console.log(profile);
+        this.infoProfile = profile;
+        this.infoDialog = true;
     }
 
     searchResources () {

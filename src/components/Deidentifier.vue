@@ -14,7 +14,7 @@
 								<div class="spinner-comp flex flex-center"></div>
 							</div>
 							<div class="row justify-center items-center">
-								{{deidentificationService.progressMessage}}
+								<span class="text-weight-bold text-grey-8" style="font-size: 20px">{{deidentificationService.progressMessage}}</span>
 							</div>
 						</div>
 					</div>
@@ -22,6 +22,24 @@
 			</div>
 		</div>
 		<div v-if="!deidentificationService.loading" class="q-ma-sm">
+			<div class="row q-col-gutter-lg">
+				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
+					<div class="row justify-start q-col-gutter-md">
+						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
+							<div class="q-mt-xl q-mb-md row justify-center items-center">
+								<transition appear enter-active-class="animated heartBeat">
+									<q-icon size="100px" class="mdi mdi-shield-check" color="primary"></q-icon>
+								</transition>
+							</div>
+							<div class="row justify-center items-center">
+								<span class="text-weight-bold text-grey-8" style="font-size: 20px">
+									{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified and updated in the repository.
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="row q-ma-md">
 				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
 				<q-space />
@@ -69,7 +87,8 @@ export default class Deidentifier extends Vue {
     }
 
     deidentifyAll () {
-        this.groupedByProfiles.forEach(attributes => {
+        this.deidentificationService.deidentifiedResourceNumber = 0;
+        const promises: Array<Promise<any>> = this.groupedByProfiles.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
             const profile: string = attributes[0].split('.')[1];
             const identifiers: string[][] = [];
@@ -84,8 +103,9 @@ export default class Deidentifier extends Vue {
                     sensitives.push(key.split('.').slice(2));
                 }
             }
-            this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives);
+            return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives);
         });
+        Promise.all(promises);
     }
 
     groupBy (array, f) {
@@ -109,8 +129,8 @@ export default class Deidentifier extends Vue {
 		opacity 1
 	.spinner-comp:before
 		content ''
-		width 45px
-		height 45px
+		width 75px
+		height 75px
 		box-sizing border-box
 		position absolute
 		border-radius 50%

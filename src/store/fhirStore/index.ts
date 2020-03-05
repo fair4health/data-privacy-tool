@@ -89,7 +89,7 @@ const fhirStore = {
             state.profileList = list
         },
         setElementList (state, list) {
-            state.elementList = list;
+            state.elementList = list?.length ? FHIRUtils.setRequirements(list) : [];
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
             state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
                                                         environment.attributeTypes.QUASI, state.typeMappings) : [];
@@ -208,7 +208,7 @@ const fhirStore = {
 
                         commit('setProfileList', bundle.entry?.map(e => {
                             const structure = e.resource as fhir.StructureDefinition;
-                            return {id: structure.id, title: structure.title}
+                            return {id: structure.id, title: structure.title, description: structure.description}
                         }) || []);
                         resolve(true)
                     })

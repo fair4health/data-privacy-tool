@@ -16,6 +16,18 @@ export class FHIRUtils {
         }, [])
     }
 
+    static setRequirements (tree: fhir.ElementTree[], required?: boolean): fhir.ElementTree[] {
+        tree.map(node => {
+            if (required) {
+                node.required = true;
+            }
+            if (node.children && node.children.length) {
+                node.children = this.setRequirements(JSON.parse(JSON.stringify(node.children)), node.required);
+            }
+        });
+        return tree;
+    }
+
     static filter (tree: fhir.ElementTree[], elements: any[] ): fhir.ElementTree[] {
         tree = JSON.parse(JSON.stringify(tree)).filter(obj => elements.indexOf(obj.value) !== -1);
         tree.map(node => {

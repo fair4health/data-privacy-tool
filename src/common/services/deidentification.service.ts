@@ -14,6 +14,7 @@ export class DeidentificationService {
     identifiers: string[][];
     quasis: string[][];
     sensitives: string[][];
+    deidentifiedResourceNumber = 0;
 
     constructor (isArrayMappings: any, typeMappings: any, parameterMappings: any, rareValueMappings: any) {
         this.fhirService = new FhirService();
@@ -44,19 +45,21 @@ export class DeidentificationService {
         })
     }
 
-    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][]) {
+    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][]): Promise<any> {
         this.identifiers = identifiers;
         this.quasis = quasis;
         this.sensitives = sensitives;
-        this.getEntries(resource, profile).then(entries => {
-            this.progressMessage = 'De-identifying ' + profile + ' profile...';
-            console.log('before', entries);
-            entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-            this.saveEntriesBack(entries);
-        });
+        return new Promise((resolve, reject) => {
+            this.getEntries(resource, profile).then(entries => {
+                this.progressMessage = 'De-identifying ' + profile + ' profile...';
+                entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                this.saveEntriesBack(entries).then(res => resolve());
+            });
+        })
     }
 
-    saveEntriesBack (entries) {
+    saveEntriesBack (entries): Promise<any> {
+        const promises: Array<Promise<any>> = [];
         entries.forEach(entry => {
             entry.resource.meta.security = [{
                 system : 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue',
@@ -72,18 +75,18 @@ export class DeidentificationService {
 
         });
 
-        const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
-        console.log('bulk', bulk);
-        // while (bulk.length) {
-        //     this.fhirService.postBatch(bulk.splice(0, 1000), 'POST')
-        //         .then(response => {
-        //
-        //             console.log('response', response);
-        //
-        //         })
-        //         .catch(err => {} );
-        // }
-        this.loading = false;
+        return new Promise((resolve, reject) => {
+            const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
+            while (bulk.length) {
+                promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), 'PUT'));
+                this.deidentifiedResourceNumber += bulk.length;
+            }
+            Promise.all(promises)
+            .then(res => {
+                this.loading = false;
+                resolve();
+            })
+        })
     }
 
     changeAttributes (prefix: string, attributes) {

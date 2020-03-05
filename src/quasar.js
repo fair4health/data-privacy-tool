@@ -5,6 +5,8 @@ import 'quasar/dist/quasar.ie.polyfills'
 import '@quasar/extras/roboto-font/roboto-font.css'
 import '@quasar/extras/material-icons/material-icons.css'
 import '@quasar/extras/fontawesome-v5/fontawesome-v5.css'
+import '@quasar/extras/mdi-v4/mdi-v4.css'
+import '@quasar/extras/animate/heartBeat.css'
 import {
     Quasar,
     QLayout,
@@ -18,6 +20,7 @@ import {
     QCheckbox,
     QIcon,
     QList,
+    QLinearProgress,
     QItem,
     QItemSection,
     QItemLabel,
@@ -82,7 +85,8 @@ Vue.use(Quasar, {
             position: 'top',
             classes: 'notify-opacity',
             actions: [ { icon: 'clear', color: 'white' } ]
-        }
+        },
+        animations: 'all'
     },
     components: {
         QLayout,
@@ -96,6 +100,7 @@ Vue.use(Quasar, {
         QCheckbox,
         QIcon,
         QList,
+        QLinearProgress,
         QItem,
         QItemSection,
         QItemLabel,

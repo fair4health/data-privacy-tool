@@ -144,7 +144,7 @@
 													{{ selectedElem.value }}
 													<q-tooltip>{{ selectedElem.value }}</q-tooltip>
 												</u>
-												<span class="text-red">{{ selectedElem.min ? '*' : '' }}</span>
+												<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
 											</q-item-label>
 										</q-toolbar>
 										<div class="q-ma-sm q-gutter-sm">
