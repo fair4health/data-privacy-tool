@@ -319,6 +319,7 @@ export class DeidentificationService {
     }
 
     getRandomDate (date: Date, unit: string, range: number) {
+        range = Number(range);
         let [start, end] = [date, date];
         switch (unit) {
             case 'Years':
