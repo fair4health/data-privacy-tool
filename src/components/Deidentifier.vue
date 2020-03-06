@@ -10,7 +10,7 @@
 				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
 					<div class="row justify-start q-col-gutter-md">
 						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
-							<div class="q-mt-xl q-mb-md row justify-center items-center">
+							<div class="q-mt-xl q-mb-xl row justify-center items-center">
 								<div class="spinner-comp flex flex-center"></div>
 							</div>
 							<div class="row justify-center items-center">
@@ -26,7 +26,7 @@
 				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
 					<div class="row justify-start q-col-gutter-md">
 						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
-							<div class="q-mt-xl q-mb-md row justify-center items-center">
+							<div class="q-mt-xl q-mb-lg row justify-center items-center">
 								<transition appear enter-active-class="animated heartBeat">
 									<q-icon size="100px" class="mdi mdi-shield-check" color="primary"></q-icon>
 								</transition>
