@@ -5,7 +5,6 @@ import moment from 'moment-timezone';
 
 export class DeidentificationService {
     fhirService: FhirService;
-    isArrayMappings: any;
     typeMappings: any;
     parameterMappings: any;
     rareValueMappings: any;
@@ -16,9 +15,8 @@ export class DeidentificationService {
     sensitives: string[][];
     deidentifiedResourceNumber = 0;
 
-    constructor (isArrayMappings: any, typeMappings: any, parameterMappings: any, rareValueMappings: any) {
+    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any) {
         this.fhirService = new FhirService();
-        this.isArrayMappings = isArrayMappings;
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
@@ -121,42 +119,57 @@ export class DeidentificationService {
     }
 
     removeIdentifiers (key: string, attribute, paths, index: number, end: number) {
-        if (this.isArrayMappings[key] && attribute[paths[index]]) { // array
-            for (let elem of attribute[paths[index]]) {
-                elem = this.removeIdentifiers(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+            const len = attribute[paths[index]].length;
+            for (let i = 0; i < len; i++) {
+                const elem = attribute[paths[index]][i];
+                if (paths[index + 1]) { // objects in array
+                    attribute[paths[index]][i] = this.removeIdentifiers(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+                } else { // primitives in array
+                    delete attribute[paths[index]];
+                }
             }
-        } else if (index === end && attribute[paths[index]]) {
+        } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             delete attribute[paths[index]];
         }
         return attribute;
     }
 
     handleQuasis (key: string, attribute, paths, index: number, end: number) {
-        if (this.isArrayMappings[key] && attribute[paths[index]]) { // array
-            for (let elem of attribute[paths[index]]) {
-                elem = this.handleQuasis(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+            const len = attribute[paths[index]].length;
+            for (let i = 0; i < len; i++) {
+                const elem = attribute[paths[index]][i];
+                if (paths[index + 1]) { // objects in array
+                    attribute[paths[index]][i] = this.handleQuasis(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+                } else { // primitives in array
+                    attribute[paths[index]][i] = this.executeAlgorithm(key, this.parameterMappings[key], elem, this.typeMappings[key]);
+                }
             }
-        } else if (index === end && attribute[paths[index]]) {
-            // console.log('quasi', attribute[paths[index]], attribute, paths[index], key);
-
+        } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key], attribute[paths[index]], this.typeMappings[key]);
         }
-
-        // attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key], attribute.multipleBirthInteger, this.typeMappings[key]);
-
         return attribute;
     }
 
     handleSensitives (key: string, attribute, paths, index: number, end: number) {
-        if (this.isArrayMappings[key] && attribute[paths[index]]) { // array
-            for (let elem of attribute[paths[index]]) {
-                elem = this.handleSensitives(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
-            }
-        } else if (index === end && attribute[paths[index]]) {
-            if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length) {
-                if (this.rareValueMappings[key].indexOf(attribute[paths[index]]) !== -1) {
-                    attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, attribute[paths[index]], this.typeMappings[key]);
+        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+            const len = attribute[paths[index]].length;
+            for (let i = 0; i < len; i++) {
+                const elem = attribute[paths[index]][i];
+                if (paths[index + 1]) { // objects in array
+                    attribute[paths[index]][i] = this.handleSensitives(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
+                } else { // primitives in array
+                    if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
+                        && (this.rareValueMappings[key].indexOf(attribute[paths[index]][i]) !== -1)) {
+                        attribute[paths[index]][i] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, elem, this.typeMappings[key]);
+                    }
                 }
+            }
+        } else if (index === end && attribute[paths[index]]) { // primitives/leaves
+            if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
+                && (this.rareValueMappings[key].indexOf(attribute[paths[index]]) !== -1)) {
+                attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, attribute[paths[index]], this.typeMappings[key]);
             }
         }
         return attribute;

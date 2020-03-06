@@ -58,7 +58,7 @@ import {DeidentificationService} from '@/common/services/deidentification.servic
 export default class Deidentifier extends Vue {
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
-    private deidentificationService: DeidentificationService = new DeidentificationService(this.isArrayMappings, this.typeMappings, this.parameterMappings, this.rareValueMappings);
+    private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings, this.parameterMappings, this.rareValueMappings);
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -66,7 +66,6 @@ export default class Deidentifier extends Vue {
     get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
     set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
 
-    get isArrayMappings (): any { return this.$store.getters['fhir/isArrayMappings'] }
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
 

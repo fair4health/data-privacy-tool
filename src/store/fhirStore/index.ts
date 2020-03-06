@@ -31,7 +31,6 @@ const fhirStore = {
         if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
             state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
         }
-        state.isArrayMappings[tmpObj.value] = element.max === '*';
         return tmpObj;
     },
     namespaced: true,
@@ -54,7 +53,6 @@ const fhirStore = {
         kValue: 5,
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
-        isArrayMappings: {},
         typeMappings: {},
         rareValueMappings: {}
     },
@@ -77,7 +75,6 @@ const fhirStore = {
         kValue: state => state.kValue || 5,
         fhirBase: state => state.fhirBase,
         fhirService: state => state.fhirService,
-        isArrayMappings: state => state.isArrayMappings || {},
         typeMappings: state => state.typeMappings || {},
         rareValueMappings: state => state.rareValueMappings || {}
     },
