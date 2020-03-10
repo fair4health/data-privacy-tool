@@ -5,40 +5,24 @@
 				De-identifier
 			</q-toolbar-title>
 		</q-toolbar>
-		<div v-if="deidentificationService.loading" class="q-mt-xl row justify-center items-center">
-			<div class="row q-col-gutter-lg">
-				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
-					<div class="row justify-start q-col-gutter-md">
-						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
-							<div class="q-mt-xl q-mb-xl row justify-center items-center">
-								<div class="spinner-comp flex flex-center"></div>
-							</div>
-							<div class="row justify-center items-center">
-								<span class="text-weight-bold text-grey-8" style="font-size: 20px">{{deidentificationService.progressMessage}}</span>
-							</div>
-						</div>
-					</div>
-				</div>
+		<div v-if="deidentificationService.loading" class="q-mt-xl">
+			<div class="q-mt-xl q-mb-xl row justify-center">
+				<div class="spinner-comp flex flex-center"></div>
+			</div>
+			<div class="row justify-center">
+				<span class="text-weight-bold text-grey-8" style="font-size: 20px">{{deidentificationService.progressMessage}}</span>
 			</div>
 		</div>
 		<div v-if="!deidentificationService.loading" class="q-ma-sm">
-			<div class="row q-col-gutter-lg">
-				<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
-					<div class="row justify-start q-col-gutter-md">
-						<div class="col-xl-12 col-lg-6 col-md-6 col-12">
-							<div class="q-mt-xl q-mb-lg row justify-center items-center">
-								<transition appear enter-active-class="animated heartBeat">
-									<q-icon size="100px" class="mdi mdi-shield-check" color="primary"></q-icon>
-								</transition>
-							</div>
-							<div class="row justify-center items-center">
-								<span class="text-weight-bold text-grey-8" style="font-size: 20px">
-									{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified and updated in the repository.
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
+			<div class="q-mt-xl q-mb-lg row justify-center">
+				<transition appear enter-active-class="animated heartBeat">
+					<q-icon size="100px" class="mdi mdi-shield-check" color="primary"></q-icon>
+				</transition>
+			</div>
+			<div class="row justify-center">
+				<span class="text-weight-bold text-grey-8" style="font-size: 20px">
+					{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified and updated in the repository.
+				</span>
 			</div>
 			<div class="row q-ma-md">
 				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />

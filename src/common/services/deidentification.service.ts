@@ -75,9 +75,9 @@ export class DeidentificationService {
 
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
+            this.deidentifiedResourceNumber += bulk.length;
             while (bulk.length) {
                 promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), 'PUT'));
-                this.deidentifiedResourceNumber += bulk.length;
             }
             Promise.all(promises)
             .then(res => {

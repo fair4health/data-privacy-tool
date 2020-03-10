@@ -5,45 +5,41 @@
 				Metadata Analyzer
 			</q-toolbar-title>
 		</q-toolbar>
-		<div v-if="metaStep === 1" class="q-mt-xl row justify-center items-center">
-			<q-card flat class="q-mt-xl" style="width: 50%">
-				<q-card-section class="items-center">
-					<div class="row q-col-gutter-lg">
-						<div class="col-xl-12 col-lg-6 col-md-6 col-sm-6 col-12 q-col-gutter-y-md">
-							<div class="row justify-start q-col-gutter-md">
-								<div class="col-xl-12 col-lg-6 col-md-6 col-12">
-									<q-item-label class="text-weight-bold q-mb-lg">
-										<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Provide FHIR repository URL. </span>
-									</q-item-label>
-									<q-input filled type="url" v-model="onfhirBaseUrl" color="accent">
-										<template v-slot:append>
-											<q-avatar square>
-												<img src="../assets/fhir-logo.png">
-											</q-avatar>
-										</template>
-									</q-input>
-								</div>
-							</div>
+
+		<div v-if="metaStep === 1" class="q-mt-xl">
+			<div class="row justify-center">
+				<q-card flat class="col-6">
+					<q-card-section>
+						<q-item-label class="text-weight-bold q-mb-lg">
+							<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Provide FHIR repository URL. </span>
+						</q-item-label>
+						<q-input filled type="url" v-model="onfhirBaseUrl" color="accent">
+							<template v-slot:append>
+								<q-avatar square>
+									<img src="../assets/fhir-logo.png">
+								</q-avatar>
+							</template>
+						</q-input>
+					</q-card-section>
+
+					<q-card-section class="row">
+						<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$router.push('/')" no-caps />
+						<q-space />
+						<div class="q-gutter-sm">
+							<q-btn unelevated label="Verify" icon="verified_user" color="blue-1" text-color="primary"
+							       :disable="!onfhirBaseUrl" @click="validateFhir" no-caps>
+					            <span class="q-ml-sm">
+					              <q-spinner class="q-ml-sm" size="xs" v-show="verificationStatus==='waiting'" />
+					              <q-icon name="check" size="xs" color="green" v-show="verificationStatus==='done'" />
+					              <q-icon name="error_outline" size="xs" color="red" v-show="verificationStatus==='error'" />
+					            </span>
+							</q-btn>
+							<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="metaStep++"
+							       :disable="verificationStatus!=='done'" no-caps />
 						</div>
-					</div>
-				</q-card-section>
-				<div class="row q-ma-md">
-					<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$router.push('/')" no-caps />
-					<q-space />
-					<div class="q-gutter-sm">
-						<q-btn unelevated label="Verify" icon="verified_user" color="blue-1" text-color="primary"
-						       :disable="!onfhirBaseUrl" @click="validateFhir" no-caps>
-				            <span class="q-ml-sm">
-				              <q-spinner class="q-ml-sm" size="xs" v-show="verificationStatus==='waiting'" />
-				              <q-icon name="check" size="xs" color="green" v-show="verificationStatus==='done'" />
-				              <q-icon name="error_outline" size="xs" color="red" v-show="verificationStatus==='error'" />
-				            </span>
-						</q-btn>
-						<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="metaStep++"
-						       :disable="verificationStatus!=='done'" no-caps />
-					</div>
-				</div>
-			</q-card>
+					</q-card-section>
+				</q-card>
+			</div>
 		</div>
 
 		<div v-if="metaStep === 2" class="q-ma-sm">
