@@ -27,7 +27,7 @@
 			<div class="row q-ma-md">
 				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
 				<q-space />
-				<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+				<q-btn unelevated label="See Risks" icon-right="mdi-chart-bar" color="primary" @click="$store.commit('incrementStep')" no-caps />
 			</div>
 		</div>
 	</div>
