@@ -2,6 +2,7 @@ import { FhirService } from '@/common/services/fhir.service'
 import { environment } from '@/common/environment'
 import StructureDefinition = fhir.StructureDefinition;
 import { FHIRUtils } from '@/common/utils/fhir-util'
+import {EvaluationService} from '@/common/services/evaluation.service';
 
 const fhirStore = {
     capitalizeFirstLetter (str) {
@@ -53,8 +54,14 @@ const fhirStore = {
         kValue: 5,
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
+        evaluationService: new EvaluationService(),
         typeMappings: {},
-        rareValueMappings: {}
+        rareValueMappings: {},
+        lowestProsecutor: 0,
+        highestProsecutor: 0,
+        averageProsecutor: 0,
+        recordsAffectedByLowest: 0,
+        recordsAffectedByHighest: 0
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -75,8 +82,14 @@ const fhirStore = {
         kValue: state => state.kValue || 5,
         fhirBase: state => state.fhirBase,
         fhirService: state => state.fhirService,
+        evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
-        rareValueMappings: state => state.rareValueMappings || {}
+        rareValueMappings: state => state.rareValueMappings || {},
+        lowestProsecutor: state => state.lowestProsecutor || 0,
+        highestProsecutor: state => state.highestProsecutor || 0,
+        averageProsecutor: state => state.averageProsecutor || 0,
+        recordsAffectedByLowest: state => state.recordsAffectedByLowest || 0,
+        recordsAffectedByHighest: state => state.recordsAffectedByHighest || 0
     },
     mutations: {
         setResourceList (state, list) {
@@ -132,6 +145,21 @@ const fhirStore = {
         },
         setRareValueMappings (state, value) {
             state.rareValueMappings = value
+        },
+        setLowestProsecutor (state, value) {
+            state.lowestProsecutor = value;
+        },
+        setHighestProsecutor (state, value) {
+            state.highestProsecutor = value;
+        },
+        setAverageProsecutor (state, value) {
+            state.averageProsecutor = value;
+        },
+        setRecordsAffectedByLowest (state, value) {
+            state.recordsAffectedByLowest = value;
+        },
+        setRecordsAffectedByHighest (state, value) {
+            state.recordsAffectedByHighest = value;
         }
     },
     actions: {
@@ -257,6 +285,21 @@ const fhirStore = {
                     .then(res => resolve(res))
                     .catch(err => reject(err))
             })
+        },
+        calculateRisks ({ state }, type) {
+            state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings);
+            const totalNumberOfRecords = type.entries.length;
+            const numberOfEqClasses = state.evaluationService.equivalenceClasses.length;
+            const maxLengthOfEqClasses = Math.max.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
+            const minLengthOfEqClasses = Math.min.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
+            state.lowestProsecutor = 1 / maxLengthOfEqClasses;
+            state.highestProsecutor = 1 / minLengthOfEqClasses;
+            state.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
+
+            const numberOfRecsAffectedByLowest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
+            const numberOfRecsAffectedByHighest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
+            state.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
+            state.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
         }
     }
 };

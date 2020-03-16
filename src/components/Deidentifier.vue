@@ -21,7 +21,7 @@
 			</div>
 			<div class="row justify-center">
 				<span class="text-weight-bold text-grey-8" style="font-size: 20px">
-					{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified and updated in the repository.
+					{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified.
 				</span>
 			</div>
 			<div class="row q-ma-md">
@@ -37,6 +37,7 @@
 import {Component, Vue} from 'vue-property-decorator';
 import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
+import {Utils} from '@/common/utils/util';
 
 @Component
 export default class Deidentifier extends Vue {
@@ -53,14 +54,19 @@ export default class Deidentifier extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
 
+    get selectedResources (): string[] { return this.$store.getters['fhir/selectedResources'] }
+    get selectedProfiles (): string[] { return this.$store.getters['fhir/selectedProfiles'].map(r => JSON.parse(JSON.stringify(r))) }
+
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
-            if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
+            const [resource, profile] = [key.split('.')[0], key.split('.')[1]];
+            const [resourceIndex, profileIndex] = [this.selectedResources.indexOf(resource), this.selectedProfiles.indexOf(profile)];
+            if (resourceIndex !== -1 && profileIndex !== -1 && this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
                 this.willBeAnonyed.push(key);
             }
         });
         if (this.willBeAnonyed.length) {
-            this.groupedByProfiles = this.groupBy(this.willBeAnonyed, item => {
+            this.groupedByProfiles = Utils.groupBy(this.willBeAnonyed, item => {
                 return [item.split('.')[1]];
             });
             this.deidentifyAll();
@@ -88,21 +94,12 @@ export default class Deidentifier extends Vue {
             }
             return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives);
         });
-        Promise.all(promises);
-    }
-
-    groupBy (array, f) {
-        const groups = {};
-        array.forEach(o => {
-            const group = JSON.stringify(f(o));
-            groups[group] = groups[group] || [];
-            groups[group].push(o);
-        });
-        return Object.keys(groups).map(group => {
-            return groups[group];
+        Promise.all(promises).then(response => {
+            response.forEach(type => {
+                this.$store.dispatch('fhir/calculateRisks', type);
+            })
         });
     }
-
 }
 
 </script>

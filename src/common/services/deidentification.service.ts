@@ -2,6 +2,7 @@ import {FhirService} from '@/common/services/fhir.service';
 import {environment} from '@/common/environment';
 import RandExp from 'randexp';
 import moment from 'moment-timezone';
+import {Utils} from '@/common/utils/util';
 
 export class DeidentificationService {
     fhirService: FhirService;
@@ -51,39 +52,11 @@ export class DeidentificationService {
             this.getEntries(resource, profile).then(entries => {
                 this.progressMessage = 'De-identifying ' + profile + ' profile...';
                 entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                this.saveEntriesBack(entries).then(res => resolve());
-            });
-        })
-    }
-
-    saveEntriesBack (entries): Promise<any> {
-        const promises: Array<Promise<any>> = [];
-        entries.forEach(entry => {
-            entry.resource.meta.security = [{
-                system : 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue',
-                code : 'ANONYED',
-                display : 'anonymized'
-            }];
-
-            // todo versionId ve lastUpdated guncellenmeli mi? http://hl7.org/fhir/resource.html#Meta
-
-            // todo any other security labels can be used? https://www.hl7.org/fhir/valueset-security-labels.html
-
-            // todo PUT mu POST mu (PUT yapınca version kendi guncelliyor)
-
-        });
-
-        return new Promise((resolve, reject) => {
-            const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
-            this.deidentifiedResourceNumber += bulk.length;
-            while (bulk.length) {
-                promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), 'PUT'));
-            }
-            Promise.all(promises)
-            .then(res => {
+                this.deidentifiedResourceNumber += entries.length;
                 this.loading = false;
-                resolve();
-            })
+                resolve({resource, profile, entries, quasis});
+                // this.saveEntriesBack(entries).then(res => resolve());
+            });
         })
     }
 
@@ -119,7 +92,7 @@ export class DeidentificationService {
     }
 
     removeIdentifiers (key: string, attribute, paths, index: number, end: number) {
-        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+        if (attribute[paths[index]] && Utils.isArray(attribute[paths[index]])) { // array
             const len = attribute[paths[index]].length;
             for (let i = 0; i < len; i++) {
                 const elem = attribute[paths[index]][i];
@@ -136,7 +109,7 @@ export class DeidentificationService {
     }
 
     handleQuasis (key: string, attribute, paths, index: number, end: number) {
-        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+        if (attribute[paths[index]] && Utils.isArray(attribute[paths[index]])) { // array
             const len = attribute[paths[index]].length;
             for (let i = 0; i < len; i++) {
                 const elem = attribute[paths[index]][i];
@@ -153,7 +126,7 @@ export class DeidentificationService {
     }
 
     handleSensitives (key: string, attribute, paths, index: number, end: number) {
-        if (attribute[paths[index]] && this.isArray(attribute[paths[index]])) { // array
+        if (attribute[paths[index]] && Utils.isArray(attribute[paths[index]])) { // array
             const len = attribute[paths[index]].length;
             for (let i = 0; i < len; i++) {
                 const elem = attribute[paths[index]][i];
@@ -262,7 +235,7 @@ export class DeidentificationService {
 
     clearResource (attributes) {
         Object.keys(attributes).forEach(key => {
-            if (this.isArray(attributes[key])) { // array
+            if (Utils.isArray(attributes[key])) { // array
                 let index = 0;
                 for (const elem of attributes[key]) {
                     if (!Object.keys(elem).length) { // empty object
@@ -352,10 +325,6 @@ export class DeidentificationService {
 
     getRandomFloat (min, max) {
         return Math.random() * (max - min) + min;
-    }
-
-    isArray (what) {
-        return Object.prototype.toString.call(what) === '[object Array]';
     }
 
 }
