@@ -57,11 +57,7 @@ const fhirStore = {
         evaluationService: new EvaluationService(),
         typeMappings: {},
         rareValueMappings: {},
-        lowestProsecutor: 0,
-        highestProsecutor: 0,
-        averageProsecutor: 0,
-        recordsAffectedByLowest: 0,
-        recordsAffectedByHighest: 0
+        entries: null
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -84,12 +80,7 @@ const fhirStore = {
         fhirService: state => state.fhirService,
         evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
-        rareValueMappings: state => state.rareValueMappings || {},
-        lowestProsecutor: state => state.lowestProsecutor || 0,
-        highestProsecutor: state => state.highestProsecutor || 0,
-        averageProsecutor: state => state.averageProsecutor || 0,
-        recordsAffectedByLowest: state => state.recordsAffectedByLowest || 0,
-        recordsAffectedByHighest: state => state.recordsAffectedByHighest || 0
+        rareValueMappings: state => state.rareValueMappings || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -145,21 +136,6 @@ const fhirStore = {
         },
         setRareValueMappings (state, value) {
             state.rareValueMappings = value
-        },
-        setLowestProsecutor (state, value) {
-            state.lowestProsecutor = value;
-        },
-        setHighestProsecutor (state, value) {
-            state.highestProsecutor = value;
-        },
-        setAverageProsecutor (state, value) {
-            state.averageProsecutor = value;
-        },
-        setRecordsAffectedByLowest (state, value) {
-            state.recordsAffectedByLowest = value;
-        },
-        setRecordsAffectedByHighest (state, value) {
-            state.recordsAffectedByHighest = value;
         }
     },
     actions: {
@@ -287,19 +263,23 @@ const fhirStore = {
             })
         },
         calculateRisks ({ state }, type) {
+            state.entries = JSON.parse(JSON.stringify(type.entries));
             state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings);
-            const totalNumberOfRecords = type.entries.length;
+            const totalNumberOfRecords = state.entries.length;
             const numberOfEqClasses = state.evaluationService.equivalenceClasses.length;
             const maxLengthOfEqClasses = Math.max.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
             const minLengthOfEqClasses = Math.min.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
-            state.lowestProsecutor = 1 / maxLengthOfEqClasses;
-            state.highestProsecutor = 1 / minLengthOfEqClasses;
-            state.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
+            state.evaluationService.lowestProsecutor = 1 / maxLengthOfEqClasses;
+            state.evaluationService.highestProsecutor = 1 / minLengthOfEqClasses;
+            state.evaluationService.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
 
             const numberOfRecsAffectedByLowest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
             const numberOfRecsAffectedByHighest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
-            state.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
-            state.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+            state.evaluationService.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
+            state.evaluationService.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+        },
+        saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
+            return state.evaluationService.saveEntries(state.entries, request);
         }
     }
 };

@@ -3,17 +3,18 @@ import {Utils} from '@/common/utils/util';
 
 export class EvaluationService {
     fhirService: FhirService;
-    loading: boolean;
-    progressMessage: string;
     quasis: string[][];
     riskyQuasis: string[];
     savedResourceNumber = 0;
     equivalenceClasses: string[] = [];
+    lowestProsecutor = 0;
+    highestProsecutor = 0;
+    averageProsecutor = 0;
+    recordsAffectedByLowest = 0;
+    recordsAffectedByHighest = 0;
 
     constructor () {
         this.fhirService = new FhirService();
-        this.loading = true;
-        this.progressMessage = '';
         this.quasis = [];
         this.riskyQuasis = [];
         this.equivalenceClasses = [];
@@ -63,7 +64,7 @@ export class EvaluationService {
         return result;
     }
 
-    saveEntriesBack (entries): Promise<any> {
+    saveEntries (entries, request: 'POST' | 'PUT'): Promise<any> {
         const promises: Array<Promise<any>> = [];
         entries.forEach(entry => {
             entry.resource.meta.security = [{
@@ -72,24 +73,20 @@ export class EvaluationService {
                 display : 'anonymized'
             }];
 
-            // todo versionId ve lastUpdated guncellenmeli mi? http://hl7.org/fhir/resource.html#Meta
-
             // todo any other security labels can be used? https://www.hl7.org/fhir/valueset-security-labels.html
-
-            // todo PUT mu POST mu (PUT yapınca version kendi guncelliyor)
 
         });
 
+        this.savedResourceNumber = 0;
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             this.savedResourceNumber += bulk.length;
-            // while (bulk.length) {
-            //     promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), 'PUT'));
-            // }
+            while (bulk.length) {
+                promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), request));
+            }
             Promise.all(promises)
                 .then(res => {
-                    this.loading = false;
-                    resolve();
+                    resolve(this.savedResourceNumber);
                 })
         })
     }
