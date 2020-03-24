@@ -154,7 +154,7 @@ const fhirStore = {
                             })).then(counts => {
                                 const availableResources: any[] = [];
                                 for (const counter of counts) {
-                                    if (counter.count) {
+                                    if (counter.count && !environment.resourceTypesToBeFiltered.includes(counter.resourceType)) {
                                         availableResources.push(counter.resourceType);
                                     }
                                 }

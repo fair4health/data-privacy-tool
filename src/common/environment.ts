@@ -13,6 +13,8 @@ export const environment = {
         }
     },
     hl7: 'http://hl7.org/fhir',
+    resourceTypesToBeFiltered: ['CapabilityStatement', 'CodeSystem', 'ConceptMap', 'NamingSystem', 'OperationDefinition',
+        'SearchParameter', 'StructureDefinition', 'ValueSet'],
     attributeTypes: {
         ID: 'Identifier',
         QUASI: 'Quasi-identifier',
