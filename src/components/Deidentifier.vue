@@ -43,7 +43,8 @@ import {Utils} from '@/common/utils/util';
 export default class Deidentifier extends Vue {
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
-    private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings, this.parameterMappings, this.rareValueMappings);
+    private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
+	    this.parameterMappings, this.rareValueMappings, this.kAnonymityValid, this.kValue, this.$store);
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -56,6 +57,11 @@ export default class Deidentifier extends Vue {
 
     get selectedResources (): string[] { return this.$store.getters['fhir/selectedResources'] }
     get selectedProfiles (): string[] { return this.$store.getters['fhir/selectedProfiles'].map(r => JSON.parse(JSON.stringify(r))) }
+
+    get kAnonymityValid (): boolean { return this.$store.getters['fhir/kAnonymityValid'] }
+    set kAnonymityValid (value) { this.$store.commit('fhir/setKAnonymityValid', value) }
+    get kValue (): number { return this.$store.getters['fhir/kValue'] }
+    set kValue (value) { this.$store.commit('fhir/setKValue', value) }
 
     created () {
         Object.keys(this.attributeMappings).forEach(key => {

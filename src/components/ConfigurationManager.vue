@@ -73,12 +73,8 @@
                     </q-card-section>
                     <q-card-section class="q-pt-none">
                         <div class="row">
-                            <div class="col-2">
-                                <q-field borderless label="K value for k-anonymity:" readonly dense label-color="black" class="text-weight-bold" />
-                            </div>
-                            <div class="col-1">
-                                <q-input v-model="kValue" type="number" dense outlined />
-                            </div>
+                            <q-toggle label="K-anonymity:" v-model="kAnonymityValid" class="q-mr-md" color="primary" />
+                            <q-select outlined dense v-model="kValue" :options="[3,4,5]" :disable="!kAnonymityValid" />
                         </div>
                     </q-card-section>
                 </q-card>
@@ -126,6 +122,8 @@ export default class ConfigurationManager extends Vue {
     get currentFHIRProf (): string { return this.$store.getters['fhir/currentProfile'] }
     set currentFHIRProf (value) { this.$store.commit('fhir/setCurrentProfile', value) }
 
+    get kAnonymityValid (): number { return this.$store.getters['fhir/kAnonymityValid'] }
+    set kAnonymityValid (value) { this.$store.commit('fhir/setKAnonymityValid', value) }
     get kValue (): number { return this.$store.getters['fhir/kValue'] }
     set kValue (value) { this.$store.commit('fhir/setKValue', value) }
 

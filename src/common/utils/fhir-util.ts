@@ -6,6 +6,40 @@ export class FHIRUtils {
         return !!(typeMappings[tree.value] && environment.primitiveTypes[typeMappings[tree.value]]);
     }
 
+    static isRequired ($store, key): Promise<boolean> {
+        let tree = $store.getters['fhir/elementList'];
+        const attributes = key.split('.');
+        let i = 0;
+        return new Promise((resolve, reject) => {
+            if (tree[0].label === attributes[0] && tree[0].children[0].label === attributes[1]) {
+                while (i < attributes.length) {
+                    tree.map(node => {
+                        if (node.label === attributes[i]) {
+                            tree = node.children;
+                            if (++i === attributes.length) {
+                                resolve(node.required);
+                            }
+                        }
+                    });
+                }
+            } else {
+                $store.dispatch('fhir/getElements', attributes[1])
+                    .then(() => {
+                        while (i < attributes.length) {
+                            tree.map(node => {
+                                if (node.label === attributes[i]) {
+                                    tree = node.children;
+                                    if (++i === attributes.length) {
+                                        resolve(node.required);
+                                    }
+                                }
+                            });
+                        }
+                    });
+            }
+        });
+    }
+
     static flatten (tree: fhir.ElementTree[]): fhir.ElementTree[] {
         return tree.reduce((acc: any, r: any) => {
             acc.push(r);

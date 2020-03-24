@@ -17,4 +17,24 @@ export class Utils {
         return Object.prototype.toString.call(what) === '[object Array]';
     }
 
+    static returnEqClassElements (paths, item, result) {
+        let i = 0;
+        while (i < paths.length) {
+            const element = item[paths[i]];
+            if (Utils.isArray(element)) {
+                for (const arrayElement of element) {
+                    if (paths.length > i + 1) {
+                        return this.returnEqClassElements(paths.splice(i + 1), arrayElement, result);
+                    } else {
+                        return arrayElement;
+                    }
+                }
+            } else {
+                return element;
+            }
+            i++;
+        }
+        return result;
+    }
+
 }

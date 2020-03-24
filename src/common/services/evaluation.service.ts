@@ -1,5 +1,6 @@
 import {FhirService} from '@/common/services/fhir.service';
 import {Utils} from '@/common/utils/util';
+import {environment} from '@/common/environment';
 
 export class EvaluationService {
     fhirService: FhirService;
@@ -20,7 +21,7 @@ export class EvaluationService {
         this.equivalenceClasses = [];
     }
 
-    generateEquivalenceClasses (type, parameterMappings) {
+    generateEquivalenceClasses (type, parameterMappings, typeMappings) {
         this.quasis = type.quasis;
         this.riskyQuasis = [];
         this.quasis.forEach(paths => {
@@ -29,7 +30,8 @@ export class EvaluationService {
                 key += '.' + paths[i++];
             }
             if (parameterMappings[key].name === 'Pass Through' || parameterMappings[key].name === 'Generalization' ||
-                (parameterMappings[key].name === 'Substitution' && parameterMappings[key].lengthPreserved)) {
+                (parameterMappings[key].name === 'Substitution' && !environment.primitiveTypes[typeMappings[key]].regex
+                    && parameterMappings[key].lengthPreserved)) {
                 this.riskyQuasis.push(key);
             }
         });
@@ -37,31 +39,11 @@ export class EvaluationService {
             const groups: any[] = [];
             this.riskyQuasis.forEach(attribute => {
                 const paths = attribute.split('.').slice(2);
-                const result = this.returnElements(paths, item.resource, []);
+                const result = Utils.returnEqClassElements(paths, item.resource, []);
                 groups.push(result);
             });
             return groups; // undefined values are considered as the same
         });
-    }
-
-    returnElements (paths, item, result) {
-        let i = 0;
-        while (i < paths.length) {
-            const element = item[paths[i]];
-            if (Utils.isArray(element)) {
-                for (const arrayElement of element) {
-                    if (paths.length > i + 1) {
-                        return this.returnElements(paths.splice(i + 1), arrayElement, result);
-                    } else {
-                        return arrayElement;
-                    }
-                }
-            } else {
-                return element;
-            }
-            i++;
-        }
-        return result;
     }
 
     saveEntries (entries, request: 'POST' | 'PUT'): Promise<any> {

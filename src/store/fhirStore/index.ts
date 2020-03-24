@@ -51,7 +51,8 @@ const fhirStore = {
         rareElements: [],
         attributeMappings: {},
         parameterMappings: {},
-        kValue: 5,
+        kAnonymityValid: false,
+        kValue: 3,
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
         evaluationService: new EvaluationService(),
@@ -75,7 +76,8 @@ const fhirStore = {
         rareElements: state => state.rareElements || [],
         attributeMappings: state => state.attributeMappings || {},
         parameterMappings: state => state.parameterMappings || {},
-        kValue: state => state.kValue || 5,
+        kAnonymityValid: state => state.kAnonymityValid || false,
+        kValue: state => state.kValue || 3,
         fhirBase: state => state.fhirBase,
         fhirService: state => state.fhirService,
         evaluationService: state => state.evaluationService,
@@ -126,6 +128,9 @@ const fhirStore = {
         },
         setKValue (state, value) {
             state.kValue = value;
+        },
+        setKAnonymityValid (state, value) {
+            state.kAnonymityValid = value;
         },
         updateFhirBase (state, baseUrl: string) {
             state.fhirBase = baseUrl;
@@ -264,7 +269,7 @@ const fhirStore = {
         },
         calculateRisks ({ state }, type) {
             state.entries = JSON.parse(JSON.stringify(type.entries));
-            state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings);
+            state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
             const totalNumberOfRecords = state.entries.length;
             const numberOfEqClasses = state.evaluationService.equivalenceClasses.length;
             const maxLengthOfEqClasses = Math.max.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));

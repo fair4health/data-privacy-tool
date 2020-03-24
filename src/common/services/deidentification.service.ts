@@ -3,6 +3,7 @@ import {environment} from '@/common/environment';
 import RandExp from 'randexp';
 import moment from 'moment-timezone';
 import {Utils} from '@/common/utils/util';
+import {FHIRUtils} from '@/common/utils/fhir-util';
 
 export class DeidentificationService {
     fhirService: FhirService;
@@ -15,17 +16,30 @@ export class DeidentificationService {
     quasis: string[][];
     sensitives: string[][];
     deidentifiedResourceNumber = 0;
+    kAnonymityValid: boolean;
+    kValue: number;
+    riskyQuasis: string[];
+    equivalenceClasses: any;
+    $store: any;
+    canBeAnonymizedMore: boolean;
+    anonymizedData;
 
-    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any) {
+    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, kAnonymityValid: boolean, kValue: number, $store) {
         this.fhirService = new FhirService();
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
+        this.kAnonymityValid = kAnonymityValid;
+        this.kValue = kValue;
         this.loading = true;
         this.progressMessage = '';
         this.identifiers = [];
         this.quasis = [];
         this.sensitives = [];
+        this.riskyQuasis = [];
+        this.equivalenceClasses = {};
+        this.$store = $store;
+        this.canBeAnonymizedMore = true;
     }
 
     getEntries (resource: string, profile: string): Promise<any[]> {
@@ -45,19 +59,201 @@ export class DeidentificationService {
     }
 
     deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][]): Promise<any> {
-        this.identifiers = identifiers;
-        this.quasis = quasis;
-        this.sensitives = sensitives;
         return new Promise((resolve, reject) => {
             this.getEntries(resource, profile).then(entries => {
                 this.progressMessage = 'De-identifying ' + profile + ' profile...';
+                this.identifiers = identifiers;
+                this.quasis = quasis;
+                this.sensitives = sensitives;
                 entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                this.deidentifiedResourceNumber += entries.length;
-                this.loading = false;
-                resolve({resource, profile, entries, quasis});
-                // this.saveEntriesBack(entries).then(res => resolve());
+                if (this.kAnonymityValid) {
+                    this.anonymizedData = JSON.parse(JSON.stringify(entries));
+                    this.makeKAnonymous(resource, profile).then(res => {
+                        this.deidentifiedResourceNumber += this.anonymizedData.length;
+                        this.loading = false;
+                        resolve({resource, profile, entries: this.anonymizedData, quasis});
+                    })
+                } else {
+                    this.deidentifiedResourceNumber += entries.length;
+                    this.loading = false;
+                    resolve({resource, profile, entries, quasis});
+                }
             });
         })
+    }
+
+    makeKAnonymous (resource: string, profile: string): Promise<any> {
+        const keys: string[] = [];
+        this.quasis.forEach(paths => {
+            let [key, i] = [resource + '.' + profile, 0];
+            while (i < paths.length) {
+                key += '.' + paths[i++];
+            }
+            if (this.parameterMappings[key].name === 'Pass Through' || this.parameterMappings[key].name === 'Generalization' ||
+                (this.parameterMappings[key].name === 'Substitution' && !environment.primitiveTypes[this.typeMappings[key]].regex
+                    && this.parameterMappings[key].lengthPreserved)) {
+                keys.push(key);
+            }
+        });
+        const promises: Array<Promise<any>> = keys.sort().map(key => {
+            return new Promise((resolve, reject) => {
+                FHIRUtils.isRequired(this.$store, key).then(required => {
+                    resolve({key, required});
+                });
+            });
+        });
+        return new Promise((resolve, reject) => {
+            Promise.all(promises).then(response => {
+                response.forEach(result => {
+                    const [key, required] = [result.key, result.required];
+                    while (this.canBeAnonymizedMore) {
+                        this.generateEquivalenceClasses(resource, profile, key, this.anonymizedData);
+                        let parametersChanged = false;
+                        this.equivalenceClasses.forEach(eqClass => {
+                            if (eqClass.length < this.kValue) {
+                                if (!parametersChanged) {
+                                    this.changeParameters(resource, profile, eqClass, key, required);
+                                    parametersChanged = true;
+                                }
+                                eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                            }
+                        });
+                        this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+                    }
+                    this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= this.kValue);
+                    this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+                });
+                resolve();
+            });
+        });
+    }
+
+    changeParameters (resource: string, profile: string, eqClass: any[], key: string, required: boolean) {
+        const primitiveType = this.typeMappings[key];
+        const algorithm = this.parameterMappings[key];
+        [this.quasis, this.sensitives, this.identifiers] = [[], [], []];
+        switch (algorithm.name) {
+            case 'Pass Through':
+
+                // TODO change according to primitive type
+
+                break;
+            case 'Generalization':
+                if (primitiveType === 'decimal') { // Decimal places of the floating number will be rounded
+                    if (this.parameterMappings[key].roundDigits) {
+                        this.parameterMappings[key].roundDigits--;
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (!required) {
+                        this.identifiers.push(key.split('.').slice(2));
+                    } else {
+                        this.canBeAnonymizedMore = false;
+                    }
+                } else if (primitiveType === 'integer' || primitiveType === 'unsignedInt' || primitiveType === 'positiveInt') { // Last digits of the integer will be rounded
+                    const minDigitLength = this.getDigitLength(eqClass[0].resource, key);
+                    if (this.parameterMappings[key].roundDigits < minDigitLength - 1) {
+                        this.parameterMappings[key].roundDigits++;
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (!required) {
+                        this.identifiers.push(key.split('.').slice(2));
+                    } else {
+                        this.canBeAnonymizedMore = false;
+                    }
+                } else if (primitiveType === 'time') { // HH:mm:ss ['Hours', 'Minutes', 'Seconds'] TO BE ROUNDED
+                    if (this.parameterMappings[key].dateUnit === 'Seconds') {
+                        this.parameterMappings[key].dateUnit = 'Minutes'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Minutes') {
+                        this.parameterMappings[key].dateUnit = 'Hours'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Hours' && !required) { // remove attribute
+                        this.identifiers.push(key.split('.').slice(2));
+                    } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
+                        this.canBeAnonymizedMore = false;
+                    }
+                } else { // instant YYYY-MM-DDThh:mm:ss.sss+zz:zz ['Years', 'Months', 'Days', 'Hours', 'Minutes'] TO BE ROUNDED
+                    // date (YYYY, YYYY-MM, or YYYY-MM-DD) or dateTime (YYYY, YYYY-MM, YYYY-MM-DD or YYYY-MM-DDThh:mm:ss+zz:zz) ['Years', 'Months', 'Days'] TO BE REMOVED
+                    if (this.parameterMappings[key].dateUnit === 'Minutes') {
+                        this.parameterMappings[key].dateUnit = 'Hours'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Hours') {
+                        this.parameterMappings[key].dateUnit = 'Days'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Days') {
+                        this.parameterMappings[key].dateUnit = 'Months'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Months') {
+                        this.parameterMappings[key].dateUnit = 'Years'; // Generalize data more
+                        this.quasis.push(key.split('.').slice(2));
+                    } else if (this.parameterMappings[key].dateUnit === 'Years' && !required) { // remove attribute
+                        this.identifiers.push(key.split('.').slice(2));
+                    } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
+                        this.canBeAnonymizedMore = false;
+                    }
+                }
+                break;
+            case 'Substitution': // data with regex is already filtered
+                if (algorithm.lengthPreserved) { // anonymize again with fixed length
+                    this.parameterMappings[key] = environment.algorithms.SUBSTITUTION;
+                    this.parameterMappings[key].lengthPreserved = false;
+                    this.quasis.push(key.split('.').slice(2));
+                } else if (!required) { // remove attribute
+                    this.identifiers.push(key.split('.').slice(2));
+                } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
+                    this.canBeAnonymizedMore = false;
+                }
+                break;
+        }
+    }
+
+    generateEquivalenceClasses (resource: string, profile: string, key: string, entries) {
+        this.equivalenceClasses = Utils.groupBy(entries, item => {
+            const groups: any[] = [];
+            const result = Utils.returnEqClassElements(key.split('.').slice(2), item.resource, []);
+            groups.push(result);
+            return groups; // undefined values are considered as the same
+        });
+        this.equivalenceClasses.sort((a: any, b: any) => {
+            const element1 = Utils.returnEqClassElements(key.split('.').slice(2), a[0].resource, []);
+            const element2 = Utils.returnEqClassElements(key.split('.').slice(2), b[0].resource, []);
+            return this.sortFunction(element1, element2, key);
+        });
+    }
+
+    sortFunction (element1, element2, key): number {
+        if (element1 === undefined) {
+            return 1;
+        } else if (element2 === undefined) {
+            return -1;
+        }
+        switch (this.typeMappings[key]) {
+            case 'instant':
+                const [dates1, times1] = element1.split('T');
+                const [year1, month1, day1] = dates1.split('-');
+                const [hour1, minute1, second1] = times1.split(':');
+                element1 = new Date(+year1, +month1 - 1, +day1, +hour1, +minute1, +second1.substring(0, 2));
+                const [dates2, times2] = element2.split('T');
+                const [year2, month2, day2] = dates2.split('-');
+                const [hour2, minute2, second2] = times2.split(':');
+                element2 = new Date(+year2, +month2 - 1, +day2, +hour2, +minute2, +second2.substring(0, 2));
+                break;
+            case 'date':
+            case 'dateTime':
+                const [tempYear1, tempMonth1, tempDay1] = element1.split('-');
+                element1 = new Date(+tempYear1, tempMonth1 ? +tempMonth1 - 1 : 0, tempDay1 ? +tempDay1 : 1);
+                const [tempYear2, tempMonth2, tempDay2] = element2.split('-');
+                element2 = new Date(+tempYear2, tempMonth2 ? +tempMonth2 - 1 : 0, tempDay2 ? +tempDay2 : 1);
+                break;
+            case 'time':
+                element1 = new Date(moment(element1, 'HH:mm:ss'));
+                element2 = new Date(moment(element2, 'HH:mm:ss'));
+                break;
+        }
+        if (element1 < element2) {
+            return -1;
+        } else if (element1 > element2) {
+            return 1;
+        }
+        return 0;
     }
 
     changeAttributes (prefix: string, attributes) {
@@ -325,6 +521,11 @@ export class DeidentificationService {
 
     getRandomFloat (min, max) {
         return Math.random() * (max - min) + min;
+    }
+
+    getDigitLength (resource, key) {
+        const integer = Utils.returnEqClassElements(key.split('.').slice(2), resource, []);
+        return integer.toString().length;
     }
 
 }
