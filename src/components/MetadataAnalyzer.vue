@@ -43,15 +43,6 @@
 		</div>
 
 		<div v-if="metaStep === 2" class="q-ma-sm">
-			<FhirProfileTable />
-			<div class="row q-ma-md">
-				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="metaStep--" no-caps />
-				<q-space />
-				<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="metaStep++" no-caps />
-			</div>
-		</div>
-
-		<div v-if="metaStep === 3" class="q-ma-sm">
 			<FhirAttributeTable />
 			<div class="row q-ma-md">
 				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="metaStep--" no-caps />
@@ -69,11 +60,6 @@ import Loading from '@/components/Loading.vue';
 
 @Component({
     components: {
-        FhirProfileTable: () => ({
-            component: import('@/components/tables/FhirProfileTable.vue'),
-            loading: Loading,
-            delay: 0
-        }),
         FhirAttributeTable: () => ({
             component: import('@/components/tables/FhirAttributeTable.vue'),
             loading: Loading,
@@ -83,7 +69,7 @@ import Loading from '@/components/Loading.vue';
 })
 export default class MetadataAnalyzer extends Vue {
     private onfhirBaseUrl: string = '';
-    private metaStep: number = this.$store.getters.previousStep === 0 ? 1 : 3;
+    private metaStep: number = this.$store.getters.previousStep === 0 ? 1 : 2;
     private verificationStatus: string = '';
 
     mounted () {

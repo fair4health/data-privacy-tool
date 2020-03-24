@@ -1,5 +1,5 @@
-const onfhirBase = 'http://f4h.srdc.com.tr/fhir';
-// const onfhirBase = 'http://192.168.1.105:8080/fhir';
+// const onfhirBase = 'http://f4h.srdc.com.tr/fhir';
+const onfhirBase = 'http://localhost:8080/fhir';
 
 export const environment = {
     server: {

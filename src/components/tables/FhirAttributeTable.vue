@@ -200,10 +200,8 @@ export default class FhirAttributeTable extends Vue {
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
 
-    get fhirResourceList (): string[] { return this.$store.getters['fhir/selectedResources'] }
-    get fhirProfileList (): string[] { return this.$store.getters['fhir/selectedProfiles'] }
-    set fhirProfileList (value) { this.$store.commit('fhir/setSelectedProfiles', value) }
-    get allfhirProfilesList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
+    get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
+    get fhirProfileList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -226,13 +224,14 @@ export default class FhirAttributeTable extends Vue {
     set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
 
     created () {
-        for (const resource of this.fhirResourceList) {
-            this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-                const availableProfiles = this.allfhirProfilesList.filter(profile => this.fhirProfileList.indexOf(profile) !== -1);
-                this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(availableProfiles));
-                this.$forceUpdate();
-            });
-        }
+        this.$store.dispatch('fhir/getResources').then(res => {
+            for (const resource of this.fhirResourceList) {
+                this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
+                    this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
+                    this.$forceUpdate();
+                });
+            }
+        });
     }
 
     @Watch('currentFHIRRes')

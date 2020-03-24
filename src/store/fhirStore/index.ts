@@ -46,8 +46,6 @@ const fhirStore = {
         currentProfile: '',
         currentAttribute: '',
         currentNode: null,
-        selectedResources: [],
-        selectedProfiles: [],
         rareElements: [],
         attributeMappings: {},
         parameterMappings: {},
@@ -71,8 +69,6 @@ const fhirStore = {
         currentProfile: state => state.currentProfile || '',
         currentAttribute: state => state.currentAttribute || '',
         currentNode: state => state.currentNode || null,
-        selectedResources: state => state.selectedResources || [],
-        selectedProfiles: state => state.selectedProfiles || [],
         rareElements: state => state.rareElements || [],
         attributeMappings: state => state.attributeMappings || {},
         parameterMappings: state => state.parameterMappings || {},
@@ -107,12 +103,6 @@ const fhirStore = {
         },
         setParameterMappings (state, value) {
             state.parameterMappings = value
-        },
-        setSelectedResources (state, list) {
-            state.selectedResources = list
-        },
-        setSelectedProfiles (state, list) {
-            state.selectedProfiles = list
         },
         setCurrentResource (state, value) {
             state.currentResource = value

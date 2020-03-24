@@ -55,9 +55,6 @@ export default class Deidentifier extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
 
-    get selectedResources (): string[] { return this.$store.getters['fhir/selectedResources'] }
-    get selectedProfiles (): string[] { return this.$store.getters['fhir/selectedProfiles'].map(r => JSON.parse(JSON.stringify(r))) }
-
     get kAnonymityValid (): boolean { return this.$store.getters['fhir/kAnonymityValid'] }
     set kAnonymityValid (value) { this.$store.commit('fhir/setKAnonymityValid', value) }
     get kValue (): number { return this.$store.getters['fhir/kValue'] }
@@ -65,9 +62,7 @@ export default class Deidentifier extends Vue {
 
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
-            const [resource, profile] = [key.split('.')[0], key.split('.')[1]];
-            const [resourceIndex, profileIndex] = [this.selectedResources.indexOf(resource), this.selectedProfiles.indexOf(profile)];
-            if (resourceIndex !== -1 && profileIndex !== -1 && this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
+            if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
                 this.willBeAnonyed.push(key);
             }
         });

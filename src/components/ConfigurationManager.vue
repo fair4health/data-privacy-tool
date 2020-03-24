@@ -112,9 +112,8 @@ export default class ConfigurationManager extends Vue {
     private resources = {};
     private tab: string = 'quasi';
 
-    get fhirResourceList (): string[] { return this.$store.getters['fhir/selectedResources'] }
-    get fhirProfileList (): string[] { return this.$store.getters['fhir/selectedProfiles'] }
-    get allfhirProfilesList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
+    get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
+    get fhirProfileList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -130,8 +129,7 @@ export default class ConfigurationManager extends Vue {
     created () {
         for (const resource of this.fhirResourceList) {
             this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-                const availableProfiles = this.allfhirProfilesList.filter(profile => this.fhirProfileList.indexOf(profile) !== -1);
-                this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(availableProfiles));
+                this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
                 this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
                     .then(() => {
                         this.loadingFhir = false;
