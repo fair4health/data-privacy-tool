@@ -15,6 +15,10 @@ export const environment = {
     hl7: 'http://hl7.org/fhir',
     resourceTypesToBeFiltered: ['CapabilityStatement', 'CodeSystem', 'ConceptMap', 'NamingSystem', 'OperationDefinition',
         'SearchParameter', 'StructureDefinition', 'ValueSet'],
+    attributesToBeFiltered: {
+        DomainResource: ['id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension'],
+        BackboneElement: ['id', 'extension', 'modifierExtension']
+    },
     attributeTypes: {
         ID: 'Identifier',
         QUASI: 'Quasi-identifier',

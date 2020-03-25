@@ -16,6 +16,20 @@ export class FHIRUtils {
         }, [])
     }
 
+    static filterDataTypes (tree: fhir.ElementTree[]): fhir.ElementTree[] {
+        tree.map(node => {
+            if (!node.type) { // DomainResource
+                node.children = node.children?.filter(child => child.label && !environment.attributesToBeFiltered.DomainResource.includes(child.label));
+            } else if (environment.attributesToBeFiltered[node.type]) {
+                node.children = node.children?.filter(child => node.type && child.label && !environment.attributesToBeFiltered[node.type].includes(child.label));
+            }
+            if (node.children && node.children.length) {
+                node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)));
+            }
+        });
+        return tree;
+    }
+
     static filter (tree: fhir.ElementTree[], elements: any[] ): fhir.ElementTree[] {
         tree = JSON.parse(JSON.stringify(tree)).filter(obj => elements.indexOf(obj.value) !== -1);
         tree.map(node => {

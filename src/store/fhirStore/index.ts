@@ -93,7 +93,7 @@ const fhirStore = {
             state.profileList = list
         },
         setElementList (state, list) {
-            state.elementList = list;
+            state.elementList = list?.length ? FHIRUtils.filterDataTypes(list) : [];
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
             state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
                                                         environment.attributeTypes.QUASI, state.typeMappings) : [];
