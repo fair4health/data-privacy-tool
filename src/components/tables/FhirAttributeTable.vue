@@ -104,7 +104,14 @@
 													        :size="prop.node.children && prop.node.children.length ? 'sm' : 'xs'"
 													        class="q-mr-sm"
 													/>
-													<span>{{ prop.node.label }} <span class="text-red">{{ prop.node.required ? '*' : '' }}</span></span>
+													<span>{{ prop.node.label }}
+														<span v-if="prop.node.required" class="text-red text-weight-bold" style="font-size: 16px">
+															{{ prop.node.required ? '*' : '' }}
+															<q-tooltip v-if="prop.node.children.length" content-style="font-size: 12px" anchor="top right" self="top left">
+																Mandatory complex types must include at least one child.
+															</q-tooltip>
+														</span>
+													</span>
 												</div>
 												<div class="text-center col-5">
 													<span class="text-caption text-primary">{{ prop.node.type }}</span>

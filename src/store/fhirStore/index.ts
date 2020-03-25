@@ -32,6 +32,9 @@ const fhirStore = {
         if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
             state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
         }
+        if (tmpObj.value && tmpObj.required && !state.requiredElements.includes(tmpObj.value)) {
+            state.requiredElements.push(tmpObj.value);
+        }
         return tmpObj;
     },
     namespaced: true,
@@ -47,6 +50,7 @@ const fhirStore = {
         currentAttribute: '',
         currentNode: null,
         rareElements: [],
+        requiredElements: [],
         attributeMappings: {},
         parameterMappings: {},
         kAnonymityValid: false,
@@ -70,6 +74,7 @@ const fhirStore = {
         currentAttribute: state => state.currentAttribute || '',
         currentNode: state => state.currentNode || null,
         rareElements: state => state.rareElements || [],
+        requiredElements: state => state.requiredElements || [],
         attributeMappings: state => state.attributeMappings || {},
         parameterMappings: state => state.parameterMappings || {},
         kAnonymityValid: state => state.kAnonymityValid || false,
@@ -88,7 +93,7 @@ const fhirStore = {
             state.profileList = list
         },
         setElementList (state, list) {
-            state.elementList = list?.length ? FHIRUtils.setRequirements(list) : [];
+            state.elementList = list;
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
             state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
                                                         environment.attributeTypes.QUASI, state.typeMappings) : [];
@@ -97,6 +102,9 @@ const fhirStore = {
         },
         setRareElements (state, list) {
             state.rareElements = list;
+        },
+        setRequiredElements (state, list) {
+            state.requiredElements = list;
         },
         setAttributeMappings (state, value) {
             state.attributeMappings = value

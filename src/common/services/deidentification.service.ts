@@ -3,13 +3,13 @@ import {environment} from '@/common/environment';
 import RandExp from 'randexp';
 import moment from 'moment-timezone';
 import {Utils} from '@/common/utils/util';
-import {FHIRUtils} from '@/common/utils/fhir-util';
 
 export class DeidentificationService {
     fhirService: FhirService;
     typeMappings: any;
     parameterMappings: any;
     rareValueMappings: any;
+    requiredElements: string[];
     loading: boolean;
     progressMessage: string;
     identifiers: string[][];
@@ -24,11 +24,12 @@ export class DeidentificationService {
     canBeAnonymizedMore: boolean;
     anonymizedData;
 
-    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, kAnonymityValid: boolean, kValue: number, $store) {
+    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[], kAnonymityValid: boolean, kValue: number, $store) {
         this.fhirService = new FhirService();
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
+        this.requiredElements = requiredElements;
         this.kAnonymityValid = kAnonymityValid;
         this.kValue = kValue;
         this.loading = true;
@@ -66,23 +67,18 @@ export class DeidentificationService {
                 this.quasis = quasis;
                 this.sensitives = sensitives;
                 entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                this.anonymizedData = JSON.parse(JSON.stringify(entries));
                 if (this.kAnonymityValid) {
-                    this.anonymizedData = JSON.parse(JSON.stringify(entries));
-                    this.makeKAnonymous(resource, profile).then(res => {
-                        this.deidentifiedResourceNumber += this.anonymizedData.length;
-                        this.loading = false;
-                        resolve({resource, profile, entries: this.anonymizedData, quasis});
-                    })
-                } else {
-                    this.deidentifiedResourceNumber += entries.length;
-                    this.loading = false;
-                    resolve({resource, profile, entries, quasis});
+                    this.makeKAnonymous(resource, profile);
                 }
+                this.deidentifiedResourceNumber += this.anonymizedData.length;
+                this.loading = false;
+                resolve({resource, profile, entries: this.anonymizedData, quasis});
             });
         })
     }
 
-    makeKAnonymous (resource: string, profile: string): Promise<any> {
+    makeKAnonymous (resource: string, profile: string) {
         const keys: string[] = [];
         this.quasis.forEach(paths => {
             let [key, i] = [resource + '.' + profile, 0];
@@ -95,36 +91,24 @@ export class DeidentificationService {
                 keys.push(key);
             }
         });
-        const promises: Array<Promise<any>> = keys.sort().map(key => {
-            return new Promise((resolve, reject) => {
-                FHIRUtils.isRequired(this.$store, key).then(required => {
-                    resolve({key, required});
-                });
-            });
-        });
-        return new Promise((resolve, reject) => {
-            Promise.all(promises).then(response => {
-                response.forEach(result => {
-                    const [key, required] = [result.key, result.required];
-                    while (this.canBeAnonymizedMore) {
-                        this.generateEquivalenceClasses(resource, profile, key, this.anonymizedData);
-                        let parametersChanged = false;
-                        this.equivalenceClasses.forEach(eqClass => {
-                            if (eqClass.length < this.kValue) {
-                                if (!parametersChanged) {
-                                    this.changeParameters(resource, profile, eqClass, key, required);
-                                    parametersChanged = true;
-                                }
-                                eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                            }
-                        });
-                        this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+        keys.sort().forEach(key => {
+            const required = this.requiredElements.includes(key);
+            while (this.canBeAnonymizedMore) {
+                this.generateEquivalenceClasses(resource, profile, key, this.anonymizedData);
+                let parametersChanged = false;
+                this.equivalenceClasses.forEach(eqClass => {
+                    if (eqClass.length < this.kValue) {
+                        if (!parametersChanged) {
+                            this.changeParameters(resource, profile, eqClass, key, required);
+                            parametersChanged = true;
+                        }
+                        eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
                     }
-                    this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= this.kValue);
-                    this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
                 });
-                resolve();
-            });
+                this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+            }
+            this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= this.kValue);
+            this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
         });
     }
 
