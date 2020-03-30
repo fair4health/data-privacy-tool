@@ -17,6 +17,10 @@ export class Utils {
         return Object.prototype.toString.call(what) === '[object Array]';
     }
 
+    static isEmpty (obj: object): boolean {
+        return Object.entries(obj).length === 0 && obj.constructor === Object
+    }
+
     static returnEqClassElements (paths, item, result) {
         let i = 0;
         while (i < paths.length) {

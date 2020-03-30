@@ -1,5 +1,6 @@
 // const onfhirBase = 'http://f4h.srdc.com.tr/fhir';
 const onfhirBase = 'http://localhost:8080/fhir';
+const hl7Base = 'http://hl7.org/fhir';
 
 export const environment = {
     server: {
@@ -12,12 +13,16 @@ export const environment = {
             }
         }
     },
-    hl7: 'http://hl7.org/fhir',
+    hl7: hl7Base,
     resourceTypesToBeFiltered: ['CapabilityStatement', 'CodeSystem', 'ConceptMap', 'NamingSystem', 'OperationDefinition',
         'SearchParameter', 'StructureDefinition', 'ValueSet'],
     attributesToBeFiltered: {
         DomainResource: ['id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension'],
         BackboneElement: ['id', 'extension', 'modifierExtension']
+    },
+    extendibleDataTypes: {
+        CodeableConcept: `${hl7Base}/StructureDefinition/CodeableConcept`,
+        Coding: `${hl7Base}/StructureDefinition/Coding`
     },
     attributeTypes: {
         ID: 'Identifier',
