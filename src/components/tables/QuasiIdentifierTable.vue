@@ -1,15 +1,20 @@
 <template>
 	<div>
+		<div class="row q-mb-md">
+			<q-toggle label="K-anonymity:" v-model="kAnonymityValid" class="q-mr-md" color="primary"  @input="onKValidChanged()" />
+			<q-select outlined dense v-model="kValue" :options="[2,3,4,5]" :disable="!kAnonymityValid" @input="onKValueChanged()" />
+		</div>
+		<q-separator />
 		<q-item-section class="q-px-xs">
-		<q-input borderless dense v-model="filter" label="Filter">
-			<template v-slot:prepend>
-				<q-icon name="sort" />
-			</template>
-			<template v-slot:append>
-				<q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
-			</template>
-		</q-input>
-	</q-item-section>
+			<q-input borderless dense v-model="filter" label="Filter">
+				<template v-slot:prepend>
+					<q-icon name="sort" />
+				</template>
+				<template v-slot:append>
+					<q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
+				</template>
+			</q-input>
+		</q-item-section>
 		<q-separator />
 		<div style="overflow-y: auto">
 			<q-splitter v-model="splitterModel">
@@ -162,6 +167,8 @@ export default class QuasiIdentifierTable extends Vue {
     private envAlgorithms = environment.algorithms;
     private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
     private tempParameterMappings = JSON.parse(JSON.stringify(this.parameterMappings));
+    private kAnonymityValid: boolean = false;
+    private kValue: number = 3;
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -187,9 +194,21 @@ export default class QuasiIdentifierTable extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
 
+    get kAnonymityValidMappings (): any { return this.$store.getters['fhir/kAnonymityValidMappings'] }
+    set kAnonymityValidMappings (value) { this.$store.commit('fhir/setKAnonymityValidMappings', value) }
+    get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
+    set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
+
+    created () {
+        if (this.currentFHIRRes) {
+            this.setKAnonymityParameters();
+        }
+    }
+
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
         ([this.currentFHIRProf, this.selectedStr] = ['', '']);
+        this.setKAnonymityParameters();
     }
 
     @Watch('currentFHIRProf')
@@ -197,6 +216,26 @@ export default class QuasiIdentifierTable extends Vue {
         if (newVal) {
             this.selectedElem = null;
         }
+    }
+
+    setKAnonymityParameters () {
+        if (this.kAnonymityValidMappings[this.currentFHIRRes]) {
+            this.kAnonymityValid = this.kAnonymityValidMappings[this.currentFHIRRes];
+            this.kValue = this.kValueMappings[this.currentFHIRRes];
+        } else {
+            this.kAnonymityValid = false;
+            this.kValue = 3;
+            this.kAnonymityValidMappings[this.currentFHIRRes] = this.kAnonymityValid;
+            this.kValueMappings[this.currentFHIRRes] = this.kValue;
+        }
+    }
+
+    onKValidChanged () {
+        this.kAnonymityValidMappings[this.currentFHIRRes] = this.kAnonymityValid;
+    }
+
+    onKValueChanged () {
+        this.kValueMappings[this.currentFHIRRes] = this.kValue;
     }
 
     copyEmptyParameters (attribute: string) {

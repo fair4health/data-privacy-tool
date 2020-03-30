@@ -53,8 +53,8 @@ const fhirStore = {
         requiredElements: [],
         attributeMappings: {},
         parameterMappings: {},
-        kAnonymityValid: false,
-        kValue: 3,
+        kAnonymityValidMappings: {},
+        kValueMappings: {},
         fhirBase: environment.server.config.baseUrl,
         fhirService: new FhirService(),
         evaluationService: new EvaluationService(),
@@ -77,8 +77,8 @@ const fhirStore = {
         requiredElements: state => state.requiredElements || [],
         attributeMappings: state => state.attributeMappings || {},
         parameterMappings: state => state.parameterMappings || {},
-        kAnonymityValid: state => state.kAnonymityValid || false,
-        kValue: state => state.kValue || 3,
+        kAnonymityValidMappings: state => state.kAnonymityValidMappings || {},
+        kValueMappings: state => state.kValueMappings || {},
         fhirBase: state => state.fhirBase,
         fhirService: state => state.fhirService,
         evaluationService: state => state.evaluationService,
@@ -124,11 +124,11 @@ const fhirStore = {
         setCurrentNode (state, value) {
             state.currentNode = value
         },
-        setKValue (state, value) {
-            state.kValue = value;
+        setKAnonymityValidMappings (state, value) {
+            state.kAnonymityValidMappings = value
         },
-        setKAnonymityValid (state, value) {
-            state.kAnonymityValid = value;
+        setKValueMappings (state, value) {
+          state.kValueMappings = value
         },
         updateFhirBase (state, baseUrl: string) {
             state.fhirBase = baseUrl;
@@ -238,7 +238,7 @@ const fhirStore = {
                                     let match = tmpList.findIndex(l => l.label === part);
                                     if (match === -1) {
                                         match = 0;
-                                        if (element.type && element.type.length > 1) { // multiple types
+                                        if (element.type && (element.type.length > 1 || element.id?.slice(-3) === '[x]' )) { // multiple types
                                             element.type.forEach(type => {
                                                 const tmpObj = fhirStore.saveObject(newId, part, state, element, type, true);
                                                 tmpList.push(tmpObj);

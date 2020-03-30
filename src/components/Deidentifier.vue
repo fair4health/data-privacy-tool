@@ -44,7 +44,7 @@ export default class Deidentifier extends Vue {
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
     private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
-	    this.parameterMappings, this.rareValueMappings, this.requiredElements, this.kAnonymityValid, this.kValue, this.$store);
+        this.parameterMappings, this.rareValueMappings, this.requiredElements, this.$store);
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -56,10 +56,10 @@ export default class Deidentifier extends Vue {
     get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
     get requiredElements (): any { return this.$store.getters['fhir/requiredElements'] }
 
-    get kAnonymityValid (): boolean { return this.$store.getters['fhir/kAnonymityValid'] }
-    set kAnonymityValid (value) { this.$store.commit('fhir/setKAnonymityValid', value) }
-    get kValue (): number { return this.$store.getters['fhir/kValue'] }
-    set kValue (value) { this.$store.commit('fhir/setKValue', value) }
+    get kAnonymityValidMappings (): any { return this.$store.getters['fhir/kAnonymityValidMappings'] }
+    set kAnonymityValidMappings (value) { this.$store.commit('fhir/setKAnonymityValidMappings', value) }
+    get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
+    set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
 
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
@@ -94,7 +94,7 @@ export default class Deidentifier extends Vue {
                     sensitives.push(key.split('.').slice(2));
                 }
             }
-            return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives);
+            return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]);
         });
         Promise.all(promises).then(response => {
             response.forEach(type => {
@@ -103,7 +103,6 @@ export default class Deidentifier extends Vue {
         });
     }
 }
-
 </script>
 
 <style lang="stylus">

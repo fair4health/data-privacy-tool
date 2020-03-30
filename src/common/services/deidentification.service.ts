@@ -16,22 +16,18 @@ export class DeidentificationService {
     quasis: string[][];
     sensitives: string[][];
     deidentifiedResourceNumber = 0;
-    kAnonymityValid: boolean;
-    kValue: number;
     riskyQuasis: string[];
     equivalenceClasses: any;
     $store: any;
     canBeAnonymizedMore: boolean;
     anonymizedData;
 
-    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[], kAnonymityValid: boolean, kValue: number, $store) {
+    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[], $store) {
         this.fhirService = new FhirService();
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
         this.requiredElements = requiredElements;
-        this.kAnonymityValid = kAnonymityValid;
-        this.kValue = kValue;
         this.loading = true;
         this.progressMessage = '';
         this.identifiers = [];
@@ -59,7 +55,7 @@ export class DeidentificationService {
         })
     }
 
-    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][]): Promise<any> {
+    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][], kAnonymityValid: boolean, kValue: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getEntries(resource, profile).then(entries => {
                 this.progressMessage = 'De-identifying ' + profile + ' profile...';
@@ -68,8 +64,8 @@ export class DeidentificationService {
                 this.sensitives = sensitives;
                 entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
                 this.anonymizedData = JSON.parse(JSON.stringify(entries));
-                if (this.kAnonymityValid) {
-                    this.makeKAnonymous(resource, profile);
+                if (kAnonymityValid) {
+                    this.makeKAnonymous(resource, profile, kValue);
                 }
                 this.deidentifiedResourceNumber += this.anonymizedData.length;
                 this.loading = false;
@@ -78,7 +74,7 @@ export class DeidentificationService {
         })
     }
 
-    makeKAnonymous (resource: string, profile: string) {
+    makeKAnonymous (resource: string, profile: string, kValue: number) {
         const keys: string[] = [];
         this.quasis.forEach(paths => {
             let [key, i] = [resource + '.' + profile, 0];
@@ -97,7 +93,7 @@ export class DeidentificationService {
                 this.generateEquivalenceClasses(resource, profile, key, this.anonymizedData);
                 let parametersChanged = false;
                 this.equivalenceClasses.forEach(eqClass => {
-                    if (eqClass.length < this.kValue) {
+                    if (eqClass.length < kValue) {
                         if (!parametersChanged) {
                             this.changeParameters(resource, profile, eqClass, key, required);
                             parametersChanged = true;
@@ -107,7 +103,7 @@ export class DeidentificationService {
                 });
                 this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
             }
-            this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= this.kValue);
+            this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
             this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
         });
     }
