@@ -202,10 +202,8 @@ export default class SensitiveAttributeTable extends Vue {
     }
 
     @Watch('currentFHIRProf')
-    onFHIRProfileChanged (newVal: any): void {
-        if (newVal) {
-            this.selectedElem = null;
-        }
+    onFHIRProfileChanged (): void {
+        this.selectedElem = null;
     }
 
     configureAlgorithm (node: fhir.ElementTree) {

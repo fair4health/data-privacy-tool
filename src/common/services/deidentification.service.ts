@@ -45,13 +45,16 @@ export class DeidentificationService {
             this.fhirService.search('StructureDefinition',
                 {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                 .then(res => {
-                    const url = res.data.entry.find(item => item.resource.id === profile).resource.url;
-                    this.fhirService.search(resource, {_profile: url}, true)
+                    let query = {};
+                    if (resource !== profile) { // Not a Base Profile
+                        const url = res.data.entry.find(item => item.resource.id === profile).resource.url;
+                        query = {_profile: url};
+                    }
+                    this.fhirService.search(resource, query, true)
                         .then(response => {
                             resolve(response.data.entry);
                         })
-                        .catch(err => {} );
-                }).catch(err => {});
+                })
         })
     }
 
@@ -89,18 +92,19 @@ export class DeidentificationService {
         });
         keys.sort().forEach(key => {
             const required = this.requiredElements.includes(key);
+            this.generateEquivalenceClasses(resource, key, this.anonymizedData);
             while (this.canBeAnonymizedMore) {
-                this.generateEquivalenceClasses(resource, profile, key, this.anonymizedData);
                 let parametersChanged = false;
                 this.equivalenceClasses.forEach(eqClass => {
                     if (eqClass.length < kValue) {
                         if (!parametersChanged) {
-                            this.changeParameters(resource, profile, eqClass, key, required);
+                            this.changeParameters(resource, eqClass, key, required);
                             parametersChanged = true;
                         }
                         eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
                     }
                 });
+                this.generateEquivalenceClasses(resource, key, this.anonymizedData);
                 this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
             }
             this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
@@ -108,7 +112,7 @@ export class DeidentificationService {
         });
     }
 
-    changeParameters (resource: string, profile: string, eqClass: any[], key: string, required: boolean) {
+    changeParameters (resource: string, eqClass: any[], key: string, required: boolean) {
         const primitiveType = this.typeMappings[key];
         const algorithm = this.parameterMappings[key];
         [this.quasis, this.sensitives, this.identifiers] = [[], [], []];
@@ -125,6 +129,7 @@ export class DeidentificationService {
                         this.quasis.push(key.split('.').slice(2));
                     } else if (!required) {
                         this.identifiers.push(key.split('.').slice(2));
+                        this.canBeAnonymizedMore = false;
                     } else {
                         this.canBeAnonymizedMore = false;
                     }
@@ -135,6 +140,7 @@ export class DeidentificationService {
                         this.quasis.push(key.split('.').slice(2));
                     } else if (!required) {
                         this.identifiers.push(key.split('.').slice(2));
+                        this.canBeAnonymizedMore = false;
                     } else {
                         this.canBeAnonymizedMore = false;
                     }
@@ -147,6 +153,7 @@ export class DeidentificationService {
                         this.quasis.push(key.split('.').slice(2));
                     } else if (this.parameterMappings[key].dateUnit === 'Hours' && !required) { // remove attribute
                         this.identifiers.push(key.split('.').slice(2));
+                        this.canBeAnonymizedMore = false;
                     } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
                         this.canBeAnonymizedMore = false;
                     }
@@ -166,6 +173,7 @@ export class DeidentificationService {
                         this.quasis.push(key.split('.').slice(2));
                     } else if (this.parameterMappings[key].dateUnit === 'Years' && !required) { // remove attribute
                         this.identifiers.push(key.split('.').slice(2));
+                        this.canBeAnonymizedMore = false;
                     } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
                         this.canBeAnonymizedMore = false;
                     }
@@ -178,6 +186,7 @@ export class DeidentificationService {
                     this.quasis.push(key.split('.').slice(2));
                 } else if (!required) { // remove attribute
                     this.identifiers.push(key.split('.').slice(2));
+                    this.canBeAnonymizedMore = false;
                 } else { // remove entries that not satisfies k-anonymity as F. Prasser, et al. (Record Suppression)
                     this.canBeAnonymizedMore = false;
                 }
@@ -185,7 +194,7 @@ export class DeidentificationService {
         }
     }
 
-    generateEquivalenceClasses (resource: string, profile: string, key: string, entries) {
+    generateEquivalenceClasses (resource: string, key: string, entries) {
         this.equivalenceClasses = Utils.groupBy(entries, item => {
             const groups: any[] = [];
             const result = Utils.returnEqClassElements(key.split('.').slice(2), item.resource, []);

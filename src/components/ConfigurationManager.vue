@@ -37,7 +37,7 @@
                                 <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
                             </q-item-label>
                             <q-separator spaced />
-                            <q-select outlined dense v-model="currentFHIRProf" :options="resources[currentFHIRRes]" label="Profiles" :disable="!this.resources[this.currentFHIRRes] || !resources[currentFHIRRes].length">
+                            <q-select clearable outlined dense v-model="currentFHIRProf" :options="resources[currentFHIRRes]" label="Profiles" :disable="!this.resources[this.currentFHIRRes] || !resources[currentFHIRRes].length">
                                 <template v-slot:option="scope">
                                     <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                                         <q-item-section avatar>
@@ -119,57 +119,30 @@ export default class ConfigurationManager extends Vue {
         for (const resource of this.fhirResourceList) {
             this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
                 this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
-                this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
-                    .then(() => {
-                        this.loadingFhir = false;
-                        this.$forceUpdate();
-                    })
-                    .catch(err => {
-                        this.loadingFhir = false;
-                        throw err
-                    });
+                this.getElements();
             });
         }
     }
 
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
+        this.currentFHIRProf = '';
         this.loadingFhir = true;
-        this.$store.dispatch('fhir/getProfilesByRes', this.currentFHIRRes)
-            .then(result => {
-                if (result) {
-                    this.loadingFhir = false;
-                    this.currentFHIRProf = (this.resources[this.currentFHIRRes] && this.resources[this.currentFHIRRes].length) ? this.resources[this.currentFHIRRes][0] : '';
-                    // Fetch elements of base resources
-                    if (!this.currentFHIRProf) {
-                        this.$store.dispatch('fhir/getElements', this.currentFHIRRes)
-                            .then(() => this.loadingFhir = false )
-                            .catch(err => {
-                                this.loadingFhir = false;
-                                throw err
-                            })
-                    }
-                }
-            })
-            .catch(err => {
-                this.loadingFhir = false;
-                throw err
-            })
+        this.getElements();
     }
 
     @Watch('currentFHIRProf')
-    onFHIRProfileChanged (newVal: any): void {
-        if (newVal) {
-            this.loadingFhir = true;
-            this.$store.dispatch('fhir/getElements', this.currentFHIRProf)
-                .then(() => {
-                    this.loadingFhir = false
-                })
-                .catch(err => {
-                    this.loadingFhir = false;
-                    throw err
-                })
-        }
+    onFHIRProfileChanged (): void {
+        this.loadingFhir = true;
+        this.getElements();
+    }
+
+    getElements () {
+        this.$store.dispatch('fhir/getElements', !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+            .then(() => {
+                this.loadingFhir = false;
+                this.$forceUpdate();
+            })
     }
 
     filterFn (val, update) {
