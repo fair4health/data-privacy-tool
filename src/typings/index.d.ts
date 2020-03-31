@@ -4799,3 +4799,9 @@ declare interface StoreMappingObject {
     data: object
     name: string
 }
+
+declare interface StepItem {
+    title: string,
+    icon: string,
+    stepId: any
+}

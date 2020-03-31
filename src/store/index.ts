@@ -7,16 +7,26 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        drawerOpen: true,
+        drawerMiniState: true,
         privacyStep: 1,
         previousStep: 1,
         log: ''
     },
     getters: {
+        drawerOpen: state => state.drawerOpen,
+        drawerMiniState: state => state.drawerMiniState,
         privacyStep: state => state.privacyStep,
         previousStep: state => state.previousStep,
         log: state => state.log
     },
     mutations: {
+        setDrawerOpen (state, value: boolean) {
+            state.drawerOpen = value
+        },
+        setDrawerMiniState (state, value: boolean) {
+            state.drawerMiniState = value
+        },
         incrementStep (state) {
             state.previousStep = state.privacyStep;
             state.privacyStep += 1

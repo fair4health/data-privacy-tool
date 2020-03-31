@@ -13,18 +13,12 @@
             </div>
             <div class="row justify-center">
                 <div class="col-2" style="align-self: center">
-                    <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                        <span class="text-grey-8">
-                            <q-btn flat round size="sm" icon="fas fa-info-circle">
-                                <q-tooltip content-style="font-size: 14px" anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                                    {{getRiskInfo('lowestProsecutor')}}
-                                </q-tooltip>
-                            </q-btn>
-                            Lowest Prosecutor Risk: </span>
+                    <q-item-label class="text-weight-bold text-primary q-mt-xl">
+                        Lowest Prosecutor Risk:
                     </q-item-label>
                 </div>
                 <div class="col-6">
-                    <q-linear-progress class="q-mt-xl q-mb-xl" rounded size="30px" :value="evaluationService.lowestProsecutor" color="primary">
+                    <q-linear-progress class="q-mt-xl q-ml-md" rounded size="30px" :value="evaluationService.lowestProsecutor" color="primary">
                         <div class="absolute-full flex flex-center">
                             <q-badge text-color="white">
                                 {{progressLabel(evaluationService.lowestProsecutor)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
@@ -33,20 +27,23 @@
                     </q-linear-progress>
                 </div>
             </div>
+            <div class="row justify-center q-mb-xl">
+                <div class="col-8 text-caption text-grey-8" style="align-self: center">
+                    <div class="row">
+                        <div class="col-3">
+                            {{getRiskInfo('lowestProsecutor')}}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row justify-center">
                 <div class="col-2" style="align-self: center">
-                    <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                        <span class="text-grey-8">
-                            <q-btn flat round size="sm" icon="fas fa-info-circle">
-                                <q-tooltip content-style="font-size: 14px" anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                                    {{getRiskInfo('recordsAffectedByLowest')}}
-                                </q-tooltip>
-                            </q-btn>
-                            Records Affected By Lowest Risk: </span>
+                    <q-item-label class="text-weight-bold text-primary q-mt-lg">
+                        Records Affected By Lowest Risk:
                     </q-item-label>
                 </div>
                 <div class="col-6">
-                    <q-linear-progress class="q-mt-xl q-mb-xl" rounded size="30px" :value="evaluationService.recordsAffectedByLowest" color="primary">
+                    <q-linear-progress class="q-mt-lg q-ml-md" rounded size="30px" :value="evaluationService.recordsAffectedByLowest" color="primary">
                         <div class="absolute-full flex flex-center">
                             <q-badge text-color="white">
                                 {{progressLabel(evaluationService.recordsAffectedByLowest)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
@@ -55,20 +52,23 @@
                     </q-linear-progress>
                 </div>
             </div>
+            <div class="row justify-center q-mb-xl">
+                <div class="col-8 text-caption text-grey-8" style="align-self: center">
+                    <div class="row">
+                        <div class="col-3">
+                            {{getRiskInfo('recordsAffectedByLowest')}}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row justify-center">
                 <div class="col-2" style="align-self: center">
-                    <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                        <span class="text-grey-8">
-                            <q-btn flat round size="sm" icon="fas fa-info-circle">
-                                <q-tooltip content-style="font-size: 14px" anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                                    {{getRiskInfo('averageProsecutor')}}
-                                </q-tooltip>
-                            </q-btn>
-                            Average Prosecutor Risk: </span>
+                    <q-item-label class="text-weight-bold text-primary q-mt-lg">
+                        Average Prosecutor Risk:
                     </q-item-label>
                 </div>
                 <div class="col-6">
-                    <q-linear-progress class="q-mt-xl q-mb-xl" rounded size="30px" :value="evaluationService.averageProsecutor" color="primary">
+                    <q-linear-progress class="q-mt-lg q-ml-md" rounded size="30px" :value="evaluationService.averageProsecutor" color="primary">
                         <div class="absolute-full flex flex-center">
                             <q-badge text-color="white">
                                 {{progressLabel(evaluationService.averageProsecutor)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
@@ -77,48 +77,63 @@
                     </q-linear-progress>
                 </div>
             </div>
+            <div class="row justify-center q-mb-xl">
+                <div class="col-8 text-caption text-grey-8" style="align-self: center">
+                    <div class="row">
+                        <div class="col-3">
+                            {{getRiskInfo('averageProsecutor')}}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row justify-center">
                 <div class="col-2" style="align-self: center">
-                    <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                        <span class="text-grey-8">
-                            <q-btn flat round size="sm" icon="fas fa-info-circle">
-                                <q-tooltip content-style="font-size: 14px" anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                                    {{getRiskInfo('highestProsecutor')}}
-                                </q-tooltip>
-                            </q-btn>
-                            Highest Prosecutor Risk: </span>
+                    <q-item-label class="text-weight-bold text-primary q-mt-lg">
+                        Highest Prosecutor Risk:
                     </q-item-label>
                 </div>
                 <div class="col-6">
-                    <q-linear-progress class="q-mt-xl q-mb-xl" rounded size="30px" :value="evaluationService.highestProsecutor" color="primary">
+                    <q-linear-progress class="q-mt-lg q-ml-md" rounded size="30px" :value="evaluationService.highestProsecutor" color="primary">
                         <div class="absolute-full flex flex-center">
                             <q-badge text-color="white">
-                                {{progressLabel(evaluationService.highestProsecutor)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
+                                {{progressLabel(evaluationService.highestProsecutor)}} <q-icon size="10px" class="q-ml-sm" name="fas fa-percent" color="white" />
                             </q-badge>
                         </div>
                     </q-linear-progress>
                 </div>
             </div>
+            <div class="row justify-center q-mb-xl">
+                <div class="col-8 text-caption text-grey-8" style="align-self: center">
+                    <div class="row">
+                        <div class="col-3">
+                            {{getRiskInfo('highestProsecutor')}}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row justify-center">
                 <div class="col-2" style="align-self: center">
-                    <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                        <span class="text-grey-8">
-                            <q-btn flat round size="sm" icon="fas fa-info-circle">
-                                <q-tooltip content-style="font-size: 14px" anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                                    {{getRiskInfo('recordsAffectedByHighest')}}
-                                </q-tooltip>
-                            </q-btn>
-                            Records Affected By Highest Risk: </span>
+                    <q-item-label class="text-weight-bold text-primary q-mt-lg">
+                        Records Affected By Highest Risk:
                     </q-item-label>
                 </div>
                 <div class="col-6">
-                    <q-linear-progress class="q-mt-xl q-mb-xl" rounded size="30px" :value="evaluationService.recordsAffectedByHighest" color="primary">
+                    <q-linear-progress class="q-mt-lg q-ml-md" rounded size="30px" :value="evaluationService.recordsAffectedByHighest" color="primary">
                         <div class="absolute-full flex flex-center">
                             <q-badge text-color="white">
                                 {{progressLabel(evaluationService.recordsAffectedByHighest)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
                             </q-badge>
                         </div>
                     </q-linear-progress>
+                </div>
+            </div>
+            <div class="row justify-center q-mb-xl">
+                <div class="col-8 text-caption text-grey-8" style="align-self: center">
+                    <div class="row">
+                        <div class="col-3">
+                            {{getRiskInfo('recordsAffectedByHighest')}}
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="q-ma-sm">
@@ -163,7 +178,6 @@
                     <q-space />
                     <q-btn flat label="Return Home" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
                 </q-card-actions>
-
                 <q-card-actions v-if="!saving" align="around">
                     <q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="saveToRepository('PUT')" no-caps />
                     <q-space />
@@ -192,15 +206,15 @@
         getRiskInfo (risk: string) {
             switch (risk) {
                 case 'lowestProsecutor':
-                    return 'Lowest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+                    return '- Lowest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
                 case 'highestProsecutor':
-                    return 'Highest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+                    return '- Highest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
                 case 'averageProsecutor':
-                    return 'Average risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+                    return '- Average risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
                 case 'recordsAffectedByLowest':
-                    return 'Percentage of identities in the dataset that has re-identification risk more than lowest prosecutor risk.';
+                    return '- Percentage of identities in the dataset that has re-identification risk more than lowest prosecutor risk.';
                 case 'recordsAffectedByHighest':
-                    return 'Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.';
+                    return '- Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.';
             }
         }
 

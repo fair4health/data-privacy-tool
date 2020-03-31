@@ -9,6 +9,7 @@ import '@quasar/extras/mdi-v4/mdi-v4.css'
 import '@quasar/extras/animate/heartBeat.css'
 import {
     Quasar,
+    QBar,
     QLayout,
     QHeader,
     QDrawer,
@@ -89,6 +90,7 @@ Vue.use(Quasar, {
         animations: 'all'
     },
     components: {
+        QBar,
         QLayout,
         QHeader,
         QDrawer,
