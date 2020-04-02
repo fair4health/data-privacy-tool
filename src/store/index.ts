@@ -10,15 +10,15 @@ export default new Vuex.Store({
         drawerOpen: true,
         drawerMiniState: true,
         privacyStep: 1,
-        previousStep: 1,
-        log: ''
+        log: '',
+        metaStep: 1
     },
     getters: {
         drawerOpen: state => state.drawerOpen,
         drawerMiniState: state => state.drawerMiniState,
         privacyStep: state => state.privacyStep,
-        previousStep: state => state.previousStep,
-        log: state => state.log
+        log: state => state.log,
+        metaStep: state => state.metaStep,
     },
     mutations: {
         setDrawerOpen (state, value: boolean) {
@@ -28,19 +28,19 @@ export default new Vuex.Store({
             state.drawerMiniState = value
         },
         incrementStep (state) {
-            state.previousStep = state.privacyStep;
             state.privacyStep += 1
         },
         decrementStep (state) {
-            state.previousStep = state.privacyStep;
             state.privacyStep -= 1
         },
         resetStep (state) {
-            state.previousStep = 0;
             state.privacyStep = 1
         },
         updateLog (state, message) {
             state.log += message + '<br/>'
+        },
+        setMetaStep (state, value: number) {
+            state.metaStep = value;
         }
     },
     actions: {},

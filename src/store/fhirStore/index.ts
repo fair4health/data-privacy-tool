@@ -56,6 +56,7 @@ const fhirStore = {
         kAnonymityValidMappings: {},
         kValueMappings: {},
         fhirBase: environment.server.config.baseUrl,
+        fhirBaseVerificationStatus: '',
         fhirService: new FhirService(),
         evaluationService: new EvaluationService(),
         typeMappings: {},
@@ -80,6 +81,7 @@ const fhirStore = {
         kAnonymityValidMappings: state => state.kAnonymityValidMappings || {},
         kValueMappings: state => state.kValueMappings || {},
         fhirBase: state => state.fhirBase,
+        fhirBaseVerificationStatus: state => state.fhirBaseVerificationStatus,
         fhirService: state => state.fhirService,
         evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
@@ -134,6 +136,9 @@ const fhirStore = {
             state.fhirBase = baseUrl;
             state.fhirService = new FhirService(baseUrl);
             localStorage.setItem('fhirBaseUrl', baseUrl);
+        },
+        setFhirBaseVerificationStatus (state, status: status) {
+            state.fhirBaseVerificationStatus = status
         },
         setTypeMappings (state, value) {
             state.typeMappings = value
@@ -259,13 +264,6 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        searchResource ({ commit, state }, resourceType: string): Promise<any> {
-            return new Promise((resolve, reject) => {
-                state.fhirService.search(resourceType, {}, true)
-                    .then(res => resolve(res))
-                    .catch(err => reject(err))
-            })
-        },
         calculateRisks ({ state }, type) {
             state.entries = JSON.parse(JSON.stringify(type.entries));
             state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
@@ -284,6 +282,24 @@ const fhirStore = {
         },
         saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
             return state.evaluationService.saveEntries(state.entries, request);
+        },
+        verifyFhir ({ state }): Promise<any> {
+            return new Promise((resolve, reject) => {
+                state.fhirService.search('metadata', {}, true)
+                    .then(res => {
+                        const metadata: fhir.CapabilityStatement = res.data;
+                        if (metadata.fhirVersion) {
+                            if (environment.server.compatibleFhirVersions.includes(metadata.fhirVersion)) {
+                                resolve(res)
+                            } else {
+                                reject(`FHIR version (${metadata.fhirVersion}) is not supported. FHIR version must be R4.`)
+                            }
+                        } else {
+                            throw Error()
+                        }
+                    })
+                    .catch(err => reject('Given url is not verified.'))
+            })
         }
     }
 };

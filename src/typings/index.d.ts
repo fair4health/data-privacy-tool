@@ -4805,3 +4805,5 @@ declare interface StepItem {
     icon: string,
     stepId: any
 }
+
+declare type status = 'success' | 'warning' | 'error' | 'in-progress' | 'pending';
