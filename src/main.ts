@@ -4,6 +4,9 @@ import router from './router'
 import store from './store'
 import { QVueGlobals } from 'quasar'
 import './quasar'
+import {webFrame} from 'electron';
+
+webFrame.setZoomFactor(0.9);
 
 Vue.config.productionTip = false;
 

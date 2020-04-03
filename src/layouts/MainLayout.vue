@@ -14,59 +14,51 @@
 			:breakpoint="500"
 			:mini="$q.screen.lt.lg || drawerMiniState"
 		>
-			<q-list class="menu-list">
-				<q-item to="/" exact active-class="text-primary bg-blue-grey-1 text-weight-bold">
+			<q-list class="menu-list text-grey-8">
+				<q-item to="/" exact active-class="text-primary bg-grey-3 text-weight-bold">
 					<q-item-section avatar>
 						<q-icon name="home" />
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">Home</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>Home</q-item-label>
 					</q-item-section>
-					<q-tooltip v-if="isCollapsed" anchor="center right" self="center left" :offset="[5, 10]"
-					           content-class="bg-grey-4 text-grey-9" transition-show="scale" transition-hide="scale">
-						Home
-					</q-tooltip>
 				</q-item>
-				<q-item to="/deidentification" exact active-class="text-primary bg-blue-grey-1 text-weight-bold">
-					<q-item-section avatar>
+				<q-item to="/deidentification" exact active-class="text-primary bg-grey-3 text-weight-bold">
+					<q-item-section avatar class="items-center">
 						<q-icon name="security" />
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">De-identify</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>De-identification</q-item-label>
 					</q-item-section>
-					<q-tooltip v-if="isCollapsed" anchor="center right" self="center left" :offset="[5, 10]"
-					           content-class="bg-grey-4 text-grey-9" transition-show="scale" transition-hide="scale">
-						De-identification
-					</q-tooltip>
 				</q-item>
 				<q-item v-if="$route.name==='deidentification'" animation>
 					<q-stepper flat vertical :contracted="isCollapsed" v-model="currentStep"
-					           ref="stepper" alternative-labels color="primary" class="bg-grey-3"
-					           :style="isCollapsed ? 'padding: 0; width: 70px' : ''">
+					           ref="stepper" alternative-labels color="primary" class="bg-grey-3 no-padding"
+					           :style="isCollapsed ? 'width: 70px' : ''">
 						<q-step v-for="step in steps" :key="step.stepId"
 						        :class="{'step-item cursor-pointer': currentStep > step.stepId}"
+						        @click="currentStep=step.stepId"
 						        :name="step.stepId"
 						        :title="step.title"
 						        :icon="step.icon"
 						        :done-icon="step.icon"
 						        :done="currentStep > step.stepId"
-						        active-color="grey-7"
+						        active-color="grey-8"
 						        done-color="primary"
 						/>
 					</q-stepper>
 				</q-item>
 				<q-separator />
-				<q-item to="/about" exact active-class="text-primary bg-blue-grey-1 text-weight-bold">
-					<q-item-section avatar>
+				<q-item to="/about" exact active-class="text-primary bg-grey-3">
+					<q-item-section avatar class="items-center">
 						<q-icon name="info" />
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">About</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>About</q-item-label>
 					</q-item-section>
-					<q-tooltip v-if="isCollapsed" anchor="center right" self="center left" :offset="[5, 10]"
-					           content-class="bg-grey-4 text-grey-9" transition-show="scale" transition-hide="scale">
-						About
-					</q-tooltip>
 				</q-item>
 			</q-list>
 			<q-list v-if="($q.screen.gt.md && !drawerMiniState) || $q.screen.xs" padding class="text-grey-8 fixed-bottom">
@@ -75,7 +67,7 @@
 					<q-item-section>
 			            <span class="text-weight-bold flex flex-center text-caption">
 			              <span>Powered by </span>
-			              <img src="https://www.srdc.com.tr/wp-content/uploads/2014/12/srdc-wp.png" class="q-ml-sm" width="120px">
+			              <img src="../assets/srdc-wp.png" class="q-ml-sm" width="120px">
 			            </span>
 					</q-item-section>
 				</q-item>
@@ -115,6 +107,8 @@ export default class MainLayout extends Vue {
     set drawerMiniState (value) { this.$store.commit('setDrawerMiniState', value) }
 
     get currentStep (): number { return this.$store.getters.privacyStep }
+    set currentStep (value) { this.$store.commit('setStep', value) }
+
     get isCollapsed () { return (this.$q.screen.gt.xs && (this.$q.screen.lt.lg || this.drawerMiniState)) }
 
 }
@@ -126,8 +120,11 @@ export default class MainLayout extends Vue {
 	.btn-close:hover
 		background red
 	.main-page
+		/*max-width 1400px*/
 		margin-left auto
 		margin-right auto
+	.menu-list .q-item.q-router-link--exact-active
+		border-left solid 4px #B26F95
 	.menu-list .q-item
 		border-radius 0 32px 32px 0
 	.step-item:hover

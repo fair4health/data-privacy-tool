@@ -74,17 +74,17 @@ Vue.use(Quasar, {
     config: {
         loadingBar: {
             color: 'primary',
-            size: '4px'
+            size: '2px'
         },
         loading: {
             spinner: QSpinnerTail,
             spinnerSize: '65px'
         },
         notify: {
+            progress: true,
             textColor: 'white',
-            timeout: 1500,
             position: 'top',
-            classes: 'notify-opacity',
+            timeout: 2000,
             actions: [ { icon: 'clear', color: 'white' } ]
         },
         animations: 'all'

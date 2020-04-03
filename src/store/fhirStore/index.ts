@@ -61,7 +61,8 @@ const fhirStore = {
         evaluationService: new EvaluationService(),
         typeMappings: {},
         rareValueMappings: {},
-        entries: null
+        entries: null,
+        resourceProfileMappings: {}
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -85,7 +86,8 @@ const fhirStore = {
         fhirService: state => state.fhirService,
         evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
-        rareValueMappings: state => state.rareValueMappings || {}
+        rareValueMappings: state => state.rareValueMappings || {},
+        resourceProfileMappings: state => state.resourceProfileMappings || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -145,6 +147,9 @@ const fhirStore = {
         },
         setRareValueMappings (state, value) {
             state.rareValueMappings = value
+        },
+        setResourceProfileMappings (state, value) {
+            state.resourceProfileMappings = value
         }
     },
     actions: {
@@ -185,42 +190,29 @@ const fhirStore = {
                 state.fhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                     .then(res => {
-                        const bundle = res.data as fhir.Bundle;
-
-                        // TODO after _profile query is fixed on onFhir, only profiles that has data will be filtered
-
-                        // Promise.all(res.data.entry.map(item => {
-                        //   // console.log(item);
-                        //   const resourceType = item.resource.type;
-                        //   const url = item.resource.url;
-                        //   // console.log(resourceType, url);
-                        //   return new Promise<any>((resolve1, reject1) => {
-                        //     state.fhirService.search(resourceType, {_profile: url})
-                        //       .then(response => {
-                        //         // console.log(url, response);
-                        //         const count: number = response.data.entry.length;
-                        //         resolve1({resourceType, count});
-                        //       })
-                        //       .catch(err => reject(err) );
-                        //   })
-                        // })).then(counts => {
-                        //   // console.log('counts', counts);
-                        //   const availableResources: any[] = [];
-                        //   for (const counter of counts) {
-                        //     // if (counter.count) {
-                        //     // availableResources.push(counter.resourceType);
-                        //     // }
-                        //   }
-                        //   // commit('setResourceList', availableResources);
-                        //   // resolve(true)
-                        // }).catch(err => reject(err));
-
-
-                        commit('setProfileList', bundle.entry?.map(e => {
-                            const structure = e.resource as fhir.StructureDefinition;
-                            return {id: structure.id, title: structure.title, description: structure.description}
-                        }) || []);
-                        resolve(true)
+                        Promise.all(res.data.entry.map(item => {
+                            const [resourceType, profile, url, title, description] = [item.resource.type,
+                                item.resource.id, item.resource.url, item.resource.title, item.resource.description];
+                            return new Promise<any>((resolve1, reject1) => {
+                                state.fhirService.search(resourceType, {_profile: url})
+                                    .then(response => {
+                                        const count: number = response.data.entry.length;
+                                        resolve1({resourceType, profile, count, title, description});
+                                    })
+                                .catch(err => reject(err) );
+                            })
+                        })).then((counts: any) => {
+                            const availableProfiles: any[] = [];
+                            for (const counter of counts) {
+                                if (counter.count) { // take only profiles that has data on repository
+                                    availableProfiles.push(counter);
+                                }
+                            }
+                            commit('setProfileList', availableProfiles.map(e => {
+                                return {id: e.profile, title: e.title, description: e.description}
+                            }) || []);
+                            resolve(true)
+                        }).catch(err => reject(err));
                     })
                     .catch(err => reject(err) )
             })

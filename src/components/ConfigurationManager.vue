@@ -37,7 +37,7 @@
                                 <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
                             </q-item-label>
                             <q-separator spaced />
-                            <q-select clearable outlined dense v-model="currentFHIRProf" :options="resources[currentFHIRRes]" label="Profiles" :disable="!this.resources[this.currentFHIRRes] || !resources[currentFHIRRes].length">
+                            <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
                                 <template v-slot:option="scope">
                                     <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                                         <q-item-section avatar>
@@ -103,11 +103,9 @@ import Loading from '@/components/Loading.vue';
 export default class ConfigurationManager extends Vue {
     private loadingFhir: boolean = false;
     private fhirResourceOptions: string[] = [];
-    private resources = {};
     private tab: string = 'quasi';
 
     get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
-    get fhirProfileList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -115,13 +113,11 @@ export default class ConfigurationManager extends Vue {
     get currentFHIRProf (): string { return this.$store.getters['fhir/currentProfile'] }
     set currentFHIRProf (value) { this.$store.commit('fhir/setCurrentProfile', value) }
 
+    get resourceProfileMappings (): any { return this.$store.getters['fhir/resourceProfileMappings'] }
+    set resourceProfileMappings (value) { this.$store.commit('fhir/setResourceProfileMappings', value) }
+
     created () {
-        for (const resource of this.fhirResourceList) {
-            this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-                this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
-                this.getElements();
-            });
-        }
+        this.getElements();
     }
 
     @Watch('currentFHIRRes')
@@ -150,7 +146,7 @@ export default class ConfigurationManager extends Vue {
             update(_ => this.fhirResourceOptions = this.fhirResourceList);
             return
         }
-        update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().indexOf(val.toLowerCase()) > -1))
+        update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().includes(val.toLowerCase())))
     }
 
 }

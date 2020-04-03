@@ -25,6 +25,7 @@ export const environment = {
         CodeableConcept: `${hl7Base}/StructureDefinition/CodeableConcept`,
         Coding: `${hl7Base}/StructureDefinition/Coding`
     },
+    kAnonymityBlockSize: 100000, // Row Blocking F. Prasser, et al. in https://www.sciencedirect.com/science/article/pii/S1386505618307007
     attributeTypes: {
         ID: 'Identifier',
         QUASI: 'Quasi-identifier',

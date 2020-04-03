@@ -268,13 +268,13 @@ export default class QuasiIdentifierTable extends Vue {
         if (node.required && opt === environment.algorithms.REDACTION.name) {
             return true;
         }
-        return environment.primitiveTypes[this.typeMappings[node.value]].supports.indexOf(opt) === -1;
+        return !environment.primitiveTypes[this.typeMappings[node.value]].supports.includes(opt);
     }
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
-        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
+        return (node.label && node.label.toLowerCase().includes(filt)) ||
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
 
 }

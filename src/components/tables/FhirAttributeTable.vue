@@ -31,7 +31,7 @@
 						<span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resources[currentFHIRRes]" label="Profiles" :disable="!this.resources[this.currentFHIRRes] || !resources[currentFHIRRes].length">
+					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
 								<q-item-section avatar>
@@ -203,7 +203,6 @@ export default class FhirAttributeTable extends Vue {
     private selectedElem: any = null;
     private filter: string = '';
     private fhirResourceOptions: string[] = [];
-    private resources = {};
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
 
@@ -230,11 +229,14 @@ export default class FhirAttributeTable extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
 
+    get resourceProfileMappings (): any { return this.$store.getters['fhir/resourceProfileMappings'] }
+    set resourceProfileMappings (value) { this.$store.commit('fhir/setResourceProfileMappings', value) }
+
     created () {
         this.$store.dispatch('fhir/getResources').then(res => {
             for (const resource of this.fhirResourceList) {
                 this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
-                    this.resources[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
+                    this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
                 });
             }
@@ -269,7 +271,7 @@ export default class FhirAttributeTable extends Vue {
             update(_ => this.fhirResourceOptions = this.fhirResourceList);
             return
         }
-        update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().indexOf(val.toLowerCase()) > -1))
+        update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().includes(val.toLowerCase())))
     }
 
     onAttributeTypeSelected (prop: string, val: string) {
@@ -292,8 +294,8 @@ export default class FhirAttributeTable extends Vue {
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
-        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
+        return (node.label && node.label.toLowerCase().includes(filt)) ||
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
 
   }

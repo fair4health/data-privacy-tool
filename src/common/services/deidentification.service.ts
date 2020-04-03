@@ -66,18 +66,27 @@ export class DeidentificationService {
                 this.quasis = quasis;
                 this.sensitives = sensitives;
                 entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                this.anonymizedData = JSON.parse(JSON.stringify(entries));
+                let finalData: any[] = [];
                 if (kAnonymityValid) {
-                    this.makeKAnonymous(resource, profile, kValue);
+                    const bulk = JSON.parse(JSON.stringify(entries));
+                    this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
+                    while (this.anonymizedData.length) {
+                        [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [identifiers, quasis, sensitives, true];
+                        const anonymizedBulk = this.makeKAnonymous(resource, profile, kValue, this.anonymizedData);
+                        finalData.push(...anonymizedBulk);
+                        this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
+                    }
+                } else {
+                    finalData = entries;
                 }
-                this.deidentifiedResourceNumber += this.anonymizedData.length;
+                this.deidentifiedResourceNumber += finalData.length;
                 this.loading = false;
-                resolve({resource, profile, entries: this.anonymizedData, quasis});
+                resolve({resource, profile, entries: finalData, quasis});
             });
         })
     }
 
-    makeKAnonymous (resource: string, profile: string, kValue: number) {
+    makeKAnonymous (resource: string, profile: string, kValue: number, anonymizedData) {
         const keys: string[] = [];
         this.quasis.forEach(paths => {
             let [key, i] = [resource + '.' + profile, 0];
@@ -92,10 +101,10 @@ export class DeidentificationService {
         });
         keys.sort().forEach(key => {
             const required = this.requiredElements.includes(key);
-            this.generateEquivalenceClasses(resource, key, this.anonymizedData);
+            let equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
             while (this.canBeAnonymizedMore) {
                 let parametersChanged = false;
-                this.equivalenceClasses.forEach(eqClass => {
+                equivalenceClasses.forEach(eqClass => {
                     if (eqClass.length < kValue) {
                         if (!parametersChanged) {
                             this.changeParameters(resource, eqClass, key, required);
@@ -104,12 +113,13 @@ export class DeidentificationService {
                         eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
                     }
                 });
-                this.generateEquivalenceClasses(resource, key, this.anonymizedData);
-                this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+                equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
+                anonymizedData = [].concat(...equivalenceClasses);
             }
-            this.equivalenceClasses = this.equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
-            this.anonymizedData = [].concat.apply([], this.equivalenceClasses);
+            equivalenceClasses = equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
+            anonymizedData = [].concat(...equivalenceClasses);
         });
+        return anonymizedData;
     }
 
     changeParameters (resource: string, eqClass: any[], key: string, required: boolean) {
@@ -195,17 +205,18 @@ export class DeidentificationService {
     }
 
     generateEquivalenceClasses (resource: string, key: string, entries) {
-        this.equivalenceClasses = Utils.groupBy(entries, item => {
+        const equivalenceClasses = Utils.groupBy(entries, item => {
             const groups: any[] = [];
             const result = Utils.returnEqClassElements(key.split('.').slice(2), item.resource, []);
             groups.push(result);
             return groups; // undefined values are considered as the same
         });
-        this.equivalenceClasses.sort((a: any, b: any) => {
+        equivalenceClasses.sort((a: any, b: any) => {
             const element1 = Utils.returnEqClassElements(key.split('.').slice(2), a[0].resource, []);
             const element2 = Utils.returnEqClassElements(key.split('.').slice(2), b[0].resource, []);
             return this.sortFunction(element1, element2, key);
         });
+        return equivalenceClasses;
     }
 
     sortFunction (element1, element2, key): number {
@@ -319,14 +330,14 @@ export class DeidentificationService {
                     attribute[paths[index]][i] = this.handleSensitives(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
                 } else { // primitives in array
                     if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
-                        && (this.rareValueMappings[key].indexOf(attribute[paths[index]][i]) !== -1)) {
+                        && (this.rareValueMappings[key].includes(attribute[paths[index]][i]))) {
                         attribute[paths[index]][i] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, elem, this.typeMappings[key]);
                     }
                 }
             }
         } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
-                && (this.rareValueMappings[key].indexOf(attribute[paths[index]]) !== -1)) {
+                && (this.rareValueMappings[key].includes(attribute[paths[index]]))) {
                 attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, attribute[paths[index]], this.typeMappings[key]);
             }
         }

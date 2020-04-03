@@ -36,6 +36,9 @@ export default new Vuex.Store({
         resetStep (state) {
             state.privacyStep = 1
         },
+        setStep (state, value) {
+            state.privacyStep = value;
+        },
         updateLog (state, message) {
             state.log += message + '<br/>'
         },

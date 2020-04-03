@@ -85,7 +85,7 @@ export class FHIRUtils {
     }
 
     static filter (tree: fhir.ElementTree[], elements: any[] ): fhir.ElementTree[] {
-        tree = JSON.parse(JSON.stringify(tree)).filter(obj => elements.indexOf(obj.value) !== -1);
+        tree = JSON.parse(JSON.stringify(tree)).filter(obj => elements.includes(obj.value));
         tree.map(node => {
             if (node.children && node.children.length) {
                 node.children = this.filter(JSON.parse(JSON.stringify(node.children)), elements);

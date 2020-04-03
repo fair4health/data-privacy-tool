@@ -218,13 +218,13 @@ export default class SensitiveAttributeTable extends Vue {
     }
 
     setRareness (attribute: string) {
-        this.parameterMappings[attribute].hasRare = this.rareElements.indexOf(attribute) !== -1;
+        this.parameterMappings[attribute].hasRare = this.rareElements.includes(attribute);
     }
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
-        return (node.label && node.label.toLowerCase().indexOf(filt) > -1) ||
-            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().indexOf(filt) > -1);
+        return (node.label && node.label.toLowerCase().includes(filt)) ||
+            (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
 
 }

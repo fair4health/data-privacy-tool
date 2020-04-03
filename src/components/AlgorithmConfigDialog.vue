@@ -235,7 +235,7 @@ export default class AlgorithmConfigDialog extends Vue {
         if (this.currentNode.required && opt === environment.algorithms.REDACTION.name) {
             return true;
         }
-        return environment.primitiveTypes[this.typeMappings[this.currentAttribute]].supports.indexOf(opt) === -1;
+        return !environment.primitiveTypes[this.typeMappings[this.currentAttribute]].supports.includes(opt);
     }
 
     hasRegex (): boolean {

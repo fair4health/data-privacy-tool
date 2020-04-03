@@ -179,6 +179,7 @@
                     <q-btn flat label="Return Home" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
                 </q-card-actions>
                 <q-card-actions v-if="!saving" align="around">
+                    <!-- TODO remove POST option -->
                     <q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="saveToRepository('PUT')" no-caps />
                     <q-space />
                     <q-btn class="q-ma-md" unelevated label="Save As New Data" color="primary" icon-right="save" @click="saveToRepository('POST')" no-caps />
