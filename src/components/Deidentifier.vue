@@ -5,46 +5,219 @@
 				De-identifier
 			</q-toolbar-title>
 		</q-toolbar>
-		<div v-if="deidentificationService.loading" class="q-mt-xl">
-			<div class="q-mt-xl q-mb-xl row justify-center">
-				<div class="spinner-comp flex flex-center"></div>
-			</div>
-			<div class="row justify-center">
-				<span class="text-weight-bold text-grey-8" style="font-size: 20px">{{deidentificationService.progressMessage}}</span>
-			</div>
-		</div>
-		<div v-if="!deidentificationService.loading" class="q-ma-sm">
-			<div class="q-mt-xl q-mb-lg row justify-center">
-				<transition appear enter-active-class="animated heartBeat">
-					<q-icon size="100px" class="mdi mdi-shield-check" color="primary"></q-icon>
-				</transition>
-			</div>
-			<div class="row justify-center">
-				<span class="text-weight-bold text-grey-8" style="font-size: 20px">
-					{{deidentificationService.deidentifiedResourceNumber}} resources are de-identified.
-				</span>
-			</div>
+
+		<div class="q-ma-sm">
+			<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
+				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Risk is calculated according to different models. </span>
+			</q-item-label>
+			<q-card flat bordered class="q-ma-sm">
+				<q-card-section>
+					<q-table flat binary-state-sort title="Resources" :data="mappingList" :columns="columns" row-key="resource"
+					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table"
+					         table-style="max-height: 60vh" :loading="loading" color="primary"
+					>
+						<template v-slot:header-cell="props">
+							<q-th :props="props" class="bg-primary text-white" style="font-size: 13px">
+								<q-icon v-if="props.col.icon" :name="props.col.icon" />
+								<span class="vertical-middle q-ml-xs">{{ props.col.label }}</span>
+							</q-th>
+						</template>
+						<template v-slot:body="props">
+							<q-tr :props="props">
+								<q-td key="status" class="no-padding" :props="props">
+									<template v-if="props.row.status === 'in-progress'">
+									<span>
+										<q-spinner color="grey-9" />
+										<q-tooltip content-class="bg-white text-grey-8">De-identifying...</q-tooltip>
+									</span>
+									</template>
+									<template v-else-if="props.row.status === 'done'">
+										<div class="row items-center">
+											<div class="col-6">
+												<q-icon name="check" color="green">
+													<q-tooltip content-class="bg-white text-green">Completed</q-tooltip>
+												</q-icon>
+											</div>
+<!--												<div class="col-6 bg-grey-3">-->
+<!--													<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"-->
+<!--													       @click="openOutcomeDetailCard(props.row.validation.outcomeDetails)" no-caps />-->
+<!--												</div>-->
+										</div>
+									</template>
+									<template v-else-if="props.row.status === 'warning'">
+										<div class="row items-center">
+											<div class="col-6">
+												<q-icon name="warning" color="orange-6">
+													<q-tooltip content-class="bg-white text-orange-6">Warning</q-tooltip>
+												</q-icon>
+											</div>
+											<div class="col-6 bg-grey-3">
+<!--													<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"-->
+<!--													       @click="openOutcomeDetailCard(props.row.validation.outcomeDetails)" no-caps />-->
+											</div>
+										</div>
+									</template>
+<!--										<template v-else-if="props.row.validation.status === 'error'">-->
+<!--											<q-icon name="error_outline" color="red" class="cursor-pointer"-->
+<!--											        @click="openOutcomeDetailCard([{status: 'error', message: props.row.description, resourceType: 'OperationOutcome'}])">-->
+<!--&lt;!&ndash;												<q-tooltip content-class="error-tooltip bg-white text-red-7" class="ellipsis-3-lines">{{ props.row.validation.description }}</q-tooltip>&ndash;&gt;-->
+<!--											</q-icon>-->
+<!--										</template>-->
+									<template v-else>
+										<q-icon name="access_time" color="grey-9">
+											<q-tooltip content-class="bg-white text-grey-8">Pending</q-tooltip>
+										</q-icon>
+									</template>
+								</q-td>
+								<q-td key="resource" :props="props">
+									<q-btn dense round flat size="sm" :icon="props.expand ? 'arrow_drop_up' : 'arrow_drop_down'" @click="props.expand = !props.expand" />
+									{{ props.row.resource }}
+								</q-td>
+								<q-td key="count" :props="props">
+									<q-chip square class="bg-orange-6 text-white">
+										<q-spinner v-if="props.row.count === -1" color="white" />
+										<template v-else>{{ props.row.count }}</template>
+									</q-chip>
+								</q-td>
+							</q-tr>
+							<q-tr v-show="props.expand" :props="props">
+								<q-td colspan="100%" class="bg-grey-2">
+									<q-card flat bordered class="q-ml-md q-mr-md q-mt-sm q-mb-sm">
+										<q-item>
+											<q-item-section avatar>
+												<q-avatar>
+													<q-icon name="mdi-chart-bar" />
+												</q-avatar>
+											</q-item-section>
+											<q-item-section>
+												<q-item-label>Risks</q-item-label>
+											</q-item-section>
+										</q-item>
+										<q-separator />
+										<q-card-section class="text-subtitle1">
+											<q-list v-if="deidentificationStatus === 'success'">
+												<q-item v-for="(riskey, index) in Object.keys(props.row.risks)" :key="index">
+													<div class="col-2">
+														<q-item-label class="text-weight-bold text-primary q-mt-sm">
+															{{riskLabel(riskey)}}
+														</q-item-label>
+													</div>
+													<div class="col-3">
+														<q-linear-progress rounded size="30px" :value="props.row.risks[riskey]" color="primary">
+															<div class="absolute-full flex flex-center">
+																<q-badge text-color="white">
+																	{{progressLabel(props.row.risks[riskey])}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
+																</q-badge>
+															</div>
+														</q-linear-progress>
+													</div>
+													<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
+														{{getRiskInfo(riskey)}}
+													</div>
+												</q-item>
+											</q-list>
+											<div v-else class="text-grey-7">
+												Risks will be calculated after de-identification is completed.
+											</div>
+										</q-card-section>
+									</q-card>
+								</q-td>
+							</q-tr>
+						</template>
+					</q-table>
+					<div class="row content-end q-gutter-sm">
+						<q-space />
+						<q-btn v-if="deidentificationStatus==='success'" label="Save" color="secondary" icon="save"
+						       class="q-mt-lg" @click="saveDialog = true" no-caps />
+						<q-btn outline color="primary" @click="deidentifyAll" class="q-mt-lg"
+						       :disable="deidentificationStatus === 'in-progress' || !Object.keys(deidentificationResults).length" no-caps>
+							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
+								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress'" />
+								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
+								<q-icon name="error_outline" size="xs" color="red" v-show="deidentificationStatus === 'error'" />
+							</span>
+							<span>De-identify</span>
+						</q-btn>
+					</div>
+
+				</q-card-section>
+			</q-card>
+
 			<div class="row q-ma-md">
 				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
-				<q-space />
-				<q-btn unelevated label="See Risks" icon-right="mdi-chart-bar" color="primary" @click="$store.commit('incrementStep')" no-caps />
 			</div>
 		</div>
+
+		<q-dialog v-model="saveDialog">
+			<q-card>
+				<q-card-section class="row items-center q-pb-none text-primary">
+					<div class="text-h5">Save Anonymized Data</div>
+					<q-space />
+					<q-btn icon="close" flat round dense v-close-popup />
+				</q-card-section>
+				<q-card-section v-if="saving">
+					<div v-if="loading" class="q-mt-xl">
+						<div class="q-mt-xl q-mb-xl row justify-center">
+							<div class="spinner-comp flex flex-center"></div>
+						</div>
+						<div class="row justify-center">
+							<span class="text-grey-8" style="font-size: 14px">Saving resources...</span>
+						</div>
+					</div>
+					<div v-if="!loading" class="q-ma-sm">
+						<div class="q-mb-lg row justify-center">
+							<transition appear enter-active-class="animated heartBeat">
+								<q-icon size="100px" class="mdi mdi-database-check" color="primary"></q-icon>
+							</transition>
+						</div>
+						<div class="row justify-center">
+                            <span class="text-grey-8" style="font-size: 14px">
+                                {{savedResourceNumber}} resources are saved.
+                            </span>
+						</div>
+					</div>
+				</q-card-section>
+				<q-card-actions v-if="saving && !loading" align="around">
+					<q-space />
+					<q-btn flat label="Return Home" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
+				</q-card-actions>
+				<q-card-actions v-if="!saving" align="around">
+					<!-- TODO remove POST option -->
+					<q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="saveToRepository('PUT')" no-caps />
+					<q-space />
+					<q-btn class="q-ma-md" unelevated label="Save As New Data" color="primary" icon-right="save" @click="saveToRepository('POST')" no-caps />
+				</q-card-actions>
+			</q-card>
+		</q-dialog>
 	</div>
 </template>
 
 <script lang="ts">
-import {Component, Vue} from 'vue-property-decorator';
+import {Component, Vue, Watch} from 'vue-property-decorator';
 import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
 import {Utils} from '@/common/utils/util';
 
 @Component
 export default class Deidentifier extends Vue {
+    private saveDialog: boolean = false;
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
     private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
         this.parameterMappings, this.rareValueMappings, this.requiredElements, this.$store);
+
+    private pagination = { page: 1, rowsPerPage: 0 };
+    private loading: boolean = false;
+    private saving: boolean = false;
+    private savedResourceNumber: number = 0;
+    private columns = [
+        { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
+        { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
+        { name: 'count', align: 'left', label: 'Count', field: 'count', icon: 'fas fa-calculator', sortable: true }
+    ];
+    private deidentificationStatus: status = 'pending';
+    private promises: Array<Promise<any>> = new Array<Promise<any>>();
+    private mappingList: any[] = [];
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -61,6 +234,9 @@ export default class Deidentifier extends Vue {
     get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
     set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
 
+    get deidentificationResults (): any { return this.$store.getters['fhir/deidentificationResults'] }
+    set deidentificationResults (value) { this.$store.commit('fhir/setDeidentificationResults', value) }
+
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
             if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
@@ -71,15 +247,12 @@ export default class Deidentifier extends Vue {
             this.groupedByProfiles = Utils.groupBy(this.willBeAnonyed, item => {
                 return [item.split('.')[1]];
             });
-            this.deidentifyAll();
-        } else {
-            this.deidentificationService.loading = false;
+            this.configureAll();
         }
     }
 
-    deidentifyAll () {
-        this.deidentificationService.deidentifiedResourceNumber = 0;
-        const promises: Array<Promise<any>> = this.groupedByProfiles.map(attributes => {
+    configureAll () {
+        this.promises = this.groupedByProfiles.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
             const profile: string = attributes[0].split('.')[1];
             const identifiers: string[][] = [];
@@ -94,31 +267,109 @@ export default class Deidentifier extends Vue {
                     sensitives.push(key.split('.').slice(2));
                 }
             }
+            this.deidentificationResults[resource] = {status: 'pending', entries: [], count: -1,
+                risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
             return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]);
         });
-        Promise.all(promises).then(response => {
+
+        this.groupedByProfiles.forEach(attributes => {
+            const resource: string = attributes[0].split('.')[0];
+            const profile: string = attributes[0].split('.')[1];
+            this.deidentificationService.getEntries(resource, profile).then(entries => {
+                this.deidentificationResults[resource].entries = entries;
+                this.deidentificationResults[resource].count = entries.length;
+                this.getResultsAsMapping();
+            });
+        });
+    }
+
+    deidentifyAll () {
+        this.deidentificationStatus = 'in-progress';
+        for (const key of Object.keys(this.deidentificationResults)) {
+            this.deidentificationResults[key].status = 'in-progress';
+            this.getResultsAsMapping();
+        }
+        Promise.all(this.promises).then(response => {
             response.forEach(type => {
+                this.deidentificationResults[type.resource].entries = type.entries;
                 this.$store.dispatch('fhir/calculateRisks', type);
+                this.getResultsAsMapping();
+                this.deidentificationStatus = 'success';
             })
         });
     }
+
+    openOutcomeDetailCard () {
+        // todo
+    }
+
+    @Watch('deidentificationResults')
+    getResultsAsMapping () {
+        let mappings: any[] = [];
+        for (const resource of Object.keys(this.deidentificationResults)) {
+            let tempObj = {resource: resource};
+            for (const key of Object.keys(this.deidentificationResults[resource])) {
+				tempObj[key] = this.deidentificationResults[resource][key];
+            }
+            mappings.push(tempObj);
+        }
+        this.mappingList = mappings;
+        this.$forceUpdate();
+    }
+
+    saveToRepository (request: string) {
+        this.saving = true;
+        this.loading = true;
+        this.$store.dispatch('fhir/saveEntries', request)
+            .then(response => {
+                this.savedResourceNumber = response;
+                this.loading = false;
+            });
+    }
+
+    progressLabel (progress: number) {
+        return (progress * 100).toFixed(2);
+    }
+
+    riskLabel (risk: string) {
+        switch (risk) {
+            case 'lowestProsecutor':
+                return 'Lowest Prosecutor Risk';
+            case 'highestProsecutor':
+                return 'Highest Prosecutor Risk';
+            case 'averageProsecutor':
+                return 'Average Prosecutor Risk';
+            case 'recordsAffectedByLowest':
+                return 'Records Affected By Lowest Risk';
+            case 'recordsAffectedByHighest':
+                return 'Records Affected By Highest Risk';
+        }
+    }
+
+    getRiskInfo (risk: string) {
+        switch (risk) {
+            case 'lowestProsecutor':
+                return 'Lowest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+            case 'highestProsecutor':
+                return 'Highest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+            case 'averageProsecutor':
+                return 'Average risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
+            case 'recordsAffectedByLowest':
+                return 'Percentage of identities in the dataset that has re-identification risk more than lowest prosecutor risk.';
+            case 'recordsAffectedByHighest':
+                return 'Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.';
+        }
+    }
+
 }
 </script>
 
 <style lang="stylus">
-	.spinner-comp
-		opacity 1
-	.spinner-comp:before
-		content ''
-		width 75px
-		height 75px
-		box-sizing border-box
-		position absolute
-		border-radius 50%
-		border-top 5px solid #d8d8d8
-		border-right 5px solid transparent
-		animation spinner .6s linear infinite
-	@keyframes spinner-comp
-		to
-			transform rotate(360deg)
+	.error-tooltip
+		width 250px
+	.q-table--horizontal-separator thead th,
+	.q-table--cell-separator thead th,
+	.q-table--horizontal-separator tbody tr td,
+	.q-table--cell-separator tbody tr td
+		border-bottom-width 0.75px !important
 </style>

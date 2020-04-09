@@ -1,5 +1,5 @@
 <template>
-	<div class="splitter-slot">
+	<div>
 		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
 			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Select types of attributes from
 				privacy point of view. Note that you can only configure primitive types. </span>

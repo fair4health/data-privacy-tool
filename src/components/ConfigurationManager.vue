@@ -7,76 +7,74 @@
         </q-toolbar>
 
         <div class="q-ma-sm">
-            <div class="splitter-slot">
-                <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                    <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Configure de-identification parameters. </span>
-                </q-item-label>
-                <q-card flat class="bg-white">
-                    <q-card-section class="row q-col-gutter-sm">
-                        <div class="col-xs-12 col-sm-12 col-md-6">
-                            <q-item-label class="text-weight-bold">
-                                <span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> FHIR Resource</span>
-                            </q-item-label>
-                            <q-separator spaced />
-                            <q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" label="FHIR Resource"
-                                      @filter="filterFn" use-input input-debounce="0">
-                                <template v-slot:option="scope">
-                                    <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
-                                        <q-item-section avatar>
-                                            <q-icon name="fas fa-fire" size="xs" />
-                                        </q-item-section>
-                                        <q-item-section>
-                                            <q-item-label v-html="scope.opt" />
-                                        </q-item-section>
-                                    </q-item>
-                                </template>
-                            </q-select>
-                        </div>
-                        <div class="col-xs-12 col-sm-12 col-md-6">
-                            <q-item-label class="text-weight-bold">
-                                <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
-                            </q-item-label>
-                            <q-separator spaced />
-                            <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
-                                <template v-slot:option="scope">
-                                    <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
-                                        <q-item-section avatar>
-                                            <q-icon name="fas fa-file-alt" size="xs" />
-                                        </q-item-section>
-                                        <q-item-section>
-                                            <q-item-label v-html="scope.opt" />
-                                        </q-item-section>
-                                    </q-item>
-                                </template>
-                            </q-select>
-                        </div>
-                    </q-card-section>
-                    <q-card-section class="q-pb-none">
-                        <q-tabs
-                            v-model="tab"
-                            class="bg-grey-1 text-primary"
-                            align="justify"
-                            inline-label
-                        >
-                            <q-tab name="quasi" label="Quasi-identifiers" />
-                            <q-tab name="sensitive" label="Sensitive Attributes" />
-                        </q-tabs>
-                        <q-separator />
-                        <q-tab-panels v-model="tab" animated>
-                            <q-tab-panel name="quasi">
-                                <QuasiIdentifierTable />
-                            </q-tab-panel>
-                            <q-tab-panel name="sensitive">
-                                <SensitiveAttributeTable />
-                            </q-tab-panel>
-                        </q-tab-panels>
-                    </q-card-section>
-                </q-card>
-            </div>
+            <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
+                <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Configure de-identification parameters. </span>
+            </q-item-label>
+            <q-card flat class="bg-white">
+                <q-card-section class="row q-col-gutter-sm">
+                    <div class="col-xs-12 col-sm-12 col-md-6">
+                        <q-item-label class="text-weight-bold">
+                            <span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> FHIR Resource</span>
+                        </q-item-label>
+                        <q-separator spaced />
+                        <q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" label="FHIR Resource"
+                                  @filter="filterFn" use-input input-debounce="0">
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                                    <q-item-section avatar>
+                                        <q-icon name="fas fa-fire" size="xs" />
+                                    </q-item-section>
+                                    <q-item-section>
+                                        <q-item-label v-html="scope.opt" />
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-6">
+                        <q-item-label class="text-weight-bold">
+                            <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
+                        </q-item-label>
+                        <q-separator spaced />
+                        <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                                    <q-item-section avatar>
+                                        <q-icon name="fas fa-file-alt" size="xs" />
+                                    </q-item-section>
+                                    <q-item-section>
+                                        <q-item-label v-html="scope.opt" />
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+                    </div>
+                </q-card-section>
+                <q-card-section class="q-pb-none">
+                    <q-tabs
+                        v-model="tab"
+                        class="bg-grey-1 text-primary"
+                        align="justify"
+                        inline-label
+                    >
+                        <q-tab name="quasi" label="Quasi-identifiers" />
+                        <q-tab name="sensitive" label="Sensitive Attributes" />
+                    </q-tabs>
+                    <q-separator />
+                    <q-tab-panels v-model="tab" animated>
+                        <q-tab-panel name="quasi">
+                            <QuasiIdentifierTable />
+                        </q-tab-panel>
+                        <q-tab-panel name="sensitive">
+                            <SensitiveAttributeTable />
+                        </q-tab-panel>
+                    </q-tab-panels>
+                </q-card-section>
+            </q-card>
             <div class="row q-ma-md">
                 <q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
                 <q-space />
-                <q-btn unelevated label="Anonymize" icon-right="check" color="primary" @click="$store.commit('incrementStep')" no-caps />
+                <q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
             </div>
         </div>
     </div>

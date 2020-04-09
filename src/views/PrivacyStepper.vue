@@ -11,14 +11,9 @@
 			<ConfigurationManager />
 		</template>
 
-		<!--The third step - Transforming-->
+		<!--The last step - Deidentifying and Evaluation of Results-->
 		<template v-if="step === 3">
 			<Deidentifier />
-		</template>
-
-		<!--The last step - Evaluation of Results-->
-		<template v-if="step === 4">
-			<Evaluator />
 		</template>
 
 	</div>
@@ -42,11 +37,6 @@ import Loading from '@/components/Loading.vue'
         }),
         Deidentifier: () => ({
             component: import('@/components/Deidentifier.vue'),
-            loading: Loading,
-            delay: 0
-        }),
-        Evaluator: () => ({
-            component: import('@/components/Evaluator.vue'),
             loading: Loading,
             delay: 0
         })

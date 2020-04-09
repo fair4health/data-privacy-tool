@@ -39,7 +39,7 @@
 					           :style="isCollapsed ? 'width: 70px' : ''">
 						<q-step v-for="step in steps" :key="step.stepId"
 						        :class="{'step-item cursor-pointer': currentStep > step.stepId}"
-						        @click="currentStep=step.stepId"
+						        @click="changeCurrentStep(step.stepId)"
 						        :name="step.stepId"
 						        :title="step.title"
 						        :icon="step.icon"
@@ -96,8 +96,7 @@ export default class MainLayout extends Vue {
     private steps: StepItem[] = [
         { title: 'Metadata Analyzer', icon: 'fas fa-database', stepId: 1 },
         { title: 'Configuration Manager', icon: 'fas fa-sliders-h', stepId: 2 },
-        { title: 'De-identifier', icon: 'fas fa-user-secret', stepId: 3 },
-        { title: 'Evaluater', icon: 'fas fa-balance-scale', stepId: 4 }
+        { title: 'De-identifier', icon: 'fas fa-user-secret', stepId: 3 }
     ];
 
     get drawerOpen (): boolean { return this.$store.getters.drawerOpen }
@@ -110,6 +109,12 @@ export default class MainLayout extends Vue {
     set currentStep (value) { this.$store.commit('setStep', value) }
 
     get isCollapsed () { return (this.$q.screen.gt.xs && (this.$q.screen.lt.lg || this.drawerMiniState)) }
+
+    changeCurrentStep (stepId: number) {
+        if (this.currentStep > stepId) {
+            this.currentStep = stepId;
+        }
+    }
 
 }
 </script>

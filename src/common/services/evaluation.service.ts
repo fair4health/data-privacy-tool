@@ -7,18 +7,11 @@ export class EvaluationService {
     quasis: string[][];
     riskyQuasis: string[];
     savedResourceNumber = 0;
-    equivalenceClasses: string[] = [];
-    lowestProsecutor = 0;
-    highestProsecutor = 0;
-    averageProsecutor = 0;
-    recordsAffectedByLowest = 0;
-    recordsAffectedByHighest = 0;
 
     constructor () {
         this.fhirService = new FhirService();
         this.quasis = [];
         this.riskyQuasis = [];
-        this.equivalenceClasses = [];
     }
 
     generateEquivalenceClasses (type, parameterMappings, typeMappings) {
@@ -35,7 +28,7 @@ export class EvaluationService {
                 this.riskyQuasis.push(key);
             }
         });
-        this.equivalenceClasses = Utils.groupBy(type.entries, item => {
+        return Utils.groupBy(type.entries, item => {
             const groups: any[] = [];
             this.riskyQuasis.forEach(attribute => {
                 const paths = attribute.split('.').slice(2);

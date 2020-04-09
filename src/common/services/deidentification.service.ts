@@ -10,12 +10,10 @@ export class DeidentificationService {
     parameterMappings: any;
     rareValueMappings: any;
     requiredElements: string[];
-    loading: boolean;
     progressMessage: string;
     identifiers: string[][];
     quasis: string[][];
     sensitives: string[][];
-    deidentifiedResourceNumber = 0;
     riskyQuasis: string[];
     equivalenceClasses: any;
     $store: any;
@@ -28,7 +26,6 @@ export class DeidentificationService {
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
         this.requiredElements = requiredElements;
-        this.loading = true;
         this.progressMessage = '';
         this.identifiers = [];
         this.quasis = [];
@@ -79,8 +76,6 @@ export class DeidentificationService {
                 } else {
                     finalData = entries;
                 }
-                this.deidentifiedResourceNumber += finalData.length;
-                this.loading = false;
                 resolve({resource, profile, entries: finalData, quasis});
             });
         })

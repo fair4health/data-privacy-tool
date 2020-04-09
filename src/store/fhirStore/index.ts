@@ -62,7 +62,8 @@ const fhirStore = {
         typeMappings: {},
         rareValueMappings: {},
         entries: null,
-        resourceProfileMappings: {}
+        resourceProfileMappings: {},
+        deidentificationResults: {}
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -87,7 +88,8 @@ const fhirStore = {
         evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
         rareValueMappings: state => state.rareValueMappings || {},
-        resourceProfileMappings: state => state.resourceProfileMappings || {}
+        resourceProfileMappings: state => state.resourceProfileMappings || {},
+        deidentificationResults: state => state.deidentificationResults || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -150,6 +152,9 @@ const fhirStore = {
         },
         setResourceProfileMappings (state, value) {
             state.resourceProfileMappings = value
+        },
+        setDeidentificationResults (state, value) {
+            state.deidentificationResults = value
         }
     },
     actions: {
@@ -257,20 +262,23 @@ const fhirStore = {
             })
         },
         calculateRisks ({ state }, type) {
-            state.entries = JSON.parse(JSON.stringify(type.entries));
-            state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
-            const totalNumberOfRecords = state.entries.length;
-            const numberOfEqClasses = state.evaluationService.equivalenceClasses.length;
-            const maxLengthOfEqClasses = Math.max.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
-            const minLengthOfEqClasses = Math.min.apply(Math, state.evaluationService.equivalenceClasses.map(a => a.length));
-            state.evaluationService.lowestProsecutor = 1 / maxLengthOfEqClasses;
-            state.evaluationService.highestProsecutor = 1 / minLengthOfEqClasses;
-            state.evaluationService.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
+            const equivalenceClasses = state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
+            const totalNumberOfRecords = type.entries.length;
+            const numberOfEqClasses = equivalenceClasses.length;
+            const maxLengthOfEqClasses = Math.max.apply(Math, equivalenceClasses.map(a => a.length));
+            const minLengthOfEqClasses = Math.min.apply(Math, equivalenceClasses.map(a => a.length));
+            state.deidentificationResults[type.resource].risks.lowestProsecutor = 1 / maxLengthOfEqClasses;
+            state.deidentificationResults[type.resource].risks.highestProsecutor = 1 / minLengthOfEqClasses;
+            state.deidentificationResults[type.resource].risks.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
 
-            const numberOfRecsAffectedByLowest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
-            const numberOfRecsAffectedByHighest = state.evaluationService.equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
-            state.evaluationService.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
-            state.evaluationService.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+            const numberOfRecsAffectedByLowest = equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
+            const numberOfRecsAffectedByHighest = equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
+            state.deidentificationResults[type.resource].risks.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
+            state.deidentificationResults[type.resource].risks.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+
+            state.deidentificationResults[type.resource].status = 'done';
+            // TODO validate
+
         },
         saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
             return state.evaluationService.saveEntries(state.entries, request);
