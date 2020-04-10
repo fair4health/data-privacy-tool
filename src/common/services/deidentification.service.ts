@@ -10,34 +10,29 @@ export class DeidentificationService {
     parameterMappings: any;
     rareValueMappings: any;
     requiredElements: string[];
-    progressMessage: string;
     identifiers: string[][];
     quasis: string[][];
     sensitives: string[][];
     riskyQuasis: string[];
     equivalenceClasses: any;
-    $store: any;
     canBeAnonymizedMore: boolean;
     anonymizedData;
 
-    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[], $store) {
+    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[]) {
         this.fhirService = new FhirService();
         this.typeMappings = typeMappings;
         this.parameterMappings = parameterMappings;
         this.rareValueMappings = rareValueMappings;
         this.requiredElements = requiredElements;
-        this.progressMessage = '';
         this.identifiers = [];
         this.quasis = [];
         this.sensitives = [];
         this.riskyQuasis = [];
         this.equivalenceClasses = {};
-        this.$store = $store;
         this.canBeAnonymizedMore = true;
     }
 
-    getEntries (resource: string, profile: string): Promise<any[]> {
-        this.progressMessage = 'Getting data from ' + profile + ' profile...';
+    getEntries (resource: string, profile: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.fhirService.search('StructureDefinition',
                 {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
@@ -49,35 +44,33 @@ export class DeidentificationService {
                     }
                     this.fhirService.search(resource, query, true)
                         .then(response => {
-                            resolve(response.data.entry);
+                            resolve({resource, profile, entries: response.data.entry});
                         })
                 })
         })
     }
 
-    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][], kAnonymityValid: boolean, kValue: number): Promise<any> {
+    deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][],
+                entries, kAnonymityValid: boolean, kValue: number, deidentificationResult): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.getEntries(resource, profile).then(entries => {
-                this.progressMessage = 'De-identifying ' + profile + ' profile...';
-                this.identifiers = identifiers;
-                this.quasis = quasis;
-                this.sensitives = sensitives;
-                entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                let finalData: any[] = [];
-                if (kAnonymityValid) {
-                    const bulk = JSON.parse(JSON.stringify(entries));
+            this.identifiers = identifiers;
+            this.quasis = quasis;
+            this.sensitives = sensitives;
+            entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+            let finalData: any[] = [];
+            if (kAnonymityValid) {
+                const bulk = JSON.parse(JSON.stringify(entries));
+                this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
+                while (this.anonymizedData.length) {
+                    [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [identifiers, quasis, sensitives, true];
+                    const anonymizedBulk = this.makeKAnonymous(resource, profile, kValue, this.anonymizedData);
+                    finalData.push(...anonymizedBulk);
                     this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
-                    while (this.anonymizedData.length) {
-                        [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [identifiers, quasis, sensitives, true];
-                        const anonymizedBulk = this.makeKAnonymous(resource, profile, kValue, this.anonymizedData);
-                        finalData.push(...anonymizedBulk);
-                        this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
-                    }
-                } else {
-                    finalData = entries;
                 }
-                resolve({resource, profile, entries: finalData, quasis});
-            });
+            } else {
+                finalData = entries;
+            }
+            resolve({resource, profile, entries: finalData, quasis});
         })
     }
 

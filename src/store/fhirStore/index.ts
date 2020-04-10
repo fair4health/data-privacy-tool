@@ -63,7 +63,8 @@ const fhirStore = {
         rareValueMappings: {},
         entries: null,
         resourceProfileMappings: {},
-        deidentificationResults: {}
+        deidentificationResults: {},
+        profileUrlMappings: {}
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -89,7 +90,8 @@ const fhirStore = {
         typeMappings: state => state.typeMappings || {},
         rareValueMappings: state => state.rareValueMappings || {},
         resourceProfileMappings: state => state.resourceProfileMappings || {},
-        deidentificationResults: state => state.deidentificationResults || {}
+        deidentificationResults: state => state.deidentificationResults || {},
+        profileUrlMappings: state => state.profileUrlMappings || {}
     },
     mutations: {
         setResourceList (state, list) {
@@ -155,6 +157,9 @@ const fhirStore = {
         },
         setDeidentificationResults (state, value) {
             state.deidentificationResults = value
+        },
+        setProfileUrlMappings (state, value) {
+            state.profileUrlMappings = value
         }
     },
     actions: {
@@ -198,6 +203,7 @@ const fhirStore = {
                         Promise.all(res.data.entry.map(item => {
                             const [resourceType, profile, url, title, description] = [item.resource.type,
                                 item.resource.id, item.resource.url, item.resource.title, item.resource.description];
+                            state.profileUrlMappings[profile] = url;
                             return new Promise<any>((resolve1, reject1) => {
                                 state.fhirService.search(resourceType, {_profile: url})
                                     .then(response => {

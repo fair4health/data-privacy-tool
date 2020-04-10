@@ -17,19 +17,20 @@
 					         table-style="max-height: 60vh" :loading="loading" color="primary"
 					>
 						<template v-slot:header-cell="props">
-							<q-th :props="props" class="bg-primary text-white" style="font-size: 13px">
-								<q-icon v-if="props.col.icon" :name="props.col.icon" />
+							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
+								<q-icon v-if="props.col.icon" :class="props.col.icon" />
 								<span class="vertical-middle q-ml-xs">{{ props.col.label }}</span>
 							</q-th>
 						</template>
 						<template v-slot:body="props">
 							<q-tr :props="props">
 								<q-td key="status" class="no-padding" :props="props">
-									<template v-if="props.row.status === 'in-progress'">
-									<span>
-										<q-spinner color="grey-9" />
-										<q-tooltip content-class="bg-white text-grey-8">De-identifying...</q-tooltip>
-									</span>
+									<template v-if="props.row.status === 'in-progress' || props.row.status === 'loading'">
+										<span>
+											<q-spinner color="grey-9" />
+											<q-tooltip v-if="props.row.status === 'in-progress'" content-class="bg-white text-grey-8">De-identifying...</q-tooltip>
+											<q-tooltip v-if="props.row.status === 'loading'" content-class="bg-white text-grey-8">Loading...</q-tooltip>
+										</span>
 									</template>
 									<template v-else-if="props.row.status === 'done'">
 										<div class="row items-center">
@@ -75,8 +76,15 @@
 								</q-td>
 								<q-td key="count" :props="props">
 									<q-chip square class="bg-orange-6 text-white">
-										<q-spinner v-if="props.row.count === -1" color="white" />
+										<q-spinner v-if="props.row.status === 'loading'" color="white" />
 										<template v-else>{{ props.row.count }}</template>
+									</q-chip>
+								</q-td>
+								<q-td key="final" :props="props">
+									<q-chip square class="bg-secondary text-white">
+										<q-spinner v-if="props.row.status === 'in-progress'" color="white" />
+										<template v-else-if="props.row.status === 'done'">{{ props.row.entries.length }}</template>
+										<template v-else>-</template>
 									</q-chip>
 								</q-td>
 							</q-tr>
@@ -130,9 +138,10 @@
 						<q-btn v-if="deidentificationStatus==='success'" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps />
 						<q-btn outline color="primary" @click="deidentifyAll" class="q-mt-lg"
-						       :disable="deidentificationStatus === 'in-progress' || !Object.keys(deidentificationResults).length" no-caps>
+						       :disable="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'
+						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'" no-caps>
 							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
-								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress'" />
+								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'" />
 								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
 								<q-icon name="error_outline" size="xs" color="red" v-show="deidentificationStatus === 'error'" />
 							</span>
@@ -204,7 +213,7 @@ export default class Deidentifier extends Vue {
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
     private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
-        this.parameterMappings, this.rareValueMappings, this.requiredElements, this.$store);
+        this.parameterMappings, this.rareValueMappings, this.requiredElements);
 
     private pagination = { page: 1, rowsPerPage: 0 };
     private loading: boolean = false;
@@ -213,10 +222,10 @@ export default class Deidentifier extends Vue {
     private columns = [
         { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
         { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
-        { name: 'count', align: 'left', label: 'Count', field: 'count', icon: 'fas fa-calculator', sortable: true }
+        { name: 'count', align: 'left', label: 'Count', field: 'count', icon: 'fas fa-calculator', sortable: true },
+        { name: 'final', align: 'left', label: 'Final Count', field: 'final', icon: 'mdi mdi-shield-check', sortable: true },
     ];
-    private deidentificationStatus: status = 'pending';
-    private promises: Array<Promise<any>> = new Array<Promise<any>>();
+    private deidentificationStatus: status = 'loading';
     private mappingList: any[] = [];
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
@@ -237,6 +246,9 @@ export default class Deidentifier extends Vue {
     get deidentificationResults (): any { return this.$store.getters['fhir/deidentificationResults'] }
     set deidentificationResults (value) { this.$store.commit('fhir/setDeidentificationResults', value) }
 
+    get profileUrlMappings (): any { return this.$store.getters['fhir/profileUrlMappings'] }
+    set profileUrlMappings (value) { this.$store.commit('fhir/setProfileUrlMappings', value) }
+
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
             if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
@@ -247,13 +259,67 @@ export default class Deidentifier extends Vue {
             this.groupedByProfiles = Utils.groupBy(this.willBeAnonyed, item => {
                 return [item.split('.')[1]];
             });
-            this.configureAll();
+            const groupedByResources = Utils.groupBy(this.groupedByProfiles, attributes => {
+                return [attributes[0].split('.')[0]];
+            });
+            this.deidentificationResults = {};
+            this.fetchAllData(groupedByResources).then(res => {
+                this.deidentificationStatus = 'pending';
+            });
         }
     }
 
-    configureAll () {
-        this.promises = this.groupedByProfiles.map(attributes => {
+    fetchAllData (groupedByResources): Promise<any> {
+        const dataPromises = groupedByResources.map(profileGroups => {
+            return new Promise((resolve, reject) => {
+                const baseResource = profileGroups.find(attributes => attributes[0].split('.')[0] === attributes[0].split('.')[1]);
+                if (baseResource) { // fetch all data of base resource
+                    const resource = baseResource[0].split('.')[0];
+                    if (!this.deidentificationResults[resource]) {
+                        this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0,
+                            risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
+                    }
+                    this.deidentificationService.getEntries(resource, resource).then(entries => {
+                        this.deidentificationResults[resource].entries = entries.entries;
+                        this.deidentificationResults[resource].count = entries.entries.length;
+                        this.deidentificationResults[resource].status = 'pending';
+                        this.getResultsAsMapping();
+                        resolve();
+                    });
+                } else { // fetch profiles' data and put them in entries
+                    const profilePromises = profileGroups.map(groups => {
+                        const resource = groups[0].split('.')[0];
+                        const profile = groups[0].split('.')[1];
+                        if (!this.deidentificationResults[resource]) {
+                            this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0,
+                                risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
+                        }
+                        return this.deidentificationService.getEntries(resource, profile)
+                    });
+                    Promise.all(profilePromises).then(results => {
+                        results.forEach((result: any) => {
+                            this.deidentificationResults[result.resource].entries.push(...result.entries);
+                            this.deidentificationResults[result.resource].count += result.entries.length;
+                            this.deidentificationResults[result.resource].status = 'pending';
+                            this.getResultsAsMapping();
+                        });
+                        resolve();
+                    });
+                }
+            });
+        });
+        return new Promise((resolve, reject) => {
+            Promise.all(dataPromises).then(res => resolve());
+        });
+    }
+
+    deidentifyAll () {
+        this.deidentificationStatus = 'in-progress';
+        const promises = this.groupedByProfiles.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
+            this.deidentificationResults[resource].status = 'in-progress';
+            this.getResultsAsMapping();
+
             const profile: string = attributes[0].split('.')[1];
             const identifiers: string[][] = [];
             const quasis: string[][] = [];
@@ -267,35 +333,44 @@ export default class Deidentifier extends Vue {
                     sensitives.push(key.split('.').slice(2));
                 }
             }
-            this.deidentificationResults[resource] = {status: 'pending', entries: [], count: -1,
-                risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
-            return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]);
+            const resourceEntries = this.deidentificationResults[resource].entries;
+            let entries = JSON.parse(JSON.stringify(resourceEntries));
+            if (resource !== profile) { // not the base resource, needs to be filtered
+                [entries, this.deidentificationResults[resource].entries] = Utils.partition(resourceEntries,
+                    entry => entry.resource.meta.profile.includes(this.profileUrlMappings[profile]));
+                return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, entries,
+                    this.kAnonymityValidMappings[resource], this.kValueMappings[resource], this.deidentificationResults[resource]);
+            } else { // base resource
+                return new Promise((resolve, reject) => {
+                    // base resources will be de-identified later in order to contain profiles as well
+                    resolve({isBaseResource: true, resource, identifiers, quasis, sensitives});
+                });
+            }
         });
 
-        this.groupedByProfiles.forEach(attributes => {
-            const resource: string = attributes[0].split('.')[0];
-            const profile: string = attributes[0].split('.')[1];
-            this.deidentificationService.getEntries(resource, profile).then(entries => {
-                this.deidentificationResults[resource].entries = entries;
-                this.deidentificationResults[resource].count = entries.length;
-                this.getResultsAsMapping();
+        Promise.all(promises).then(response => {
+            const baseResource = response.find(res => res.isBaseResource);
+            response.forEach((type: any) => {
+                if (!type.isBaseResource) {
+                    this.deidentificationResults[type.resource].entries.push(...type.entries);
+                    this.$store.dispatch('fhir/calculateRisks', type);
+                }
             });
-        });
-    }
-
-    deidentifyAll () {
-        this.deidentificationStatus = 'in-progress';
-        for (const key of Object.keys(this.deidentificationResults)) {
-            this.deidentificationResults[key].status = 'in-progress';
-            this.getResultsAsMapping();
-        }
-        Promise.all(this.promises).then(response => {
-            response.forEach(type => {
-                this.deidentificationResults[type.resource].entries = type.entries;
-                this.$store.dispatch('fhir/calculateRisks', type);
+            if (baseResource) {
+                const resource = baseResource.resource;
+                const entries = JSON.parse(JSON.stringify(this.deidentificationResults[resource].entries));
+                this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
+                    baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource],
+                    this.deidentificationResults[resource]).then(type => {
+                        this.deidentificationResults[type.resource].entries = type.entries;
+                        this.$store.dispatch('fhir/calculateRisks', type);
+                        this.getResultsAsMapping();
+                        this.deidentificationStatus = 'success';
+                });
+            } else {
                 this.getResultsAsMapping();
                 this.deidentificationStatus = 'success';
-            })
+            }
         });
     }
 
@@ -305,11 +380,11 @@ export default class Deidentifier extends Vue {
 
     @Watch('deidentificationResults')
     getResultsAsMapping () {
-        let mappings: any[] = [];
+        const mappings: any[] = [];
         for (const resource of Object.keys(this.deidentificationResults)) {
-            let tempObj = {resource: resource};
+            const tempObj = {resource};
             for (const key of Object.keys(this.deidentificationResults[resource])) {
-				tempObj[key] = this.deidentificationResults[resource][key];
+                tempObj[key] = this.deidentificationResults[resource][key];
             }
             mappings.push(tempObj);
         }

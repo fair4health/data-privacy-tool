@@ -21,6 +21,13 @@ export class Utils {
         return Object.entries(obj).length === 0 && obj.constructor === Object
     }
 
+    static partition (array, filter) {
+        const pass: any[] = [];
+        const fail: any[] = [];
+        array.forEach((e, idx, arr) => (filter(e, idx, arr) ? pass : fail).push(e));
+        return [pass, fail];
+    }
+
     static returnEqClassElements (paths, item, result) {
         let i = 0;
         while (i < paths.length) {

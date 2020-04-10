@@ -4806,4 +4806,4 @@ declare interface StepItem {
     stepId: any
 }
 
-declare type status = 'success' | 'warning' | 'error' | 'in-progress' | 'pending';
+declare type status = 'success' | 'warning' | 'error' | 'in-progress' | 'pending' | 'loading';
