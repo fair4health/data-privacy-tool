@@ -39,6 +39,19 @@ export class EvaluationService {
         });
     }
 
+    validateEntries (entries): Promise<any> {
+        const promises: Array<Promise<any>> = [];
+        return new Promise((resolve, reject) => {
+            const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
+            while (bulk.length) {
+                promises.push(this.fhirService.validate(bulk.splice(0, 1000)));
+            }
+            Promise.all(promises).then(res => {
+                resolve(res);
+            });
+        });
+    }
+
     saveEntries (entries, request: 'POST' | 'PUT'): Promise<any> {
         const promises: Array<Promise<any>> = [];
         entries.forEach(entry => {
@@ -59,11 +72,10 @@ export class EvaluationService {
             while (bulk.length) {
                 promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), request));
             }
-            Promise.all(promises)
-                .then(res => {
-                    resolve(this.savedResourceNumber);
-                })
-        })
+            Promise.all(promises).then(res => {
+                resolve(this.savedResourceNumber);
+            });
+        });
     }
 
 }

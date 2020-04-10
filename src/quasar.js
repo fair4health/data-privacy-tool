@@ -24,6 +24,7 @@ import {
     QLinearProgress,
     QItem,
     QItemSection,
+    Dialog,
     QItemLabel,
     QDialog,
     QAvatar,
@@ -149,6 +150,7 @@ Vue.use(Quasar, {
         ClosePopup
     },
     plugins: {
+        Dialog,
         LoadingBar,
         Loading,
         Notify,

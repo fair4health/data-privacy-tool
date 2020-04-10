@@ -39,10 +39,10 @@
 													<q-tooltip content-class="bg-white text-green">Completed</q-tooltip>
 												</q-icon>
 											</div>
-<!--												<div class="col-6 bg-grey-3">-->
-<!--													<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"-->
-<!--													       @click="openOutcomeDetailCard(props.row.validation.outcomeDetails)" no-caps />-->
-<!--												</div>-->
+											<div class="col-6 bg-grey-3">
+												<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"
+												       @click="openOutcomeDetailCard(props.row.outcomeDetails)" no-caps />
+											</div>
 										</div>
 									</template>
 									<template v-else-if="props.row.status === 'warning'">
@@ -53,17 +53,16 @@
 												</q-icon>
 											</div>
 											<div class="col-6 bg-grey-3">
-<!--													<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"-->
-<!--													       @click="openOutcomeDetailCard(props.row.validation.outcomeDetails)" no-caps />-->
+												<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"
+												       @click="openOutcomeDetailCard(props.row.outcomeDetails)" no-caps />
 											</div>
 										</div>
 									</template>
-<!--										<template v-else-if="props.row.validation.status === 'error'">-->
-<!--											<q-icon name="error_outline" color="red" class="cursor-pointer"-->
-<!--											        @click="openOutcomeDetailCard([{status: 'error', message: props.row.description, resourceType: 'OperationOutcome'}])">-->
-<!--&lt;!&ndash;												<q-tooltip content-class="error-tooltip bg-white text-red-7" class="ellipsis-3-lines">{{ props.row.validation.description }}</q-tooltip>&ndash;&gt;-->
-<!--											</q-icon>-->
-<!--										</template>-->
+									<template v-else-if="props.row.status === 'error'">
+										<q-icon name="error_outline" color="red" class="cursor-pointer" @click="openOutcomeDetailCard(props.row.outcomeDetails)">
+											<q-tooltip content-class="bg-white text-red-7">Error</q-tooltip>
+										</q-icon>
+									</template>
 									<template v-else>
 										<q-icon name="access_time" color="grey-9">
 											<q-tooltip content-class="bg-white text-grey-8">Pending</q-tooltip>
@@ -83,7 +82,8 @@
 								<q-td key="final" :props="props">
 									<q-chip square class="bg-secondary text-white">
 										<q-spinner v-if="props.row.status === 'in-progress'" color="white" />
-										<template v-else-if="props.row.status === 'done'">{{ props.row.entries.length }}</template>
+										<template v-else-if="props.row.status === 'done' || props.row.status === 'error'
+											|| props.row.status === 'warning'">{{ props.row.entries.length }}</template>
 										<template v-else>-</template>
 									</q-chip>
 								</q-td>
@@ -103,7 +103,7 @@
 										</q-item>
 										<q-separator />
 										<q-card-section class="text-subtitle1">
-											<q-list v-if="deidentificationStatus === 'success'">
+											<q-list v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'">
 												<q-item v-for="(riskey, index) in Object.keys(props.row.risks)" :key="index">
 													<div class="col-2">
 														<q-item-label class="text-weight-bold text-primary q-mt-sm">
@@ -206,6 +206,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator';
 import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
 import {Utils} from '@/common/utils/util';
+import OutcomeCard from '@/components/OutcomeCard.vue';
 
 @Component
 export default class Deidentifier extends Vue {
@@ -276,7 +277,7 @@ export default class Deidentifier extends Vue {
                 if (baseResource) { // fetch all data of base resource
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
-                        this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0,
+                        this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
                             risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
@@ -291,7 +292,7 @@ export default class Deidentifier extends Vue {
                         const resource = groups[0].split('.')[0];
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
-                            this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0,
+                            this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
                                 risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
@@ -353,7 +354,7 @@ export default class Deidentifier extends Vue {
             response.forEach((type: any) => {
                 if (!type.isBaseResource) {
                     this.deidentificationResults[type.resource].entries.push(...type.entries);
-                    this.$store.dispatch('fhir/calculateRisks', type);
+                    this.validateEntries(type);
                 }
             });
             if (baseResource) {
@@ -363,19 +364,53 @@ export default class Deidentifier extends Vue {
                     baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource],
                     this.deidentificationResults[resource]).then(type => {
                         this.deidentificationResults[type.resource].entries = type.entries;
-                        this.$store.dispatch('fhir/calculateRisks', type);
-                        this.getResultsAsMapping();
-                        this.deidentificationStatus = 'success';
+                        this.validateEntries(type);
                 });
-            } else {
-                this.getResultsAsMapping();
+            }
+        });
+    }
+
+    validateEntries (type) {
+        const resourceType = type.resource;
+        const entries = type.entries;
+        this.$store.dispatch('fhir/validateEntries', entries).then(response => {
+            response.forEach(bulk => {
+                bulk.data.entry.map(item => {
+                    if (!item.resource) {
+                        const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
+                        operationOutcome.issue.map(issue => {
+                            if (issue.severity === 'error') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'error', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = 'error';
+                                this.deidentificationStatus = 'error';
+                            } else if (issue.severity === 'information') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = 'done';
+                            } else if (issue.severity === 'warning') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'warning', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = 'warning';
+                            }
+                        })
+                    } else {
+                        this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                        this.deidentificationResults[resourceType].status = 'done';
+                    }
+                });
+            });
+            this.$store.dispatch('fhir/calculateRisks', type);
+            this.getResultsAsMapping();
+            if (this.deidentificationStatus !== 'error') {
                 this.deidentificationStatus = 'success';
             }
         });
     }
 
-    openOutcomeDetailCard () {
-        // todo
+    openOutcomeDetailCard (outcomeDetails: OutcomeDetail[]) {
+        this.$store.commit('fhir/setOutcomeDetails', outcomeDetails)
+        this.$q.dialog({
+            component: OutcomeCard,
+            parent: this
+        })
     }
 
     @Watch('deidentificationResults')

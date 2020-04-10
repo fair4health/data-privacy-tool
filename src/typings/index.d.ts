@@ -4807,3 +4807,10 @@ declare interface StepItem {
 }
 
 declare type status = 'success' | 'warning' | 'error' | 'in-progress' | 'pending' | 'loading';
+
+declare interface OutcomeDetail {
+    status: status
+    resourceType: string
+    message: string
+    outcomeDetails?: OutcomeDetail[]
+}

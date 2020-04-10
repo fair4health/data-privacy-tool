@@ -64,7 +64,8 @@ const fhirStore = {
         entries: null,
         resourceProfileMappings: {},
         deidentificationResults: {},
-        profileUrlMappings: {}
+        profileUrlMappings: {},
+        outcomeDetails: []
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -91,7 +92,8 @@ const fhirStore = {
         rareValueMappings: state => state.rareValueMappings || {},
         resourceProfileMappings: state => state.resourceProfileMappings || {},
         deidentificationResults: state => state.deidentificationResults || {},
-        profileUrlMappings: state => state.profileUrlMappings || {}
+        profileUrlMappings: state => state.profileUrlMappings || {},
+        outcomeDetails: state => state.outcomeDetails || []
     },
     mutations: {
         setResourceList (state, list) {
@@ -160,6 +162,9 @@ const fhirStore = {
         },
         setProfileUrlMappings (state, value) {
             state.profileUrlMappings = value
+        },
+        setOutcomeDetails (state, outcomeDetails: OutcomeDetail[]) {
+            state.outcomeDetails = outcomeDetails
         }
     },
     actions: {
@@ -281,10 +286,9 @@ const fhirStore = {
             const numberOfRecsAffectedByHighest = equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
             state.deidentificationResults[type.resource].risks.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
             state.deidentificationResults[type.resource].risks.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
-
-            state.deidentificationResults[type.resource].status = 'done';
-            // TODO validate
-
+        },
+        validateEntries ({ state }, entries): Promise<any> {
+            return state.evaluationService.validateEntries(entries);
         },
         saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
             return state.evaluationService.saveEntries(state.entries, request);

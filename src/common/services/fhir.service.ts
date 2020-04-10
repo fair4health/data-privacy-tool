@@ -122,6 +122,37 @@ export class FhirService {
     }
 
     /**
+     * Validates resources
+     * @param resources
+     */
+    validate (resources: fhir.Resource[]): Promise<any> {
+        const httpAgent = new http.Agent({keepAlive: true});
+        const transactionResource: fhir.Bundle = {
+            resourceType: 'Bundle',
+            type: 'batch',
+            entry: []
+        };
+        for (const resource of resources) {
+            let url;
+            if (resource.meta?.profile?.length && resource.meta.profile[0]) {
+                url = resource.resourceType + '/$validate?profile=' + resource.meta.profile[0];
+            } else {
+                url = resource.resourceType + '/$validate';
+            }
+
+            const request: fhir.BundleEntryRequest = {
+                method: 'POST',
+                url
+            };
+            transactionResource.entry?.push({
+                resource,
+                request
+            })
+        }
+        return axios.post(this.config.baseUrl, transactionResource, {headers: this.config.headers, httpAgent})
+    }
+
+    /**
      * Just for DEV
      * Delete all resources
      * @param resourceType
