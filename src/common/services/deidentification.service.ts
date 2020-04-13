@@ -51,7 +51,7 @@ export class DeidentificationService {
     }
 
     deidentify (resource: string, profile: string, identifiers: string[][], quasis: string[][], sensitives: string[][],
-                entries, kAnonymityValid: boolean, kValue: number, deidentificationResult): Promise<any> {
+                entries, kAnonymityValid: boolean, kValue: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.identifiers = identifiers;
             this.quasis = quasis;
@@ -92,6 +92,7 @@ export class DeidentificationService {
             let equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
             while (this.canBeAnonymizedMore) {
                 let parametersChanged = false;
+                let eqClassesSmall = false;
                 equivalenceClasses.forEach(eqClass => {
                     if (eqClass.length < kValue) {
                         if (!parametersChanged) {
@@ -99,10 +100,14 @@ export class DeidentificationService {
                             parametersChanged = true;
                         }
                         eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                        eqClassesSmall = true;
                     }
                 });
                 equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
                 anonymizedData = [].concat(...equivalenceClasses);
+                if (eqClassesSmall) {
+                    this.canBeAnonymizedMore = false;
+                }
             }
             equivalenceClasses = equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
             anonymizedData = [].concat(...equivalenceClasses);

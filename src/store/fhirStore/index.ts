@@ -273,19 +273,23 @@ const fhirStore = {
             })
         },
         calculateRisks ({ state }, type) {
+            const tempRisk = {profile: type.profile, lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0,
+                recordsAffectedByLowest: 0, recordsAffectedByHighest: 0};
             const equivalenceClasses = state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
             const totalNumberOfRecords = type.entries.length;
             const numberOfEqClasses = equivalenceClasses.length;
             const maxLengthOfEqClasses = Math.max.apply(Math, equivalenceClasses.map(a => a.length));
             const minLengthOfEqClasses = Math.min.apply(Math, equivalenceClasses.map(a => a.length));
-            state.deidentificationResults[type.resource].risks.lowestProsecutor = 1 / maxLengthOfEqClasses;
-            state.deidentificationResults[type.resource].risks.highestProsecutor = 1 / minLengthOfEqClasses;
-            state.deidentificationResults[type.resource].risks.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
+            tempRisk.lowestProsecutor = 1 / maxLengthOfEqClasses;
+            tempRisk.highestProsecutor = 1 / minLengthOfEqClasses;
+            tempRisk.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
 
             const numberOfRecsAffectedByLowest = equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
             const numberOfRecsAffectedByHighest = equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
-            state.deidentificationResults[type.resource].risks.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
-            state.deidentificationResults[type.resource].risks.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+            tempRisk.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
+            tempRisk.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+
+            state.deidentificationResults[type.resource].risks.push(tempRisk);
         },
         validateEntries ({ state }, entries): Promise<any> {
             return state.evaluationService.validateEntries(entries);

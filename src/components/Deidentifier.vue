@@ -73,6 +73,11 @@
 									<q-btn dense round flat size="sm" :icon="props.expand ? 'arrow_drop_up' : 'arrow_drop_down'" @click="props.expand = !props.expand" />
 									{{ props.row.resource }}
 								</q-td>
+								<q-td key="k_anonymity" :props="props">
+									<q-chip square class="bg-primary text-white">
+										<template>{{kAnonymityValidMappings[props.row.resource] ? kValueMappings[props.row.resource] : '-'}}</template>
+									</q-chip>
+								</q-td>
 								<q-td key="count" :props="props">
 									<q-chip square class="bg-orange-6 text-white">
 										<q-spinner v-if="props.row.status === 'loading'" color="white" />
@@ -90,45 +95,55 @@
 							</q-tr>
 							<q-tr v-show="props.expand" :props="props">
 								<q-td colspan="100%" class="bg-grey-2">
-									<q-card flat bordered class="q-ml-md q-mr-md q-mt-sm q-mb-sm">
-										<q-item>
-											<q-item-section avatar>
-												<q-avatar>
-													<q-icon name="mdi-chart-bar" />
-												</q-avatar>
-											</q-item-section>
-											<q-item-section>
-												<q-item-label>Risks</q-item-label>
-											</q-item-section>
-										</q-item>
-										<q-separator />
-										<q-card-section class="text-subtitle1">
-											<q-list v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'">
-												<q-item v-for="(riskey, index) in Object.keys(props.row.risks)" :key="index">
-													<div class="col-2">
-														<q-item-label class="text-weight-bold text-primary q-mt-sm">
-															{{riskLabel(riskey)}}
-														</q-item-label>
-													</div>
-													<div class="col-3">
-														<q-linear-progress rounded size="30px" :value="props.row.risks[riskey]" color="primary">
-															<div class="absolute-full flex flex-center">
-																<q-badge text-color="white">
-																	{{progressLabel(props.row.risks[riskey])}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
-																</q-badge>
-															</div>
-														</q-linear-progress>
-													</div>
-													<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
-														{{getRiskInfo(riskey)}}
-													</div>
+									<template v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'">
+										<template v-for="risk of props.row.risks">
+											<q-card v-if="risksShowCondition(risk, props.row.risks, props.row.resource)" flat bordered class="q-ml-md q-mr-md q-mt-sm q-mb-sm">
+												<q-item>
+													<q-item-section avatar>
+														<q-avatar>
+															<q-icon name="mdi-chart-bar" />
+														</q-avatar>
+													</q-item-section>
+													<q-item-section>
+														<q-item-label>{{risk.profile}} Risks</q-item-label>
+													</q-item-section>
 												</q-item>
-											</q-list>
-											<div v-else class="text-grey-7">
+												<q-separator />
+												<q-card-section class="text-subtitle1">
+													<q-list>
+														<template v-for="riskey in Object.keys(risk)">
+															<q-item v-if="riskey !== 'profile'">
+																<div class="col-2">
+																	<q-item-label class="text-weight-bold text-primary q-mt-sm">
+																		{{riskLabel(riskey)}}
+																	</q-item-label>
+																</div>
+																<div class="col-3">
+																	<q-linear-progress rounded size="30px" :value="risk[riskey]" color="primary">
+																		<div class="absolute-full flex flex-center">
+																			<q-badge text-color="white">
+																				{{progressLabel(risk[riskey])}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
+																			</q-badge>
+																		</div>
+																	</q-linear-progress>
+																</div>
+																<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
+																	{{getRiskInfo(riskey)}}
+																</div>
+															</q-item>
+														</template>
+													</q-list>
+												</q-card-section>
+											</q-card>
+										</template>
+									</template>
+									<template v-else>
+										<q-card-section class="text-subtitle1">
+											<div class="text-grey-7">
 												Risks will be calculated after de-identification is completed.
 											</div>
 										</q-card-section>
-									</q-card>
+									</template>
 								</q-td>
 							</q-tr>
 						</template>
@@ -137,7 +152,7 @@
 						<q-space />
 						<q-btn v-if="deidentificationStatus==='success'" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps />
-						<q-btn outline color="primary" @click="deidentifyAll" class="q-mt-lg"
+						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'
 						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'" no-caps>
 							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
@@ -223,8 +238,9 @@ export default class Deidentifier extends Vue {
     private columns = [
         { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
         { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
-        { name: 'count', align: 'left', label: 'Count', field: 'count', icon: 'fas fa-calculator', sortable: true },
-        { name: 'final', align: 'left', label: 'Final Count', field: 'final', icon: 'mdi mdi-shield-check', sortable: true },
+        { name: 'k_anonymity', align: 'center', label: 'K-anonymity', field: 'k_anonymity', icon: 'mdi mdi-shield-check' },
+        { name: 'count', align: 'center', label: 'Initial Resource Count', field: 'count' },
+        { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
     ];
     private deidentificationStatus: status = 'loading';
     private mappingList: any[] = [];
@@ -278,7 +294,7 @@ export default class Deidentifier extends Vue {
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
                         this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                            risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
+                            risks: []};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
                         this.deidentificationResults[resource].entries = entries.entries;
@@ -293,7 +309,7 @@ export default class Deidentifier extends Vue {
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
                             this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                                risks: {lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0, recordsAffectedByLowest: 0, recordsAffectedByHighest: 0}};
+                                risks: []};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
                     });
@@ -340,7 +356,7 @@ export default class Deidentifier extends Vue {
                 [entries, this.deidentificationResults[resource].entries] = Utils.partition(resourceEntries,
                     entry => entry.resource.meta.profile.includes(this.profileUrlMappings[profile]));
                 return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, entries,
-                    this.kAnonymityValidMappings[resource], this.kValueMappings[resource], this.deidentificationResults[resource]);
+                    this.kAnonymityValidMappings[resource], this.kValueMappings[resource]);
             } else { // base resource
                 return new Promise((resolve, reject) => {
                     // base resources will be de-identified later in order to contain profiles as well
@@ -350,29 +366,40 @@ export default class Deidentifier extends Vue {
         });
 
         Promise.all(promises).then(response => {
-            const baseResource = response.find(res => res.isBaseResource);
+            const baseResources: any[] = [];
+            const validatedResources: string[] = [];
             response.forEach((type: any) => {
                 if (!type.isBaseResource) {
                     this.deidentificationResults[type.resource].entries.push(...type.entries);
-                    this.validateEntries(type);
+                    this.$store.dispatch('fhir/calculateRisks', type);
+                }
+                const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
+                if (baseResource && !baseResources.includes(baseResource)){
+                    baseResources.push(baseResource);
                 }
             });
-            if (baseResource) {
+            response.forEach((type: any) => {
+                const resource = baseResources.find(res => res.resource === type.resource);
+				if (!resource && !validatedResources.includes(type.resource)) {
+                    this.validateEntries(type.resource);
+                    validatedResources.push(type.resource);
+				}
+            });
+            baseResources.forEach(baseResource => {
                 const resource = baseResource.resource;
                 const entries = JSON.parse(JSON.stringify(this.deidentificationResults[resource].entries));
                 this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
-                    baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource],
-                    this.deidentificationResults[resource]).then(type => {
-                        this.deidentificationResults[type.resource].entries = type.entries;
-                        this.validateEntries(type);
+	                baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
+                    this.deidentificationResults[type.resource].entries = type.entries;
+                    this.$store.dispatch('fhir/calculateRisks', type);
+                    this.validateEntries(type.resource);
                 });
-            }
+            });
         });
     }
 
-    validateEntries (type) {
-        const resourceType = type.resource;
-        const entries = type.entries;
+    validateEntries (resourceType) {
+        const entries = this.deidentificationResults[resourceType].entries;
         this.$store.dispatch('fhir/validateEntries', entries).then(response => {
             response.forEach(bulk => {
                 bulk.data.entry.map(item => {
@@ -397,7 +424,6 @@ export default class Deidentifier extends Vue {
                     }
                 });
             });
-            this.$store.dispatch('fhir/calculateRisks', type);
             this.getResultsAsMapping();
             if (this.deidentificationStatus !== 'error') {
                 this.deidentificationStatus = 'success';
@@ -435,6 +461,14 @@ export default class Deidentifier extends Vue {
                 this.savedResourceNumber = response;
                 this.loading = false;
             });
+    }
+
+    risksShowCondition (risk, risks, resource) {
+        const baseResource = risks.find(obj => obj.profile === resource);
+        if (baseResource) {
+            return risk === baseResource;
+        }
+        return true;
     }
 
     progressLabel (progress: number) {
