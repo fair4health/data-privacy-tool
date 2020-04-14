@@ -20,10 +20,10 @@ export class DeidentificationService {
 
     constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[]) {
         this.fhirService = new FhirService();
-        this.typeMappings = typeMappings;
-        this.parameterMappings = parameterMappings;
-        this.rareValueMappings = rareValueMappings;
-        this.requiredElements = requiredElements;
+        this.typeMappings = JSON.parse(JSON.stringify(typeMappings));
+        this.parameterMappings = JSON.parse(JSON.stringify(parameterMappings));
+        this.rareValueMappings = JSON.parse(JSON.stringify(rareValueMappings));
+        this.requiredElements = JSON.parse(JSON.stringify(requiredElements));
         this.identifiers = [];
         this.quasis = [];
         this.sensitives = [];
@@ -121,9 +121,18 @@ export class DeidentificationService {
         [this.quasis, this.sensitives, this.identifiers] = [[], [], []];
         switch (algorithm.name) {
             case 'Pass Through':
-
-                // TODO change according to primitive type
-
+                if (primitiveType === 'boolean') {
+                    if (!required) {
+                        this.identifiers.push(key.split('.').slice(2));
+                    }
+                    this.canBeAnonymizedMore = false;
+                } else if (environment.primitiveTypes[primitiveType].supports.includes('Generalization')) {
+                    this.parameterMappings[key] = environment.algorithms.GENERALIZATION;
+                    this.quasis.push(key.split('.').slice(2));
+                } else {
+                    this.parameterMappings[key] = environment.algorithms.SUBSTITUTION;
+                    this.quasis.push(key.split('.').slice(2));
+                }
                 break;
             case 'Generalization':
                 if (primitiveType === 'decimal') { // Decimal places of the floating number will be rounded
