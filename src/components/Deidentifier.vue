@@ -4,6 +4,9 @@
 			<q-toolbar-title class="text-grey-8">
 				De-identifier
 			</q-toolbar-title>
+			<q-btn unelevated label="Export" color="primary" @click="exportConfigurations" icon="publish" no-caps >
+				<q-tooltip anchor="bottom middle" self="top middle">Export Configurations</q-tooltip>
+			</q-btn>
 		</q-toolbar>
 
 		<div class="q-ma-sm">
@@ -151,7 +154,9 @@
 					<div class="row content-end q-gutter-sm">
 						<q-space />
 						<q-btn v-if="deidentificationStatus==='success'" label="Save" color="secondary" icon="save"
-						       class="q-mt-lg" @click="saveDialog = true" no-caps />
+						       class="q-mt-lg" @click="saveDialog = true" no-caps>
+							<q-tooltip anchor="bottom middle" self="top middle">Save Anonymized Data to Repository</q-tooltip>
+						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'
 						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'" no-caps>
@@ -222,6 +227,7 @@ import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
 import {Utils} from '@/common/utils/util';
 import OutcomeCard from '@/components/OutcomeCard.vue';
+import {ipcRenderer} from "electron";
 
 @Component
 export default class Deidentifier extends Vue {
@@ -503,6 +509,20 @@ export default class Deidentifier extends Vue {
             case 'recordsAffectedByHighest':
                 return 'Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.';
         }
+    }
+
+    exportConfigurations() {
+        this.$q.loading.show({spinner: undefined})
+        this.$store.dispatch('fhir/exportState').then(state => {
+            ipcRenderer.send('export-file', JSON.stringify(state))
+            ipcRenderer.on('export-done', (event, result) => {
+                if (result) {
+                    this.$notify.success('File is exported successfully')
+                }
+                this.$q.loading.hide()
+                ipcRenderer.removeAllListeners('export-done')
+            })
+        });
     }
 
 }

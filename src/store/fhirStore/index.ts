@@ -1,6 +1,5 @@
 import { FhirService } from '@/common/services/fhir.service'
 import { environment } from '@/common/environment'
-import StructureDefinition = fhir.StructureDefinition;
 import { FHIRUtils } from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
 
@@ -313,6 +312,27 @@ const fhirStore = {
                         }
                     })
                     .catch(err => reject('Given url is not verified.'))
+            })
+        },
+        exportState ({ state }) {
+            return new Promise((resolve, reject) => {
+                const exportableState = {};
+                for (const key of Object.keys(state)) {
+                    if (environment.exportableAttributes.includes(key)) {
+                        exportableState[key] = JSON.parse(JSON.stringify(state[key]));
+                    }
+                }
+                resolve(exportableState);
+            })
+        },
+        importState ( { state }, newState ) {
+            return new Promise((resolve, reject) => {
+                for (const key of Object.keys(newState)) {
+                    if (environment.exportableAttributes.includes(key)) {
+                        state[key] = JSON.parse(JSON.stringify(newState[key]));
+                    }
+                }
+                resolve();
             })
         }
     }

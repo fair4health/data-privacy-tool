@@ -4,6 +4,7 @@ import {app, protocol, BrowserWindow, dialog} from 'electron'
 import log from 'electron-log'
 import {createProtocol, installVueDevtools} from 'vue-cli-plugin-electron-builder/lib';
 import MessageBoxReturnValue = Electron.MessageBoxReturnValue;
+import './common/listeners'
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 

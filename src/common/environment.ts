@@ -63,5 +63,7 @@ export const environment = {
         unsignedInt: {type: 'integer', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
         positiveInt: {type: 'integer', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
         uuid: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']}
-    }
+    },
+    exportableAttributes: ['attributeMappings', 'kAnonymityValidMappings', 'kValueMappings', 'parameterMappings',
+        'rareElements', 'rareValueMappings']
 };
