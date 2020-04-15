@@ -332,15 +332,25 @@ export class DeidentificationService {
                     attribute[paths[index]][i] = this.handleSensitives(key + '.' + paths[index + 1], elem, paths.slice(1), index, end - 1);
                 } else { // primitives in array
                     if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
-                        && (this.rareValueMappings[key].includes(attribute[paths[index]][i]))) {
+                        && (this.rareValueMappings[key].includes(attribute[paths[index]][i])) && this.parameterMappings[key].algorithm.name !== environment.algorithms.REPLACE.name) {
+                        // de-identify rare value
                         attribute[paths[index]][i] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, elem, this.typeMappings[key]);
+                    } else if (this.parameterMappings[key].hasRare && this.parameterMappings[key].algorithm.name === environment.algorithms.REPLACE.name
+                        && Object.keys(this.parameterMappings[key].algorithm.replaceValues).includes(attribute[paths[index]][i])) {
+                        // replace rare value directly
+                        attribute[paths[index]][i] = this.parameterMappings[key].algorithm.replaceValues[attribute[paths[index]][i]];
                     }
                 }
             }
         } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             if (this.parameterMappings[key].hasRare && this.rareValueMappings[key] && this.rareValueMappings[key].length
-                && (this.rareValueMappings[key].includes(attribute[paths[index]]))) {
+                && (this.rareValueMappings[key].includes(attribute[paths[index]])) && this.parameterMappings[key].algorithm.name !== environment.algorithms.REPLACE.name) {
+                // de-identify rare value
                 attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key].algorithm, attribute[paths[index]], this.typeMappings[key]);
+            } else if (this.parameterMappings[key].hasRare && this.parameterMappings[key].algorithm.name === environment.algorithms.REPLACE.name
+                && Object.keys(this.parameterMappings[key].algorithm.replaceValues).includes(attribute[paths[index]])) {
+                // replace rare value directly
+                attribute[paths[index]] = this.parameterMappings[key].algorithm.replaceValues[attribute[paths[index]]];
             }
         }
         return attribute;

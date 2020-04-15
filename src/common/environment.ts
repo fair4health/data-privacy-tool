@@ -40,16 +40,17 @@ export const environment = {
         GENERALIZATION: {name: 'Generalization', roundedToFloor: true, dateUnit: 'Years', roundDigits: 1}, // dates and numbers
         DATE_SHIFTING: {name: 'Date Shifting', dateUnit: 'Months', range: 3}, // dates
         REDACTION: {name: 'Redaction'},
-        SENSITIVE: {name: 'Sensitive', hasRare: false, l_diversity: null, t_closeness: null, algorithm: {name: 'Pass Through'}}
+        SENSITIVE: {name: 'Sensitive', hasRare: false, l_diversity: null, t_closeness: null, algorithm: {name: 'Pass Through'}},
+        REPLACE: {name: 'Replace', replaceValues: {}} // only for rare values example values: {'HIV': 'Infection'}
     },
     primitiveTypes: {
         boolean: {type: 'boolean', supports: ['Pass Through', 'Redaction']},
         integer: {type: 'integer', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
-        string: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution']},
+        string: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']},
         decimal: {type: 'double', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
-        uri: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution']},
-        url: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution']},
-        canonical: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution']},
+        uri: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']},
+        url: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']},
+        canonical: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']},
         base64Binary: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: '(\\s*([0-9a-zA-Z\\+\\=]){4}\\s*)+'},
         instant: {type: 'string', supports: ['Pass Through', 'Redaction', 'Generalization', 'Date Shifting'], regex: '([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))'},
         date: {type: 'string', supports: ['Pass Through', 'Redaction', 'Generalization', 'Date Shifting'], regex: '([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)?'},
@@ -61,6 +62,6 @@ export const environment = {
         markdown: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: '\\s*(\\S|\\s)*'},
         unsignedInt: {type: 'integer', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
         positiveInt: {type: 'integer', supports: ['Pass Through', 'Redaction', 'Fuzzing', 'Generalization']},
-        uuid: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution']}
+        uuid: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']}
     }
 };

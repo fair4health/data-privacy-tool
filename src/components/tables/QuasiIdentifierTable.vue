@@ -165,7 +165,7 @@ export default class QuasiIdentifierTable extends Vue {
     private selectedElem: any = null;
     private filter: string = '';
     private envAlgorithms = environment.algorithms;
-    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
+    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE' && key !== 'REPLACE').map(key => environment.algorithms[key].name);
     private tempParameterMappings = JSON.parse(JSON.stringify(this.parameterMappings));
     private kAnonymityValid: boolean = false;
     private kValue: number = 3;

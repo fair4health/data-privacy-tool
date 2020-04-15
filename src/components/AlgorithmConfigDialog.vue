@@ -35,7 +35,7 @@
 				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs q-mb-sm" /> {{getInfoText()}} </span>
 			</q-item-label>
 		</q-card-section>
-		<q-card-section v-if="isSensitive()" class="q-pt-none">
+		<q-card-section v-if="isSensitive() && getAlgorithmName() !== envAlgorithms.REPLACE.name" class="q-pt-none">
 			<q-select
 				v-model="rareValues"
 				multiple
@@ -63,6 +63,30 @@
 					</q-chip>
 				</template>
 			</q-select>
+		</q-card-section>
+		<q-card-section v-if="isSensitive() && getAlgorithmName() === envAlgorithms.REPLACE.name" class="q-pt-none">
+			<div class="row items-center">
+				<div class="col-4">
+					<q-input v-model="rareFirstValue" dense outlined label="Enter rare value" />
+				</div>
+				<div class="col-1 text-center">
+					<q-icon size="xs" name="fas fa-arrow-right" color="primary" />
+				</div>
+				<div class="col-4">
+					<q-input v-model="rareAfterValue" dense outlined label="Enter the new value" />
+				</div>
+				<div class="col-2 q-ml-md">
+					<q-btn unelevated round color="primary" icon="add" size="xs" @click="addRareReplacement()" >
+						<q-tooltip anchor="center right" self="center left" content-class="bg-white text-primary">Add</q-tooltip>
+					</q-btn>
+				</div>
+			</div>
+			<q-chip v-for="key of Object.keys(tempParameterMappings.replaceValues)" @remove="removeRareCouple(key)"
+			        removable color="accent" text-color="white" class="q-mt-md">
+				<span>
+					{{key}} <q-icon size="xs" name="fas fa-long-arrow-alt-right" class="q-ma-xs"/> {{tempParameterMappings.replaceValues[key]}}
+				</span>
+			</q-chip>
 		</q-card-section>
 
 		<!--  SUBSTITUTION  -->
@@ -174,11 +198,13 @@ import {environment} from '@/common/environment'
 @Component
 export default class AlgorithmConfigDialog extends Vue {
     private envAlgorithms = environment.algorithms;
-    private algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
+    private algorithms;
     private tempParameterMappings;
     private dateUnitOptions: string[] = [];
     private rareValues: string[] = this.rareValueMappings[this.currentAttribute] ? JSON.parse(JSON.stringify(this.rareValueMappings[this.currentAttribute])) : [];
     private rareInput: string = '';
+    private rareFirstValue: string = '';
+    private rareAfterValue: string = '';
 
     get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
     set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
@@ -201,8 +227,10 @@ export default class AlgorithmConfigDialog extends Vue {
     created () {
         if (this.isSensitive()) {
             this.tempParameterMappings = this.parameterMappings[this.currentAttribute].algorithm;
+            this.algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE').map(key => environment.algorithms[key].name);
         } else {
             this.tempParameterMappings = this.parameterMappings[this.currentAttribute];
+            this.algorithms = Object.keys(environment.algorithms).filter(key => key !== 'SENSITIVE' && key !== 'REPLACE').map(key => environment.algorithms[key].name);
         }
         this.getDateUnitOptions();
     }
@@ -214,6 +242,17 @@ export default class AlgorithmConfigDialog extends Vue {
     @Watch('rareValues')
     onRareValuesChanged () {
         this.rareValueMappings[this.currentAttribute] = this.rareValues;
+    }
+
+    addRareReplacement () {
+		this.tempParameterMappings.replaceValues[this.rareFirstValue] = this.rareAfterValue;
+		[this.rareFirstValue, this.rareAfterValue] = ['', ''];
+        this.updateParameters();
+    }
+
+    removeRareCouple (key: string) {
+        delete this.tempParameterMappings.replaceValues[key];
+        this.updateParameters();
     }
 
     onAlgorithmSelected () {
@@ -313,6 +352,9 @@ export default class AlgorithmConfigDialog extends Vue {
             info = 'Date will be shifted randomly within a range that you provide.';
         }
         if (this.isSensitive()) {
+            if (this.getAlgorithmName() === environment.algorithms.REPLACE.name) {
+                return 'You should provide the rare values and their new values for this attribute below.';
+            }
             return  'You should provide the rare values for this attribute below. ' + info;
         }
         return info;
