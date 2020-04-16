@@ -314,7 +314,7 @@ const fhirStore = {
                     .catch(err => reject('Given url is not verified.'))
             })
         },
-        exportState ({ state }) {
+        currentState ({ state }) {
             return new Promise((resolve, reject) => {
                 const exportableState = {};
                 for (const key of Object.keys(state)) {

@@ -4,8 +4,11 @@
 			<q-toolbar-title class="text-grey-8">
 				De-identifier
 			</q-toolbar-title>
+			<q-btn unelevated label="Save" color="primary" @click="saveConfigurations" icon="save" no-caps class="q-mr-sm" >
+				<q-tooltip anchor="bottom middle" self="top middle">Save Configuration</q-tooltip>
+			</q-btn>
 			<q-btn unelevated label="Export" color="primary" @click="exportConfigurations" icon="publish" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle">Export Configurations</q-tooltip>
+				<q-tooltip anchor="bottom middle" self="top middle">Export Configuration</q-tooltip>
 			</q-btn>
 		</q-toolbar>
 
@@ -513,7 +516,7 @@ export default class Deidentifier extends Vue {
 
     exportConfigurations() {
         this.$q.loading.show({spinner: undefined})
-        this.$store.dispatch('fhir/exportState').then(state => {
+        this.$store.dispatch('fhir/currentState').then(state => {
             ipcRenderer.send('export-file', JSON.stringify(state))
             ipcRenderer.on('export-done', (event, result) => {
                 if (result) {
@@ -523,6 +526,31 @@ export default class Deidentifier extends Vue {
                 ipcRenderer.removeAllListeners('export-done')
             })
         });
+    }
+
+    saveConfigurations() {
+        this.$q.dialog({
+            title: 'Save Configuration',
+            prompt: {
+                model: '',
+                isValid: val => val.length > 0,
+                type: 'text'
+            },
+            cancel: true,
+            persistent: true
+        }).onOk(configName => {
+            this.$store.dispatch('fhir/currentState').then(state => {
+                let fileStore: any = localStorage.getItem('store-exportableState')
+                if (fileStore) {
+                    fileStore = JSON.parse(fileStore) as any[]
+                    fileStore.push({date: new Date(), name: configName, data: state})
+                } else {
+                    fileStore = [{date: new Date(), name: configName, data: state}]
+                }
+                localStorage.setItem('store-exportableState', JSON.stringify(fileStore))
+                this.$notify.success('Saved')
+            });
+        })
     }
 
 }
