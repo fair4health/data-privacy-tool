@@ -59,35 +59,36 @@
 									<div class="text-center col-5">
 										<span class="text-caption text-primary">{{ typeMappings[prop.key] }}</span>
 									</div>
-									<div class="text-center col-1">
-										<q-checkbox v-if="parameterMappings[prop.key]" v-model="rareElements"
-										            :val="prop.key" @input="setRareness(prop.key)" />
-									</div>
-									<div class="col-1">
-										<q-btn v-if="parameterMappings[prop.key] && parameterMappings[prop.key].hasRare && attributeMappings[prop.key]"
+									<div class="col-2">
+										<q-checkbox v-if="tempParameterMappings[prop.key]" v-model="rareElements"
+										            :val="prop.key" @input="setRareness(prop.key)" class="q-ml-md" />
+										<q-btn v-if="tempParameterMappings[prop.key]"
 										       unelevated
 										       color="accent"
 										       text-color="white"
 										       @click="configureAlgorithm(prop.node)"
 										       icon="fas fa-cog"
+										       :disable="!tempParameterMappings[prop.key].hasRare || !attributeMappings[prop.key]"
 										/>
 									</div>
-									<div class="row justify-center items-center col-2">
-										<q-input v-if="parameterMappings[prop.key]"
-											v-model.number="parameterMappings[prop.key].l_diversity"
-											type="number"
-											outlined
-											dense
-											style="max-width: 60px"
-										/>
+									<div class="row col-2">
+										<q-checkbox v-if="tempParameterMappings[prop.key] && kAnonymityValidMappings[currentFHIRRes]" color="primary" class="q-ml-lg"
+										            v-model="tempParameterMappings[prop.key].l_diversityValid" @input="updateParameters(prop.key)" />
+										<q-checkbox v-if="tempParameterMappings[prop.key] && !kAnonymityValidMappings[currentFHIRRes]"
+										            color="primary" class="q-ml-lg" disabled value="false"  >
+											<q-tooltip v-if="!kAnonymityValidMappings[currentFHIRRes]" anchor="bottom middle" self="top middle">
+												L-diversity cannot be applied if the resource does not have k-anonymity
+											</q-tooltip>
+										</q-checkbox>
+										<q-select outlined dense v-if="tempParameterMappings[prop.key]" :options="[2,3,4,5]"
+										          v-model="tempParameterMappings[prop.key].l_diversity" @input="updateParameters(prop.key)"
+										          :disable="!tempParameterMappings[prop.key].l_diversityValid"
+										          :option-disable="opt => opt > kValueMappings[currentFHIRRes]" />
 									</div>
 									<div class="row justify-center items-center col-2">
-										<q-input v-if="parameterMappings[prop.key]"
-											v-model.number="parameterMappings[prop.key].t_closeness"
-											type="number"
-											outlined
-											dense
-									        style="max-width: 100px"
+										<q-input v-if="tempParameterMappings[prop.key]" @input="updateParameters(prop.key)"
+											v-model.number="tempParameterMappings[prop.key].t_closeness"
+											type="number" outlined dense style="max-width: 100px"
 										/>
 									</div>
 								</div>
@@ -168,6 +169,7 @@ export default class SensitiveAttributeTable extends Vue {
     private selectedStr: string = '';
     private selectedElem: any = null;
     private filter: string = '';
+    private tempParameterMappings = JSON.parse(JSON.stringify(this.parameterMappings));
 
     get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
     set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
@@ -196,6 +198,11 @@ export default class SensitiveAttributeTable extends Vue {
     get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
     set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
 
+    get kAnonymityValidMappings (): any { return this.$store.getters['fhir/kAnonymityValidMappings'] }
+    set kAnonymityValidMappings (value) { this.$store.commit('fhir/setKAnonymityValidMappings', value) }
+    get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
+    set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
+
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {
         ([this.currentFHIRProf, this.selectedStr] = ['', '']);
@@ -218,13 +225,18 @@ export default class SensitiveAttributeTable extends Vue {
     }
 
     setRareness (attribute: string) {
-        this.parameterMappings[attribute].hasRare = this.rareElements.includes(attribute);
+        this.tempParameterMappings[attribute].hasRare = this.rareElements.includes(attribute);
+        this.parameterMappings[attribute].hasRare = this.tempParameterMappings[attribute].hasRare;
     }
 
     filterTree (node, filter) {
         const filt = filter.toLowerCase();
         return (node.label && node.label.toLowerCase().includes(filt)) ||
             (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
+    }
+
+    updateParameters (attribute: string) {
+        this.parameterMappings[attribute] = this.tempParameterMappings[attribute];
     }
 
 }

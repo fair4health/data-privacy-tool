@@ -62,8 +62,9 @@ export class DeidentificationService {
                 const bulk = JSON.parse(JSON.stringify(entries));
                 this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
                 while (this.anonymizedData.length) {
-                    [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [identifiers, quasis, sensitives, true];
-                    const anonymizedBulk = this.makeKAnonymous(resource, profile, kValue, this.anonymizedData);
+                    [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [JSON.parse(JSON.stringify(identifiers)),
+                        JSON.parse(JSON.stringify(quasis)), JSON.parse(JSON.stringify(sensitives)), true];
+                    const anonymizedBulk = this.makeKAnonymousLDiverse(resource, profile, kValue, this.anonymizedData);
                     finalData.push(...anonymizedBulk);
                     this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
                 }
@@ -74,7 +75,67 @@ export class DeidentificationService {
         })
     }
 
-    makeKAnonymous (resource: string, profile: string, kValue: number, anonymizedData) {
+    makeKAnonymousLDiverse (resource: string, profile: string, kValue: number, anonymizedData) {
+        const quasiKeys = this.getQuasiKeys(resource, profile);
+        const sensKeys = this.getSensitiveKeys(resource, profile);
+        quasiKeys.sort().forEach(quasiKey => {
+            const required = this.requiredElements.includes(quasiKey);
+            let equivalenceClasses = this.generateEquivalenceClasses(resource, quasiKey, anonymizedData);
+            while (this.canBeAnonymizedMore) {
+                let parametersChanged = false;
+                let eqClassesSmall = false;
+                equivalenceClasses.forEach(eqClass => {
+                    if (eqClass.length < kValue) { // k-anonymity
+                        if (!parametersChanged) { // change de-identification parameters to anonymize records more
+                            // if parameters are already changed, do not change them until the iteration finishes
+                            this.changeParameters(resource, eqClass, quasiKey, required);
+                            parametersChanged = true;
+                        }
+                        // anonymize records more which are not k-anonymous
+                        eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                        eqClassesSmall = true;
+                    } else if (sensKeys.length) {
+                        sensKeys.sort().forEach(sensKey => {
+                            // generate equivalence classes for sensitive values to see if l-diversity is satisfied
+                            const diversities = this.generateEquivalenceClasses(resource, sensKey, eqClass);
+                            if (diversities.length < this.parameterMappings[sensKey].l_diversity) { // l-diversity
+                                if (!parametersChanged) { // change de-identification parameters to anonymize records more
+                                    // if parameters are already changed, do not change them until the iteration finishes
+                                    this.changeParameters(resource, eqClass, quasiKey, required);
+                                    parametersChanged = true;
+                                }
+                                // anonymize records more which are not l-diverse
+                                eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
+                                eqClassesSmall = true;
+                            }
+                        });
+                    }
+                });
+                equivalenceClasses = this.generateEquivalenceClasses(resource, quasiKey, anonymizedData);
+                anonymizedData = [].concat(...equivalenceClasses);
+                if (eqClassesSmall) {
+                    break;
+                }
+            }
+            equivalenceClasses = equivalenceClasses.filter(eqClass => eqClass.length >= kValue); // remove rows that not satisfying k-anonymity
+            equivalenceClasses = equivalenceClasses.filter(eqClass => this.isDiverseEnough(resource, eqClass, sensKeys)); // remove rows that not satisfying l-diversity
+            anonymizedData = [].concat(...equivalenceClasses);
+        });
+        return anonymizedData;
+    }
+
+    isDiverseEnough (resource, eqClass, sensKeys) {
+        let result = true;
+        sensKeys.sort().forEach(sensKey => {
+            const diversities = this.generateEquivalenceClasses(resource, sensKey, eqClass);
+            if (diversities.length < this.parameterMappings[sensKey].l_diversity) {
+                result = false;
+            }
+        });
+        return result;
+    }
+
+    getQuasiKeys (resource: string, profile: string): string[] {
         const keys: string[] = [];
         this.quasis.forEach(paths => {
             let [key, i] = [resource + '.' + profile, 0];
@@ -87,32 +148,21 @@ export class DeidentificationService {
                 keys.push(key);
             }
         });
-        keys.sort().forEach(key => {
-            const required = this.requiredElements.includes(key);
-            let equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
-            while (this.canBeAnonymizedMore) {
-                let parametersChanged = false;
-                let eqClassesSmall = false;
-                equivalenceClasses.forEach(eqClass => {
-                    if (eqClass.length < kValue) {
-                        if (!parametersChanged) {
-                            this.changeParameters(resource, eqClass, key, required);
-                            parametersChanged = true;
-                        }
-                        eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
-                        eqClassesSmall = true;
-                    }
-                });
-                equivalenceClasses = this.generateEquivalenceClasses(resource, key, anonymizedData);
-                anonymizedData = [].concat(...equivalenceClasses);
-                if (eqClassesSmall) {
-                    this.canBeAnonymizedMore = false;
-                }
+        return keys;
+    }
+
+    getSensitiveKeys (resource: string, profile: string): string[] {
+        const keys: string[] = [];
+        this.sensitives.forEach(paths => {
+            let [key, i] = [resource + '.' + profile, 0];
+            while (i < paths.length) {
+                key += '.' + paths[i++];
             }
-            equivalenceClasses = equivalenceClasses.filter(eqClass => eqClass.length >= kValue);
-            anonymizedData = [].concat(...equivalenceClasses);
+            if (this.parameterMappings[key].l_diversityValid) {
+                keys.push(key);
+            }
         });
-        return anonymizedData;
+        return keys;
     }
 
     changeParameters (resource: string, eqClass: any[], key: string, required: boolean) {

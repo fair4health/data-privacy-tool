@@ -76,7 +76,7 @@
 					<q-input v-model="rareAfterValue" dense outlined label="Enter the new value" />
 				</div>
 				<div class="col-2 q-ml-md">
-					<q-btn unelevated round color="primary" icon="add" size="xs" @click="addRareReplacement()" >
+					<q-btn unelevated round color="primary" icon="add" size="xs" @click="addRareReplacement()" :disable="!rareFirstValue" >
 						<q-tooltip anchor="center right" self="center left" content-class="bg-white text-primary">Add</q-tooltip>
 					</q-btn>
 				</div>
@@ -236,7 +236,11 @@ export default class AlgorithmConfigDialog extends Vue {
     }
 
     generateBreadcrumb (): string[] {
-        return this.currentAttribute.split('.');
+        let tempArray = this.currentAttribute.split('.');
+        if (tempArray[0] === tempArray[1]) { // base resource
+            tempArray.splice(0, 1);
+        }
+        return tempArray;
     }
 
     @Watch('rareValues')
