@@ -294,7 +294,7 @@ const fhirStore = {
             return state.evaluationService.validateEntries(entries);
         },
         saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
-            return state.evaluationService.saveEntries(state.entries, request);
+            return state.evaluationService.saveEntries(state.deidentificationResults, request);
         },
         verifyFhir ({ state }): Promise<any> {
             return new Promise((resolve, reject) => {

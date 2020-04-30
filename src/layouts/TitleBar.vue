@@ -17,7 +17,7 @@
 			<div class="cursor-pointer non-selectable">
 				File
 				<q-menu>
-					<q-list dense style="min-width: 150px">
+					<q-list dense>
 						<q-item clickable v-close-popup @click="closeApp">
 							<q-item-section>Close</q-item-section>
 						</q-item>
@@ -46,6 +46,13 @@
 			</div>
 			<div class="q-ml-md cursor-pointer non-selectable">
 				Help
+				<q-menu auto-close>
+					<q-list dense>
+						<q-item clickable @click="openExternal(projectHomePage)">
+							<q-item-section>Help</q-item-section>
+						</q-item>
+					</q-list>
+				</q-menu>
 			</div>
 		</div>
 	</div>
@@ -53,12 +60,14 @@
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator'
-    import { remote } from 'electron'
+    import {remote, shell} from 'electron'
 
     @Component
     export default class TitleBar extends Vue {
         private currentWindow = remote.getCurrentWindow()
         private isMaximized = this.currentWindow.isMaximized()
+
+        get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
 
         get drawerOpen (): boolean { return this.$store.getters.drawerOpen }
         set drawerOpen (value) { this.$store.commit('setDrawerOpen', value) }
@@ -78,7 +87,9 @@
         minimizeApp () { this.currentWindow.minimize() }
         closeApp () { this.currentWindow.close() }
         toggleDevTools () { remote.getCurrentWebContents().toggleDevTools() }
+        openExternal (url: string) { shell.openExternal(url) }
     }
+
 </script>
 
 <style scoped>

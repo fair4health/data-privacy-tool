@@ -125,7 +125,7 @@ export default class OutcomeCard extends Vue {
     get errorTransformCount (): number { return this.outcomeDetails.filter(_ => _.status === 'error').length }
     get activeProfiles (): any[] {
         return this.selectedResources = Object.keys(this.outcomeDetails.reduce((acc, curr) => {
-            (acc[curr['resourceType']] = acc[curr['resourceType']] || []);
+            (acc[curr.resourceType] = acc[curr.resourceType] || []);
             return acc
         }, {}))
     }

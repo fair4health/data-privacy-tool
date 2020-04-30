@@ -61,14 +61,16 @@
 					</q-item-section>
 				</q-item>
 			</q-list>
-			<q-list v-if="($q.screen.gt.md && !drawerMiniState) || $q.screen.xs" padding class="text-grey-8 fixed-bottom">
+			<q-list class="fixed-bottom">
 				<q-separator />
-				<q-item>
-					<q-item-section>
-			            <span class="text-weight-bold flex flex-center text-caption">
-			              <span>Powered by </span>
-			              <img src="../assets/srdc-wp.png" class="q-ml-sm" width="120px">
-			            </span>
+				<q-item clickable @click="openExternal(projectHomePage)">
+					<q-item-section avatar>
+						<q-avatar size="sm">
+							<img src="../assets/github-logo.png" />
+						</q-avatar>
+					</q-item-section>
+					<q-item-section class="text-grey-7">
+						<span>View on <span class="text-weight-bold">GitHub</span></span>
 					</q-item-section>
 				</q-item>
 			</q-list>
@@ -88,6 +90,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import TitleBar from '@/layouts/TitleBar.vue';
+import {shell} from 'electron';
 
 @Component({
     components: { TitleBar }
@@ -109,11 +112,16 @@ export default class MainLayout extends Vue {
     set currentStep (value) { this.$store.commit('setStep', value) }
 
     get isCollapsed () { return (this.$q.screen.gt.xs && (this.$q.screen.lt.lg || this.drawerMiniState)) }
+    get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
 
     changeCurrentStep (stepId: number) {
         if (this.currentStep > stepId) {
             this.currentStep = stepId;
         }
+    }
+
+    openExternal (url: string) {
+        shell.openExternal(url);
     }
 
 }

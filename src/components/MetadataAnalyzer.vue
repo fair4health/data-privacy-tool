@@ -69,7 +69,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
-import {ipcRenderer} from "electron";
+import {ipcRenderer} from 'electron';
 
 @Component({
     components: {
@@ -100,7 +100,7 @@ export default class MetadataAnalyzer extends Vue {
             if (data) {
                 this.$store.dispatch('fhir/importState', data).then(() => {
                     this.$notify.success('File is imported successfully')
-	                this.fhirAttributeTableKey++; // in order to re-render attribute table
+                    this.fhirAttributeTableKey++; // in order to re-render attribute table
                 });
             }
             this.$q.loading.hide()
@@ -113,7 +113,7 @@ export default class MetadataAnalyzer extends Vue {
         if (this.savedConfigs) {
             this.savedConfigs = JSON.parse(this.savedConfigs);
         }
-		this.selectDialog = true;
+        this.selectDialog = true;
     }
 
     getISODateString (date: string): string {

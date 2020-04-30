@@ -236,7 +236,7 @@ export default class AlgorithmConfigDialog extends Vue {
     }
 
     generateBreadcrumb (): string[] {
-        let tempArray = this.currentAttribute.split('.');
+        const tempArray = this.currentAttribute.split('.');
         if (tempArray[0] === tempArray[1]) { // base resource
             tempArray.splice(0, 1);
         }
@@ -249,8 +249,8 @@ export default class AlgorithmConfigDialog extends Vue {
     }
 
     addRareReplacement () {
-		this.tempParameterMappings.replaceValues[this.rareFirstValue] = this.rareAfterValue;
-		[this.rareFirstValue, this.rareAfterValue] = ['', ''];
+        this.tempParameterMappings.replaceValues[this.rareFirstValue] = this.rareAfterValue;
+        [this.rareFirstValue, this.rareAfterValue] = ['', ''];
         this.updateParameters();
     }
 

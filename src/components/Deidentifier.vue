@@ -230,7 +230,7 @@ import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
 import {Utils} from '@/common/utils/util';
 import OutcomeCard from '@/components/OutcomeCard.vue';
-import {ipcRenderer} from "electron";
+import {ipcRenderer} from 'electron';
 
 @Component
 export default class Deidentifier extends Vue {
@@ -292,6 +292,8 @@ export default class Deidentifier extends Vue {
             this.fetchAllData(groupedByResources).then(res => {
                 this.deidentificationStatus = 'pending';
             });
+        } else {
+            this.deidentificationStatus = 'pending';
         }
     }
 
@@ -383,22 +385,22 @@ export default class Deidentifier extends Vue {
                     this.$store.dispatch('fhir/calculateRisks', type);
                 }
                 const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
-                if (baseResource && !baseResources.includes(baseResource)){
+                if (baseResource && !baseResources.includes(baseResource)) {
                     baseResources.push(baseResource);
                 }
             });
             response.forEach((type: any) => {
                 const resource = baseResources.find(res => res.resource === type.resource);
-				if (!resource && !validatedResources.includes(type.resource)) {
+                if (!resource && !validatedResources.includes(type.resource)) {
                     this.validateEntries(type.resource);
                     validatedResources.push(type.resource);
-				}
+                }
             });
             baseResources.forEach(baseResource => {
                 const resource = baseResource.resource;
                 const entries = JSON.parse(JSON.stringify(this.deidentificationResults[resource].entries));
                 this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
-	                baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
+                    baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
                     this.deidentificationResults[type.resource].entries = type.entries;
                     this.$store.dispatch('fhir/calculateRisks', type);
                     this.validateEntries(type.resource);
@@ -408,6 +410,7 @@ export default class Deidentifier extends Vue {
     }
 
     validateEntries (resourceType) {
+        this.deidentificationResults[resourceType].outcomeDetails = [];
         const entries = this.deidentificationResults[resourceType].entries;
         this.$store.dispatch('fhir/validateEntries', entries).then(response => {
             response.forEach(bulk => {
@@ -419,6 +422,7 @@ export default class Deidentifier extends Vue {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'error', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
                                 this.deidentificationResults[resourceType].status = 'error';
                                 this.deidentificationStatus = 'error';
+                                this.$notify.error('Validation is failed')
                             } else if (issue.severity === 'information') {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
                                 this.deidentificationResults[resourceType].status = 'done';
@@ -436,6 +440,7 @@ export default class Deidentifier extends Vue {
             this.getResultsAsMapping();
             if (this.deidentificationStatus !== 'error') {
                 this.deidentificationStatus = 'success';
+                this.$notify.success('Resources are de-identified successfully')
             }
         });
     }
@@ -469,6 +474,7 @@ export default class Deidentifier extends Vue {
             .then(response => {
                 this.savedResourceNumber = response;
                 this.loading = false;
+                this.$notify.success('Resources are saved successfully')
             });
     }
 
@@ -514,7 +520,7 @@ export default class Deidentifier extends Vue {
         }
     }
 
-    exportConfigurations() {
+    exportConfigurations () {
         this.$q.loading.show({spinner: undefined})
         this.$store.dispatch('fhir/currentState').then(state => {
             ipcRenderer.send('export-file', JSON.stringify(state))
@@ -528,7 +534,7 @@ export default class Deidentifier extends Vue {
         });
     }
 
-    saveConfigurations() {
+    saveConfigurations () {
         this.$q.dialog({
             title: 'Save Configuration',
             prompt: {

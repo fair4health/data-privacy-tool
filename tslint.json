@@ -28,6 +28,7 @@
         "trailing-comma": false,
         "no-trailing-whitespace": false,
         "no-unused-expression": false,
-        "no-namespace": false
+        "no-namespace": false,
+        "no-var-requires": false
     }
 }

@@ -52,8 +52,11 @@ export class EvaluationService {
         });
     }
 
-    saveEntries (entries, request: 'POST' | 'PUT'): Promise<any> {
-        const promises: Array<Promise<any>> = [];
+    saveEntries (deidentificationResults, request: 'POST' | 'PUT'): Promise<any> {
+        const entries: any[] = [];
+        Object.keys(deidentificationResults).forEach(resource => {
+            entries.push(...deidentificationResults[resource].entries);
+        });
         entries.forEach(entry => {
             entry.resource.meta.security = [{
                 system : 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue',
@@ -66,6 +69,7 @@ export class EvaluationService {
         });
 
         this.savedResourceNumber = 0;
+        const promises: Array<Promise<any>> = [];
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             this.savedResourceNumber += bulk.length;
