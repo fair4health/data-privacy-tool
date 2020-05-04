@@ -23,7 +23,9 @@ export const environment = {
     },
     extendibleDataTypes: {
         CodeableConcept: `${hl7Base}/StructureDefinition/CodeableConcept`,
-        Coding: `${hl7Base}/StructureDefinition/Coding`
+        Coding: `${hl7Base}/StructureDefinition/Coding`,
+        ContactPoint: `${hl7Base}/StructureDefinition/ContactPoint`,
+        HumanName: `${hl7Base}/StructureDefinition/HumanName`
     },
     kAnonymityBlockSize: 100000, // Row Blocking F. Prasser, et al. in https://www.sciencedirect.com/science/article/pii/S1386505618307007
     attributeTypes: {
@@ -56,7 +58,7 @@ export const environment = {
         date: {type: 'string', supports: ['Pass Through', 'Redaction', 'Generalization', 'Date Shifting'], regex: '([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)?'},
         dateTime: {type: 'string', supports: ['Pass Through', 'Redaction', 'Generalization', 'Date Shifting'], regex: '([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?'},
         time: {type: 'string', supports: ['Pass Through', 'Redaction', 'Generalization', 'Date Shifting'], regex: '([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?'},
-        code: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: '[^\\s]+(\\s[^\\s]+)*'},
+        code: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Replace'], regex: '[^\\s]+(\\s[^\\s]+)*'},
         oid: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: 'urn:oid:[0-2](\\.(0|[1-9][0-9]*))+'},
         id: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: '[A-Za-z0-9\\-\\.]{1,64}'},
         markdown: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution'], regex: '\\s*(\\S|\\s)*'},

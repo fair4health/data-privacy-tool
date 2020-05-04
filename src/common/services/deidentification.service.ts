@@ -352,6 +352,8 @@ export class DeidentificationService {
             }
         } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             delete attribute[paths[index]];
+        } else if (attribute[paths[index]]) { // recursively go to leaves
+            attribute[paths[index]] = this.removeIdentifiers(key + '.' + paths[index + 1], attribute[paths[index]], paths.slice(1), index, end - 1);
         }
         return attribute;
     }
@@ -369,6 +371,8 @@ export class DeidentificationService {
             }
         } else if (index === end && attribute[paths[index]]) { // primitives/leaves
             attribute[paths[index]] = this.executeAlgorithm(key, this.parameterMappings[key], attribute[paths[index]], this.typeMappings[key]);
+        } else if (attribute[paths[index]]) { // recursively go to leaves
+            attribute[paths[index]] = this.handleQuasis(key + '.' + paths[index + 1], attribute[paths[index]], paths.slice(1), index, end - 1);
         }
         return attribute;
     }
@@ -402,6 +406,8 @@ export class DeidentificationService {
                 // replace rare value directly
                 attribute[paths[index]] = this.parameterMappings[key].algorithm.replaceValues[attribute[paths[index]]];
             }
+        } else if (attribute[paths[index]]) { // recursively go to leaves
+            attribute[paths[index]] = this.handleSensitives(key + '.' + paths[index + 1], attribute[paths[index]], paths.slice(1), index, end - 1);
         }
         return attribute;
     }
