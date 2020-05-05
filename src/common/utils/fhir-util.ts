@@ -40,7 +40,7 @@ export class FHIRUtils {
 
     static parseElementDefinitions (node, state): Promise<any> {
         return new Promise(resolve => {
-            const fhirBase = localStorage.getItem('fhirBaseUrl');
+            const fhirBase = localStorage.getItem('fhirSourceUrl');
             const cached = JSON.parse(localStorage.getItem(`${fhirBase}-StructureDefinition-${node.type}`) || '{}');
             if (cached && !Utils.isEmpty(cached)) {
                 this.parseElements(cached, node, state);
@@ -48,7 +48,7 @@ export class FHIRUtils {
             } else {
                 if (node.type === 'Reference') resolve(node);
                 if (fhirBase) {
-                    const fhirService: FhirService = new FhirService(fhirBase);
+                    const fhirService: FhirService = new FhirService(true, fhirBase);
                     fhirService.search('StructureDefinition', {url: environment.extendibleDataTypes[node.type]}, true)
                         .then(res => {
                             const elements = res.data.entry[0].resource.differential.element;

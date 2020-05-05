@@ -5,11 +5,21 @@ const hl7Base = 'http://hl7.org/fhir';
 export const environment = {
     server: {
         config: {
-            baseUrl: onfhirBase,
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/fhir+json;charset=UTF-8',
-                'Content-Type': 'application/fhir+json;charset=UTF-8'
+            source: {
+                baseUrl: onfhirBase,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/fhir+json;charset=UTF-8',
+                    'Content-Type': 'application/fhir+json;charset=UTF-8'
+                }
+            },
+            target: {
+                baseUrl: onfhirBase,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/fhir+json;charset=UTF-8',
+                    'Content-Type': 'application/fhir+json;charset=UTF-8'
+                }
             }
         },
         compatibleFhirVersions: ['4.0.0', '4.0.1']

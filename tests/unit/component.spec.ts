@@ -3,7 +3,7 @@ import { FhirService } from '@/common/services/fhir.service'
 import 'isomorphic-fetch'
 
 describe('Test FHIR Search', () => {
-    const fhirService: FhirService = new FhirService();
+    const fhirService: FhirService = new FhirService(true);
     let Patient: fhir.Patient;
 
     before(async () => {

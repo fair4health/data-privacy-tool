@@ -13,7 +13,11 @@
 		</q-toolbar>
 
 		<div v-if="metaStep === 1" class="q-mt-xl">
-			<OnFHIRConfig />
+			<div class="q-py-xl">
+				<div class="row justify-center">
+					<OnFHIRConfig />
+				</div>
+			</div>
 		</div>
 
 		<div v-if="metaStep === 2" class="q-ma-sm">

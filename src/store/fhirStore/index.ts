@@ -54,9 +54,12 @@ const fhirStore = {
         parameterMappings: {},
         kAnonymityValidMappings: {},
         kValueMappings: {},
-        fhirBase: environment.server.config.baseUrl,
-        fhirBaseVerificationStatus: '',
-        fhirService: new FhirService(),
+        fhirSourceBase: environment.server.config.source.baseUrl,
+        fhirSourceVerificationStatus: '',
+        sourceFhirService: new FhirService(true),
+        fhirTargetBase: environment.server.config.target.baseUrl,
+        fhirTargetVerificationStatus: '',
+        targetFhirService: new FhirService(false),
         evaluationService: new EvaluationService(),
         typeMappings: {},
         rareValueMappings: {},
@@ -83,9 +86,12 @@ const fhirStore = {
         parameterMappings: state => state.parameterMappings || {},
         kAnonymityValidMappings: state => state.kAnonymityValidMappings || {},
         kValueMappings: state => state.kValueMappings || {},
-        fhirBase: state => state.fhirBase,
-        fhirBaseVerificationStatus: state => state.fhirBaseVerificationStatus,
-        fhirService: state => state.fhirService,
+        fhirSourceBase: state => state.fhirSourceBase,
+        fhirSourceVerificationStatus: state => state.fhirSourceVerificationStatus,
+        sourceFhirService: state => state.sourceFhirService,
+        fhirTargetBase: state => state.fhirTargetBase,
+        fhirTargetVerificationStatus: state => state.fhirTargetVerificationStatus,
+        targetFhirService: state => state.targetFhirService,
         evaluationService: state => state.evaluationService,
         typeMappings: state => state.typeMappings || {},
         rareValueMappings: state => state.rareValueMappings || {},
@@ -139,13 +145,21 @@ const fhirStore = {
         setKValueMappings (state, value) {
           state.kValueMappings = value
         },
-        updateFhirBase (state, baseUrl: string) {
-            state.fhirBase = baseUrl;
-            state.fhirService = new FhirService(baseUrl);
-            localStorage.setItem('fhirBaseUrl', baseUrl);
+        updateFhirSourceBase (state, sourceRepoUrl: string) {
+            state.fhirSourceBase = sourceRepoUrl;
+            state.sourceFhirService = new FhirService(true, sourceRepoUrl);
+            localStorage.setItem('fhirSourceUrl', sourceRepoUrl);
         },
-        setFhirBaseVerificationStatus (state, status: status) {
-            state.fhirBaseVerificationStatus = status
+        setFhirSourceVerificationStatus (state, status: status) {
+            state.fhirSourceVerificationStatus = status
+        },
+        updateFhirTargetBase (state, targetRepoUrl: string) {
+            state.fhirTargetBase = targetRepoUrl;
+            state.targetFhirService = new FhirService(false, targetRepoUrl);
+            localStorage.setItem('fhirTargetUrl', targetRepoUrl);
+        },
+        setFhirTargetVerificationStatus (state, status: status) {
+            state.fhirTargetVerificationStatus = status
         },
         setTypeMappings (state, value) {
             state.typeMappings = value
@@ -169,7 +183,7 @@ const fhirStore = {
     actions: {
         getResources ({ commit, state }): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.fhirService.search('CapabilityStatement', null)
+                state.sourceFhirService.search('CapabilityStatement', null)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         const resource = bundle.entry?.length ? bundle.entry[0].resource as fhir.CapabilityStatement : null;
@@ -177,7 +191,7 @@ const fhirStore = {
                             Promise.all(resource.rest[0].resource.map(item => {
                                 const resourceType = item.type;
                                 return new Promise<any>((resolve1, reject1) => {
-                                    state.fhirService.search(resourceType, null)
+                                    state.sourceFhirService.search(resourceType, null)
                                         .then(response => {
                                             const count: number = response.data.entry.length;
                                             resolve1({resourceType, count});
@@ -201,7 +215,7 @@ const fhirStore = {
         },
         getProfilesByRes ({ commit, state }, resource: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.fhirService.search('StructureDefinition',
+                state.sourceFhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                     .then(res => {
                         Promise.all(res.data.entry.map(item => {
@@ -209,7 +223,7 @@ const fhirStore = {
                                 item.resource.id, item.resource.url, item.resource.title, item.resource.description];
                             state.profileUrlMappings[profile] = url;
                             return new Promise<any>((resolve1, reject1) => {
-                                state.fhirService.search(resourceType, {_profile: url})
+                                state.sourceFhirService.search(resourceType, {_profile: url})
                                     .then(response => {
                                         const count: number = response.data.entry.length;
                                         resolve1({resourceType, profile, count, title, description});
@@ -234,7 +248,7 @@ const fhirStore = {
         },
         getElements ({ commit, state }, profileId: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.fhirService.search('StructureDefinition', {_id: profileId}, true)
+                state.sourceFhirService.search('StructureDefinition', {_id: profileId}, true)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         if (bundle.entry?.length) {
@@ -293,12 +307,13 @@ const fhirStore = {
         validateEntries ({ state }, entries): Promise<any> {
             return state.evaluationService.validateEntries(entries);
         },
-        saveEntries ({ state }, request: 'POST' | 'PUT'): Promise<any> {
-            return state.evaluationService.saveEntries(state.deidentificationResults, request);
+        saveEntries ({ state }, isSource): Promise<any> {
+            return state.evaluationService.saveEntries(state.deidentificationResults, isSource);
         },
-        verifyFhir ({ state }): Promise<any> {
+        verifyFhir ({ state }, isSource): Promise<any> {
             return new Promise((resolve, reject) => {
-                state.fhirService.search('metadata', {}, true)
+                const service = isSource ? state.sourceFhirService : state.targetFhirService;
+                service.search('metadata', {}, true)
                     .then(res => {
                         const metadata: fhir.CapabilityStatement = res.data;
                         if (metadata.fhirVersion) {

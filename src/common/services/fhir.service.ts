@@ -8,11 +8,15 @@ export class FhirService {
     config: any;
     client: FhirClient;
 
-    constructor (fhirURL?: string) {
+    constructor (isSource: boolean, fhirURL?: string) {
         if (fhirURL) {
-            environment.server.config.baseUrl = fhirURL;
+            if (isSource) {
+                environment.server.config.source.baseUrl = fhirURL;
+            } else {
+                environment.server.config.target.baseUrl = fhirURL;
+            }
         }
-        this.config = environment.server.config;
+        this.config = isSource ? environment.server.config.source : environment.server.config.target;
         this.client = new FhirClient(this.config)
     }
 

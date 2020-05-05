@@ -19,7 +19,7 @@ export class DeidentificationService {
     anonymizedData;
 
     constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[]) {
-        this.fhirService = new FhirService();
+        this.fhirService = new FhirService(true);
         this.typeMappings = JSON.parse(JSON.stringify(typeMappings));
         this.parameterMappings = JSON.parse(JSON.stringify(parameterMappings));
         this.rareValueMappings = JSON.parse(JSON.stringify(rareValueMappings));

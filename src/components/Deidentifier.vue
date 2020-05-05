@@ -214,11 +214,24 @@
 					<q-btn flat label="Return Home" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
 				</q-card-actions>
 				<q-card-actions v-if="!saving" align="around">
-					<!-- TODO remove POST option -->
-					<q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="saveToRepository('PUT')" no-caps />
+					<q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
 					<q-space />
-					<q-btn class="q-ma-md" unelevated label="Save As New Data" color="primary" icon-right="save" @click="saveToRepository('POST')" no-caps />
+					<q-btn class="q-ma-md" unelevated label="Save As New Data" color="primary" icon-right="save" @click="targetRepoDialog = true" no-caps />
 				</q-card-actions>
+			</q-card>
+		</q-dialog>
+
+		<q-dialog v-model="targetRepoDialog">
+			<q-card style="width: 700px; max-width: 80vw;">
+				<q-card-section class="row items-center text-negative">
+					<span class="text-h6"><q-icon class="material-icons md-24">save</q-icon> Save As New Data</span>
+					<q-space />
+					<q-btn icon="close" flat round dense v-close-popup />
+				</q-card-section>
+				<q-separator />
+				<q-card-section class="q-pa-none">
+					<OnFHIRConfig :saveToRepositoryParentFunction="saveToRepository" />
+				</q-card-section>
 			</q-card>
 		</q-dialog>
 	</div>
@@ -231,10 +244,20 @@ import {DeidentificationService} from '@/common/services/deidentification.servic
 import {Utils} from '@/common/utils/util';
 import OutcomeCard from '@/components/OutcomeCard.vue';
 import {ipcRenderer} from 'electron';
+import Loading from '@/components/Loading.vue';
 
-@Component
+@Component({
+    components: {
+        OnFHIRConfig: () => ({
+            component: import('@/components/OnFHIRConfig.vue'),
+            loading: Loading,
+            delay: 0
+        })
+    } as any
+})
 export default class Deidentifier extends Vue {
     private saveDialog: boolean = false;
+    private targetRepoDialog: boolean = false;
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
     private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
@@ -467,10 +490,10 @@ export default class Deidentifier extends Vue {
         this.$forceUpdate();
     }
 
-    saveToRepository (request: string) {
+    saveToRepository (isSource: boolean) {
         this.saving = true;
         this.loading = true;
-        this.$store.dispatch('fhir/saveEntries', request)
+        this.$store.dispatch('fhir/saveEntries', isSource)
             .then(response => {
                 this.savedResourceNumber = response;
                 this.loading = false;
@@ -559,6 +582,19 @@ export default class Deidentifier extends Vue {
         })
     }
 
+    overwriteExistingData () {
+        this.$q.dialog({
+            title: '<span class="text-negative"><i class="material-icons md-24">swap_horiz</i> Overwrite Existing Data</span>',
+            message: `Current resources will be replaced with de-identified
+						resources in the same FHIR repository. <b>Are you sure to overwrite existing data?</b>`,
+            class: 'text-grey-9',
+            cancel: true,
+            html: true
+        }).onOk(() => {
+            this.saveToRepository(true);
+        })
+    }
+
 }
 </script>
 
@@ -570,4 +606,5 @@ export default class Deidentifier extends Vue {
 	.q-table--horizontal-separator tbody tr td,
 	.q-table--cell-separator tbody tr td
 		border-bottom-width 0.75px !important
+	.material-icons.md-24 { font-size: 24px; }
 </style>

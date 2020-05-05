@@ -3,13 +3,15 @@ import {Utils} from '@/common/utils/util';
 import {environment} from '@/common/environment';
 
 export class EvaluationService {
-    fhirService: FhirService;
+    sourceFhirService: FhirService;
+    targetFhirService: FhirService;
     quasis: string[][];
     riskyQuasis: string[];
     savedResourceNumber = 0;
 
     constructor () {
-        this.fhirService = new FhirService();
+        this.sourceFhirService = new FhirService(true);
+        this.targetFhirService = new FhirService(false);
         this.quasis = [];
         this.riskyQuasis = [];
     }
@@ -44,7 +46,7 @@ export class EvaluationService {
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             while (bulk.length) {
-                promises.push(this.fhirService.validate(bulk.splice(0, 1000)));
+                promises.push(this.sourceFhirService.validate(bulk.splice(0, 1000)));
             }
             Promise.all(promises).then(res => {
                 resolve(res);
@@ -52,7 +54,7 @@ export class EvaluationService {
         });
     }
 
-    saveEntries (deidentificationResults, request: 'POST' | 'PUT'): Promise<any> {
+    saveEntries (deidentificationResults, isSource: boolean): Promise<any> {
         const entries: any[] = [];
         Object.keys(deidentificationResults).forEach(resource => {
             entries.push(...deidentificationResults[resource].entries);
@@ -70,11 +72,13 @@ export class EvaluationService {
 
         this.savedResourceNumber = 0;
         const promises: Array<Promise<any>> = [];
+        const request = isSource ? 'PUT' : 'POST';
+        const service = isSource ? this.sourceFhirService : this.targetFhirService;
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             this.savedResourceNumber += bulk.length;
             while (bulk.length) {
-                promises.push(this.fhirService.postBatch(bulk.splice(0, 1000), request));
+                promises.push(service.postBatch(bulk.splice(0, 1000), request));
             }
             Promise.all(promises).then(res => {
                 resolve(this.savedResourceNumber);
