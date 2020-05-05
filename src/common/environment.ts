@@ -52,7 +52,7 @@ export const environment = {
         GENERALIZATION: {name: 'Generalization', roundedToFloor: true, dateUnit: 'Years', roundDigits: 1}, // dates and numbers
         DATE_SHIFTING: {name: 'Date Shifting', dateUnit: 'Months', range: 3}, // dates
         REDACTION: {name: 'Redaction'},
-        SENSITIVE: {name: 'Sensitive', hasRare: false, l_diversityValid: false, l_diversity: 2, t_closeness: null, algorithm: {name: 'Pass Through'}},
+        SENSITIVE: {name: 'Sensitive', hasRare: false, l_diversityValid: false, l_diversity: 2, algorithm: {name: 'Pass Through'}},
         REPLACE: {name: 'Replace', replaceValues: {}} // only for rare values example values: {'HIV': 'Infection'}
     },
     primitiveTypes: {

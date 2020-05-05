@@ -28,9 +28,6 @@
 						<div class="text-center col-2">
 							<span class="text-white">L-diversity (l)</span>
 						</div>
-						<div class="text-center col-2">
-							<span class="text-white">T-closeness (t)</span>
-						</div>
 					</div>
 					<q-scroll-area style="height: 50vh">
 						<q-tree :nodes="sensitiveElementList"
@@ -72,7 +69,7 @@
 										/>
 									</div>
 									<div class="row col-2">
-										<q-checkbox v-if="tempParameterMappings[prop.key] && kAnonymityValidMappings[currentFHIRRes]" color="primary" class="q-ml-lg"
+										<q-checkbox v-if="tempParameterMappings[prop.key] && kAnonymityValidMappings[currentFHIRRes]" color="primary" class="q-ml-xl"
 										            v-model="tempParameterMappings[prop.key].l_diversityValid" @input="updateParameters(prop.key)" />
 										<q-checkbox v-if="tempParameterMappings[prop.key] && !kAnonymityValidMappings[currentFHIRRes]"
 										            color="primary" class="q-ml-lg" disabled value="false"  >
@@ -84,12 +81,6 @@
 										          v-model="tempParameterMappings[prop.key].l_diversity" @input="updateParameters(prop.key)"
 										          :disable="!tempParameterMappings[prop.key].l_diversityValid"
 										          :option-disable="opt => opt > kValueMappings[currentFHIRRes]" />
-									</div>
-									<div class="row justify-center items-center col-2">
-										<q-input v-if="tempParameterMappings[prop.key]" @input="updateParameters(prop.key)"
-											v-model.number="tempParameterMappings[prop.key].t_closeness"
-											type="number" outlined dense style="max-width: 100px"
-										/>
 									</div>
 								</div>
 							</template>
