@@ -20,7 +20,8 @@
 				<q-card-section>
 					<q-table flat binary-state-sort title="Resources" :data="mappingList" :columns="columns" row-key="resource"
 					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table"
-					         table-style="max-height: 60vh" :loading="loading" color="primary"
+					         table-style="max-height: 60vh" :loading="loading" color="primary" :selected.sync="selectedResources"
+					         :selection="deidentificationStatus === 'success' ? 'single' : 'multiple'"
 					>
 						<template v-slot:header-cell="props">
 							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
@@ -30,6 +31,10 @@
 						</template>
 						<template v-slot:body="props">
 							<q-tr :props="props">
+								<q-td align="center">
+									<q-checkbox dense v-model="props.selected" :disable="deidentificationStatus === 'success'
+									&& props.row.status !== 'done' && props.row.status !== 'warning'" />
+								</q-td>
 								<q-td key="status" class="no-padding" :props="props">
 									<template v-if="props.row.status === 'in-progress' || props.row.status === 'loading'">
 										<span>
@@ -115,7 +120,7 @@
 							</q-tr>
 							<q-tr v-show="props.expand" :props="props">
 								<q-td colspan="100%" class="bg-grey-2">
-									<template v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'">
+									<template v-if="props.row.status === 'done' || props.row.status === 'error' || props.row.status === 'warning'">
 										<template v-for="risk of props.row.risks">
 											<q-card v-if="risksShowCondition(risk, props.row.risks, props.row.resource)" flat bordered class="q-ml-md q-mr-md q-mt-sm q-mb-sm">
 												<q-item>
@@ -176,7 +181,8 @@
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'
-						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'" no-caps>
+						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'
+						       || !selectedResources.length" no-caps>
 							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
 								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'" />
 								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
@@ -249,7 +255,7 @@
 			</q-card>
 		</q-dialog>
 
-		<q-dialog v-model="deletionWarning" persistent>
+		<q-dialog v-model="restrictionWarning" persistent>
 			<q-card>
 				<q-card-section class="row items-center text-negative">
 					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> Some Resources Are Restricted</span>
@@ -318,7 +324,7 @@ import Loading from '@/components/Loading.vue';
 export default class Deidentifier extends Vue {
     private saveDialog: boolean = false;
     private targetRepoDialog: boolean = false;
-    private deletionWarning: boolean = false;
+    private restrictionWarning: boolean = false;
     private jsonResources: boolean = false;
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
@@ -365,6 +371,9 @@ export default class Deidentifier extends Vue {
 
     get profileUrlMappings (): any { return this.$store.getters['fhir/profileUrlMappings'] }
     set profileUrlMappings (value) { this.$store.commit('fhir/setProfileUrlMappings', value) }
+
+    get selectedResources (): any[] { return this.$store.getters['fhir/selectedResources'] }
+    set selectedResources (value) { this.$store.commit('fhir/setSelectedResources', value) }
 
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
@@ -433,9 +442,14 @@ export default class Deidentifier extends Vue {
     }
 
     deidentifyAll () {
+        const selectedResourceNames = this.selectedResources.map(obj => obj.resource);
+        const selectedGroups = this.groupedByProfiles.filter(attributes => {
+            const resource: string = attributes[0].split('.')[0];
+			return selectedResourceNames.includes(resource);
+        })
         this.restrictedResourceNumber = 0;
         this.deidentificationStatus = 'in-progress';
-        const promises = this.groupedByProfiles.map(attributes => {
+        const promises = selectedGroups.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
             this.deidentificationResults[resource].status = 'in-progress';
             this.getResultsAsMapping();
@@ -519,15 +533,21 @@ export default class Deidentifier extends Vue {
                                 this.$notify.error('Validation is failed')
                             } else if (issue.severity === 'information') {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                                this.deidentificationResults[resourceType].status = 'done';
+                                if (this.deidentificationResults[resourceType].status !== 'error' && this.deidentificationResults[resourceType].status !== 'warning') {
+                                    this.deidentificationResults[resourceType].status = 'done';
+                                }
                             } else if (issue.severity === 'warning') {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'warning', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                this.deidentificationResults[resourceType].status = 'warning';
+                                if (this.deidentificationResults[resourceType].status !== 'error') {
+                                    this.deidentificationResults[resourceType].status = 'warning';
+                                }
                             }
                         })
                     } else {
                         this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                        this.deidentificationResults[resourceType].status = 'done';
+                        if (this.deidentificationResults[resourceType].status !== 'error' && this.deidentificationResults[resourceType].status !== 'warning') {
+                            this.deidentificationResults[resourceType].status = 'done';
+                        }
                     }
                 });
             });
@@ -559,6 +579,9 @@ export default class Deidentifier extends Vue {
             mappings.push(tempObj);
         }
         this.mappingList = mappings;
+        if (!this.selectedResources.length) {
+            this.selectedResources = this.mappingList.slice();
+        }
         this.$forceUpdate();
     }
 
@@ -670,7 +693,7 @@ export default class Deidentifier extends Vue {
     showWarningForRestrictedResources (restricted: number) {
         if (restricted) {
             this.restrictedResourceNumber += restricted;
-            this.deletionWarning = true;
+            this.restrictionWarning = true;
         }
     }
 

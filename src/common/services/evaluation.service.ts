@@ -54,25 +54,28 @@ export class EvaluationService {
         });
     }
 
-    saveEntries (deidentificationResults, isSource: boolean): Promise<any> {
+    saveEntries (deidentificationResults, selectedResources, isSource: boolean): Promise<any> {
         const entries: any[] = [];
+        const selectedResourceNames = selectedResources.map(obj => obj.resource);
         Object.keys(deidentificationResults).forEach(resource => {
-            deidentificationResults[resource].entries.forEach(entry => {
-                entry.resource.meta.security = [{
-                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
-                    code : 'L',
-                    display : 'low'
-                }];
-                entries.push(entry);
-            });
-            deidentificationResults[resource].restrictedEntries.forEach(entry => {
-                entry.resource.meta.security = [{
-                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
-                    code : 'R',
-                    display : 'restricted'
-                }];
-                entries.push(entry);
-            });
+            if (selectedResourceNames.includes(resource)) {
+                deidentificationResults[resource].entries.forEach(entry => {
+                    entry.resource.meta.security = [{
+                        system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                        code : 'L',
+                        display : 'low'
+                    }];
+                    entries.push(entry);
+                });
+                deidentificationResults[resource].restrictedEntries.forEach(entry => {
+                    entry.resource.meta.security = [{
+                        system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                        code : 'R',
+                        display : 'restricted'
+                    }];
+                    entries.push(entry);
+                });
+            }
         });
 
         this.savedResourceNumber = 0;

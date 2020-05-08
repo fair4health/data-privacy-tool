@@ -67,7 +67,8 @@ const fhirStore = {
         resourceProfileMappings: {},
         deidentificationResults: {},
         profileUrlMappings: {},
-        outcomeDetails: []
+        outcomeDetails: [],
+        selectedResources: []
     },
     getters: {
         resourceList: state => state.resourceList || [],
@@ -98,7 +99,8 @@ const fhirStore = {
         resourceProfileMappings: state => state.resourceProfileMappings || {},
         deidentificationResults: state => state.deidentificationResults || {},
         profileUrlMappings: state => state.profileUrlMappings || {},
-        outcomeDetails: state => state.outcomeDetails || []
+        outcomeDetails: state => state.outcomeDetails || [],
+        selectedResources: state => state.selectedResources || []
     },
     mutations: {
         setResourceList (state, list) {
@@ -178,6 +180,9 @@ const fhirStore = {
         },
         setOutcomeDetails (state, outcomeDetails: OutcomeDetail[]) {
             state.outcomeDetails = outcomeDetails
+        },
+        setSelectedResources (state, value) {
+            state.selectedResources = value;
         }
     },
     actions: {
@@ -308,7 +313,7 @@ const fhirStore = {
             return state.evaluationService.validateEntries(entries);
         },
         saveEntries ({ state }, isSource): Promise<any> {
-            return state.evaluationService.saveEntries(state.deidentificationResults, isSource);
+            return state.evaluationService.saveEntries(state.deidentificationResults, state.selectedResources, isSource);
         },
         verifyFhir ({ state }, isSource): Promise<any> {
             return new Promise((resolve, reject) => {
