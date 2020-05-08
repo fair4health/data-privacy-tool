@@ -77,5 +77,6 @@ export const environment = {
         uuid: {type: 'string', supports: ['Pass Through', 'Redaction', 'Substitution', 'Recoverable Substitution', 'Replace']}
     },
     exportableAttributes: ['attributeMappings', 'kAnonymityValidMappings', 'kValueMappings', 'parameterMappings',
-        'rareElements', 'rareValueMappings', 'typeMappings']
+        'rareElements', 'rareValueMappings', 'typeMappings'],
+    JSON_NUMBER_IN_A_PAGE: 10
 };

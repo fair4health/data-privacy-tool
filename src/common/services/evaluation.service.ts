@@ -57,17 +57,22 @@ export class EvaluationService {
     saveEntries (deidentificationResults, isSource: boolean): Promise<any> {
         const entries: any[] = [];
         Object.keys(deidentificationResults).forEach(resource => {
-            entries.push(...deidentificationResults[resource].entries);
-        });
-        entries.forEach(entry => {
-            entry.resource.meta.security = [{
-                system : 'http://terminology.hl7.org/CodeSystem/v3-ObservationValue',
-                code : 'ANONYED',
-                display : 'anonymized'
-            }];
-
-            // todo any other security labels can be used? https://www.hl7.org/fhir/valueset-security-labels.html
-
+            deidentificationResults[resource].entries.forEach(entry => {
+                entry.resource.meta.security = [{
+                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                    code : 'L',
+                    display : 'low'
+                }];
+                entries.push(entry);
+            });
+            deidentificationResults[resource].deletedEntries.forEach(entry => {
+                entry.resource.meta.security = [{
+                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                    code : 'R',
+                    display : 'restricted'
+                }];
+                entries.push(entry);
+            });
         });
 
         this.savedResourceNumber = 0;

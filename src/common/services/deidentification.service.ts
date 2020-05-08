@@ -58,26 +58,31 @@ export class DeidentificationService {
             this.sensitives = sensitives;
             entries.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
             let finalData: any[] = [];
+            const deletedEntries: any[] = [];
             if (kAnonymityValid) {
                 const bulk = JSON.parse(JSON.stringify(entries));
                 this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
                 while (this.anonymizedData.length) {
                     [this.identifiers, this.quasis, this.sensitives, this.canBeAnonymizedMore] = [JSON.parse(JSON.stringify(identifiers)),
                         JSON.parse(JSON.stringify(quasis)), JSON.parse(JSON.stringify(sensitives)), true];
-                    const anonymizedBulk = this.makeKAnonymousLDiverse(resource, profile, kValue, this.anonymizedData);
+                    const filteredBulk = this.makeKAnonymousLDiverse(resource, profile, kValue, this.anonymizedData);
+                    const anonymizedBulk = filteredBulk.anonymizedData;
                     finalData.push(...anonymizedBulk);
+                    const deletedBulk = filteredBulk.deletedEntries;
+                    deletedEntries.push(...deletedBulk);
                     this.anonymizedData = JSON.parse(JSON.stringify(bulk.splice(0, environment.kAnonymityBlockSize)));
                 }
             } else {
                 finalData = entries;
             }
-            resolve({resource, profile, entries: finalData, quasis});
+            resolve({resource, profile, entries: finalData, quasis, deletedEntries});
         })
     }
 
     makeKAnonymousLDiverse (resource: string, profile: string, kValue: number, anonymizedData) {
         const quasiKeys = this.getQuasiKeys(resource, profile);
         const sensKeys = this.getSensitiveKeys(resource, profile);
+        const deletedEntries = [];
         quasiKeys.sort().forEach(quasiKey => {
             const required = this.requiredElements.includes(quasiKey);
             let equivalenceClasses = this.generateEquivalenceClasses(resource, quasiKey, anonymizedData);
@@ -117,11 +122,12 @@ export class DeidentificationService {
                     break;
                 }
             }
-            equivalenceClasses = equivalenceClasses.filter(eqClass => eqClass.length >= kValue); // remove rows that not satisfying k-anonymity
-            equivalenceClasses = equivalenceClasses.filter(eqClass => this.isDiverseEnough(resource, eqClass, sensKeys)); // remove rows that not satisfying l-diversity
+            const filteredResults = this.handleNonanonymousResources(equivalenceClasses, resource, kValue, sensKeys);
+            deletedEntries.push(...filteredResults.deletedEntries);
+            equivalenceClasses = filteredResults.equivalenceClasses;
             anonymizedData = [].concat(...equivalenceClasses);
         });
-        return anonymizedData;
+        return {anonymizedData, deletedEntries};
     }
 
     isDiverseEnough (resource, eqClass, sensKeys) {
@@ -594,6 +600,13 @@ export class DeidentificationService {
     getDigitLength (resource, key) {
         const integer = Utils.returnEqClassElements(key.split('.').slice(2), resource, []);
         return integer.toString().length;
+    }
+
+    handleNonanonymousResources (eqClasses, resource: string, kValue: number, sensKeys: string[]) {
+        const [equivalenceClasses, deletedClasses] = Utils.partition(eqClasses, eqClass =>
+            (eqClass.length >= kValue && this.isDiverseEnough(resource, eqClass, sensKeys)));
+        const deletedEntries = [].concat(...deletedClasses);
+        return {equivalenceClasses, deletedEntries};
     }
 
 }

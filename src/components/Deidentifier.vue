@@ -91,12 +91,26 @@
 									</q-chip>
 								</q-td>
 								<q-td key="final" :props="props">
-									<q-chip square class="bg-secondary text-white">
-										<q-spinner v-if="props.row.status === 'in-progress'" color="white" />
-										<template v-else-if="props.row.status === 'done' || props.row.status === 'error'
-											|| props.row.status === 'warning'">{{ props.row.entries.length }}</template>
-										<template v-else>-</template>
+									<q-chip v-if="props.row.status === 'in-progress'" square class="bg-secondary text-white">
+										<q-spinner color="white" />
 									</q-chip>
+									<q-chip v-else-if="(props.row.status === 'done' || props.row.status === 'error'
+											|| props.row.status === 'warning') && props.row.entries.length"
+									        square class="bg-secondary text-white" clickable @click="showJSONResources(props.row.resource, false)">
+										{{ props.row.entries.length }}
+									</q-chip>
+									<q-chip v-else square class="bg-secondary text-white"> - </q-chip>
+								</q-td>
+								<q-td key="deleted" :props="props">
+									<q-chip v-if="props.row.status === 'in-progress'" square class="bg-negative text-white">
+										<q-spinner color="white" />
+									</q-chip>
+									<q-chip v-else-if="(props.row.status === 'done' || props.row.status === 'error'
+											|| props.row.status === 'warning') && (props.row.count - props.row.entries.length)"
+									        square class="bg-negative text-white" clickable @click="showJSONResources(props.row.resource, true)">
+										{{ props.row.count - props.row.entries.length }}
+									</q-chip>
+									<q-chip v-else square class="bg-negative text-white"> - </q-chip>
 								</q-td>
 							</q-tr>
 							<q-tr v-show="props.expand" :props="props">
@@ -234,6 +248,52 @@
 				</q-card-section>
 			</q-card>
 		</q-dialog>
+
+		<q-dialog v-model="deletionWarning" persistent>
+			<q-card>
+				<q-card-section class="row items-center text-negative">
+					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> Some Resources Are Deleted</span>
+					<q-space />
+					<q-btn icon="close" flat round dense v-close-popup />
+				</q-card-section>
+				<q-separator />
+				<q-card-section class="row items-center">
+					<p>In order to satisfy k-anonymity, <b> {{deletedResourceNumber}} resources </b> are deleted since they were so unique.
+						You can examine those deleted ones by clicking on <b>Deleted Resource Count</b>s of corresponding resources. </p>
+				</q-card-section>
+				<q-card-actions align="right">
+					<q-btn flat label="OK" color="negative" v-close-popup />
+				</q-card-actions>
+			</q-card>
+		</q-dialog>
+
+		<q-dialog v-model="jsonResources">
+			<q-card style="width: 900px; max-width: 100vw;">
+				<q-card-section class="row items-center text-primary">
+					<div v-if="isDeleted" class="text-h5">Deleted {{selectedResource}} Resources</div>
+					<div v-else class="text-h5">De-identified {{selectedResource}} Resources</div>
+					<q-space />
+					<q-btn icon="close" flat round dense v-close-popup />
+				</q-card-section>
+				<q-separator />
+				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" style="max-height: 70vh" class="scroll">
+					<q-list class="q-mb-md bg-grey-3" bordered v-for="(entry, index) in getJsonsInPage()" :key="index">
+						<q-item>
+							<tree-view class="q-mb-lg q-ml-sm" :data="entry" :options="{maxDepth: 2, link: true, rootObjectKey: getResourceNumber(index)}" />
+						</q-item>
+					</q-list>
+					<div class="q-pa-sm flex flex-center">
+						<q-pagination
+							v-model="currentPage"
+							:max="maxPage"
+							:max-pages="6"
+							:boundary-numbers="true"
+						/>
+					</div>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
+
 	</div>
 </template>
 
@@ -258,6 +318,8 @@ import Loading from '@/components/Loading.vue';
 export default class Deidentifier extends Vue {
     private saveDialog: boolean = false;
     private targetRepoDialog: boolean = false;
+    private deletionWarning: boolean = false;
+    private jsonResources: boolean = false;
     private willBeAnonyed: string[] = [];
     private groupedByProfiles: string[] = [];
     private deidentificationService: DeidentificationService = new DeidentificationService(this.typeMappings,
@@ -267,15 +329,21 @@ export default class Deidentifier extends Vue {
     private loading: boolean = false;
     private saving: boolean = false;
     private savedResourceNumber: number = 0;
+    private deletedResourceNumber: number = 0;
     private columns = [
         { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
         { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
         { name: 'k_anonymity', align: 'center', label: 'K-anonymity', field: 'k_anonymity', icon: 'mdi mdi-shield-check' },
         { name: 'count', align: 'center', label: 'Initial Resource Count', field: 'count' },
         { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
+        { name: 'deleted', align: 'center', label: 'Deleted Resource Count', field: 'deleted' }
     ];
     private deidentificationStatus: status = 'loading';
     private mappingList: any[] = [];
+    private selectedResource: string = '';
+    private currentPage: number = 1;
+    private maxPage: number = 1;
+    private isDeleted: boolean = true;
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -328,7 +396,7 @@ export default class Deidentifier extends Vue {
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
                         this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                            risks: []};
+                            risks: [], deletedEntries: []};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
                         this.deidentificationResults[resource].entries = entries.entries;
@@ -343,7 +411,7 @@ export default class Deidentifier extends Vue {
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
                             this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                                risks: []};
+                                risks: [], deletedEntries: []};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
                     });
@@ -365,6 +433,7 @@ export default class Deidentifier extends Vue {
     }
 
     deidentifyAll () {
+        this.deletedResourceNumber = 0;
         this.deidentificationStatus = 'in-progress';
         const promises = this.groupedByProfiles.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
@@ -405,6 +474,7 @@ export default class Deidentifier extends Vue {
             response.forEach((type: any) => {
                 if (!type.isBaseResource) {
                     this.deidentificationResults[type.resource].entries.push(...type.entries);
+                    this.deidentificationResults[type.resource].deletedEntries.push(...type.deletedEntries);
                     this.$store.dispatch('fhir/calculateRisks', type);
                 }
                 const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
@@ -425,6 +495,7 @@ export default class Deidentifier extends Vue {
                 this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
                     baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
                     this.deidentificationResults[type.resource].entries = type.entries;
+                    this.deidentificationResults[type.resource].deletedEntries.push(...type.deletedEntries);
                     this.$store.dispatch('fhir/calculateRisks', type);
                     this.validateEntries(type.resource);
                 });
@@ -465,6 +536,7 @@ export default class Deidentifier extends Vue {
                 this.deidentificationStatus = 'success';
                 this.$notify.success('Resources are de-identified successfully')
             }
+            this.showWarningForDeletedResorces(this.deidentificationResults[resourceType].deletedEntries.length);
         });
     }
 
@@ -595,6 +667,38 @@ export default class Deidentifier extends Vue {
         })
     }
 
+    showWarningForDeletedResorces (deleted: number) {
+        if (deleted) {
+            this.deletedResourceNumber += deleted;
+            this.deletionWarning = true;
+        }
+    }
+
+    showJSONResources (resourceType: string, isDeleted: boolean) {
+        this.currentPage = 1;
+        const length = isDeleted ? this.deidentificationResults[resourceType].deletedEntries.length : this.deidentificationResults[resourceType].entries.length;
+        this.maxPage = Math.ceil(length / environment.JSON_NUMBER_IN_A_PAGE);
+        this.selectedResource = resourceType;
+        this.isDeleted = isDeleted;
+        this.jsonResources = true;
+    }
+
+    getJsonsInPage () {
+        const totalPages = environment.JSON_NUMBER_IN_A_PAGE;
+        if (this.isDeleted) {
+            return this.deidentificationResults[this.selectedResource].deletedEntries.slice( (this.currentPage - 1) *
+	            totalPages, (this.currentPage - 1) * totalPages + totalPages );
+        } else {
+            return this.deidentificationResults[this.selectedResource].entries.slice( (this.currentPage - 1) *
+                totalPages, (this.currentPage - 1) * totalPages + totalPages );
+        }
+    }
+
+    getResourceNumber (index: number) {
+        const previosPages = this.currentPage - 1;
+        return this.selectedResource + ' ' + Number((previosPages * environment.JSON_NUMBER_IN_A_PAGE) + index + 1);
+    }
+
 }
 </script>
 
@@ -607,4 +711,20 @@ export default class Deidentifier extends Vue {
 	.q-table--cell-separator tbody tr td
 		border-bottom-width 0.75px !important
 	.material-icons.md-24 { font-size: 24px; }
+	.tree-view-item {
+		font-size: 15px !important;
+	}
+	.tree-view-item-key {
+		color: #B26F95;
+	}
+	.tree-view-item-value-string {
+		color: #00A54F
+	}
+	.tree-view-item-value-boolean {
+		color: #ea6f12
+	}
+	.tree-view-item-value-number {
+		color: #00A7F7
+	}
+
 </style>
