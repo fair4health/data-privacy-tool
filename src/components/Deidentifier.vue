@@ -101,7 +101,7 @@
 									</q-chip>
 									<q-chip v-else square class="bg-secondary text-white"> - </q-chip>
 								</q-td>
-								<q-td key="deleted" :props="props">
+								<q-td key="restricted" :props="props">
 									<q-chip v-if="props.row.status === 'in-progress'" square class="bg-negative text-white">
 										<q-spinner color="white" />
 									</q-chip>
@@ -252,14 +252,14 @@
 		<q-dialog v-model="deletionWarning" persistent>
 			<q-card>
 				<q-card-section class="row items-center text-negative">
-					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> Some Resources Are Deleted</span>
+					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> Some Resources Are Restricted</span>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
 				<q-separator />
 				<q-card-section class="row items-center">
-					<p>In order to satisfy k-anonymity, <b> {{deletedResourceNumber}} resources </b> are deleted since they were so unique.
-						You can examine those deleted ones by clicking on <b>Deleted Resource Count</b>s of corresponding resources. </p>
+					<p>In order to satisfy k-anonymity, <b> {{restrictedResourceNumber}} resources </b> are restricted since they were so unique.
+						You can examine those restricted ones by clicking on <b>Restricted Resource Count</b>s of corresponding resources. </p>
 				</q-card-section>
 				<q-card-actions align="right">
 					<q-btn flat label="OK" color="negative" v-close-popup />
@@ -270,7 +270,7 @@
 		<q-dialog v-model="jsonResources">
 			<q-card style="width: 900px; max-width: 100vw;">
 				<q-card-section class="row items-center text-primary">
-					<div v-if="isDeleted" class="text-h5">Deleted {{selectedResource}} Resources</div>
+					<div v-if="isRestricted" class="text-h5">Restricted {{selectedResource}} Resources</div>
 					<div v-else class="text-h5">De-identified {{selectedResource}} Resources</div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
@@ -329,21 +329,21 @@ export default class Deidentifier extends Vue {
     private loading: boolean = false;
     private saving: boolean = false;
     private savedResourceNumber: number = 0;
-    private deletedResourceNumber: number = 0;
+    private restrictedResourceNumber: number = 0;
     private columns = [
         { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
         { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
         { name: 'k_anonymity', align: 'center', label: 'K-anonymity', field: 'k_anonymity', icon: 'mdi mdi-shield-check' },
         { name: 'count', align: 'center', label: 'Initial Resource Count', field: 'count' },
         { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
-        { name: 'deleted', align: 'center', label: 'Deleted Resource Count', field: 'deleted' }
+        { name: 'restricted', align: 'center', label: 'Restricted Resource Count', field: 'restricted' }
     ];
     private deidentificationStatus: status = 'loading';
     private mappingList: any[] = [];
     private selectedResource: string = '';
     private currentPage: number = 1;
     private maxPage: number = 1;
-    private isDeleted: boolean = true;
+    private isRestricted: boolean = true;
 
     get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
     set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
@@ -396,7 +396,7 @@ export default class Deidentifier extends Vue {
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
                         this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                            risks: [], deletedEntries: []};
+                            risks: [], restrictedEntries: []};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
                         this.deidentificationResults[resource].entries = entries.entries;
@@ -411,7 +411,7 @@ export default class Deidentifier extends Vue {
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
                             this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                                risks: [], deletedEntries: []};
+                                risks: [], restrictedEntries: []};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
                     });
@@ -433,7 +433,7 @@ export default class Deidentifier extends Vue {
     }
 
     deidentifyAll () {
-        this.deletedResourceNumber = 0;
+        this.restrictedResourceNumber = 0;
         this.deidentificationStatus = 'in-progress';
         const promises = this.groupedByProfiles.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
@@ -474,7 +474,7 @@ export default class Deidentifier extends Vue {
             response.forEach((type: any) => {
                 if (!type.isBaseResource) {
                     this.deidentificationResults[type.resource].entries.push(...type.entries);
-                    this.deidentificationResults[type.resource].deletedEntries.push(...type.deletedEntries);
+                    this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
                     this.$store.dispatch('fhir/calculateRisks', type);
                 }
                 const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
@@ -495,7 +495,7 @@ export default class Deidentifier extends Vue {
                 this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
                     baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
                     this.deidentificationResults[type.resource].entries = type.entries;
-                    this.deidentificationResults[type.resource].deletedEntries.push(...type.deletedEntries);
+                    this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
                     this.$store.dispatch('fhir/calculateRisks', type);
                     this.validateEntries(type.resource);
                 });
@@ -536,7 +536,7 @@ export default class Deidentifier extends Vue {
                 this.deidentificationStatus = 'success';
                 this.$notify.success('Resources are de-identified successfully')
             }
-            this.showWarningForDeletedResorces(this.deidentificationResults[resourceType].deletedEntries.length);
+            this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
         });
     }
 
@@ -667,26 +667,26 @@ export default class Deidentifier extends Vue {
         })
     }
 
-    showWarningForDeletedResorces (deleted: number) {
-        if (deleted) {
-            this.deletedResourceNumber += deleted;
+    showWarningForRestrictedResources (restricted: number) {
+        if (restricted) {
+            this.restrictedResourceNumber += restricted;
             this.deletionWarning = true;
         }
     }
 
-    showJSONResources (resourceType: string, isDeleted: boolean) {
+    showJSONResources (resourceType: string, isRestricted: boolean) {
         this.currentPage = 1;
-        const length = isDeleted ? this.deidentificationResults[resourceType].deletedEntries.length : this.deidentificationResults[resourceType].entries.length;
+        const length = isRestricted ? this.deidentificationResults[resourceType].restrictedEntries.length : this.deidentificationResults[resourceType].entries.length;
         this.maxPage = Math.ceil(length / environment.JSON_NUMBER_IN_A_PAGE);
         this.selectedResource = resourceType;
-        this.isDeleted = isDeleted;
+        this.isRestricted = isRestricted;
         this.jsonResources = true;
     }
 
     getJsonsInPage () {
         const totalPages = environment.JSON_NUMBER_IN_A_PAGE;
-        if (this.isDeleted) {
-            return this.deidentificationResults[this.selectedResource].deletedEntries.slice( (this.currentPage - 1) *
+        if (this.isRestricted) {
+            return this.deidentificationResults[this.selectedResource].restrictedEntries.slice( (this.currentPage - 1) *
 	            totalPages, (this.currentPage - 1) * totalPages + totalPages );
         } else {
             return this.deidentificationResults[this.selectedResource].entries.slice( (this.currentPage - 1) *

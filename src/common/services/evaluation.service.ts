@@ -65,7 +65,7 @@ export class EvaluationService {
                 }];
                 entries.push(entry);
             });
-            deidentificationResults[resource].deletedEntries.forEach(entry => {
+            deidentificationResults[resource].restrictedEntries.forEach(entry => {
                 entry.resource.meta.security = [{
                     system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
                     code : 'R',
