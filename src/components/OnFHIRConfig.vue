@@ -7,7 +7,7 @@
 					<template v-else> Provide FHIR Repository URL to save de-identified resources </template>
 				</span>
 			</q-item-label>
-			<q-input filled type="url" class="col-10" v-model="isSource ? onfhirSourceUrl : onfhirTargetUrl" color="accent"
+			<q-input filled type="url" class="col-10" v-model="onfhirUrl" color="accent"
 			         @keydown="changeVerificationStatus('pending')"
 			         placeholder="FHIR Repository URL"
 			         :disable="(isSource && fhirSourceVerificationStatus === 'in-progress') || (!isSource && fhirTargetVerificationStatus === 'in-progress')"
@@ -33,7 +33,7 @@
 			<q-space />
 			<div class="q-gutter-sm">
 				<q-btn unelevated label="Verify" icon="verified_user" color="grey-2" text-color="primary"
-				       :disable="!onfhirSourceUrl" @click="verifyFhir" no-caps>
+				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
 						<q-spinner class="q-ml-sm" size="xs" v-show="fhirSourceVerificationStatus==='in-progress'" />
 						<q-icon name="check" size="xs" color="green" v-show="fhirSourceVerificationStatus==='success'" />
@@ -48,7 +48,7 @@
 			<q-space />
 			<div class="q-gutter-sm">
 				<q-btn unelevated label="Verify" icon="verified_user" color="grey-2" text-color="primary"
-				       :disable="!onfhirTargetUrl" @click="verifyFhir" no-caps>
+				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
 						<q-spinner class="q-ml-sm" size="xs" v-show="fhirTargetVerificationStatus==='in-progress'" />
 						<q-icon name="check" size="xs" color="green" v-show="fhirTargetVerificationStatus==='success'" />
@@ -69,8 +69,7 @@
     export default class OnFHIRConfig extends Vue {
         @Prop() readonly saveToRepositoryParentFunction;
 
-        private onfhirSourceUrl: string = '';
-        private onfhirTargetUrl: string = '';
+        private onfhirUrl: string | null = '';
         private statusDetail: string = '';
         private isSource: boolean = true;
 
@@ -85,26 +84,16 @@
 
         mounted () {
             this.isSource = this.$parent.$options['_componentTag'] === 'MetadataAnalyzer';
-            const sourceUrl = localStorage.getItem('fhirSourceUrl');
-            const targetUrl = localStorage.getItem('fhirTargetUrl');
-            if (sourceUrl) {
-                this.onfhirSourceUrl = sourceUrl;
-            }
-            if (targetUrl) {
-                this.onfhirTargetUrl = targetUrl;
-            }
+			this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
         }
 
         verifyFhir () {
-            let verify: boolean = false;
-            if (this.isSource && this.onfhirSourceUrl) {
-                this.$store.commit('fhir/updateFhirSourceBase', this.onfhirSourceUrl);
-                verify = true;
-            } else if (!this.isSource && this.onfhirTargetUrl) {
-                this.$store.commit('fhir/updateFhirTargetBase', this.onfhirTargetUrl);
-                verify = true;
-            }
-            if (verify) {
+			if (this.onfhirUrl) {
+			    if (this.isSource) {
+                    this.$store.commit('fhir/updateFhirSourceBase', this.onfhirUrl);
+                } else {
+                    this.$store.commit('fhir/updateFhirTargetBase', this.onfhirUrl);
+			    }
                 this.changeVerificationStatus('in-progress');
                 this.$store.dispatch('fhir/verifyFhir', this.isSource)
                     .then(() => {
@@ -115,7 +104,7 @@
                         this.statusDetail = err;
                         this.changeVerificationStatus('error');
                     })
-            }
+			}
         }
 
         changeVerificationStatus (status: status) {
