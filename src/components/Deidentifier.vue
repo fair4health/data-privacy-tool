@@ -19,9 +19,8 @@
 			<q-card flat bordered class="q-ma-sm">
 				<q-card-section>
 					<q-table flat binary-state-sort title="Resources" :data="mappingList" :columns="columns" row-key="resource"
-					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table"
+					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table" selection="multiple"
 					         table-style="max-height: 60vh" :loading="loading" color="primary" :selected.sync="selectedResources"
-					         :selection="deidentificationStatus === 'success' ? 'single' : 'multiple'"
 					>
 						<template v-slot:header-cell="props">
 							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
@@ -32,8 +31,7 @@
 						<template v-slot:body="props">
 							<q-tr :props="props">
 								<q-td align="center">
-									<q-checkbox dense v-model="props.selected" :disable="deidentificationStatus === 'success'
-									&& props.row.status !== 'done' && props.row.status !== 'warning'" />
+									<q-checkbox dense v-model="props.selected" />
 								</q-td>
 								<q-td key="status" class="no-padding" :props="props">
 									<template v-if="props.row.status === 'in-progress' || props.row.status === 'loading'">
@@ -130,12 +128,32 @@
 														</q-avatar>
 													</q-item-section>
 													<q-item-section>
-														<q-item-label>{{risk.profile}} Risks</q-item-label>
+														<q-item-label>{{risk.profile}} Evaluation</q-item-label>
 													</q-item-section>
 												</q-item>
 												<q-separator />
 												<q-card-section class="text-subtitle1">
 													<q-list>
+														<q-item>
+															<div class="col-2">
+																<q-item-label class="text-weight-bold text-secondary q-mt-sm">
+																	Information Loss
+																</q-item-label>
+															</div>
+															<div class="col-3">
+																<q-linear-progress rounded size="30px" :value="props.row.informationLoss" color="secondary">
+																	<div class="absolute-full flex flex-center">
+																		<q-badge text-color="white" color="secondary">
+																			{{progressLabel(props.row.informationLoss)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
+																		</q-badge>
+																	</div>
+																</q-linear-progress>
+															</div>
+															<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
+																Percentage of information loss according to Expected Equivalence Class Size metric.
+																Restricted resources are excluded.
+															</div>
+														</q-item>
 														<template v-for="riskey in Object.keys(risk)">
 															<q-item v-if="riskey !== 'profile'">
 																<div class="col-2">
@@ -165,7 +183,7 @@
 									<template v-else>
 										<q-card-section class="text-subtitle1">
 											<div class="text-grey-7">
-												Risks will be calculated after de-identification is completed.
+												Evaluation results are shown here after de-identification is completed.
 											</div>
 										</q-card-section>
 									</template>
@@ -175,14 +193,14 @@
 					</q-table>
 					<div class="row content-end q-gutter-sm">
 						<q-space />
-						<q-btn v-if="deidentificationStatus==='success'" label="Save" color="secondary" icon="save"
+						<q-btn v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'"
+						       :disable="disableSave()" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
 							<q-tooltip anchor="bottom middle" self="top middle">Save Anonymized Data to Repository</q-tooltip>
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
-						       :disable="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'
-						       || !Object.keys(deidentificationResults).length || deidentificationStatus === 'success'
-						       || !selectedResources.length" no-caps>
+						       :disable="deidentificationStatus !== 'pending' || !selectedResources.length
+						       || !Object.keys(deidentificationResults).length" no-caps>
 							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
 								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'" />
 								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
@@ -405,7 +423,7 @@ export default class Deidentifier extends Vue {
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
                         this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                            risks: [], restrictedEntries: []};
+                            risks: [], restrictedEntries: [], informationLoss: 0};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
                         this.deidentificationResults[resource].entries = entries.entries;
@@ -420,7 +438,7 @@ export default class Deidentifier extends Vue {
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
                             this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
-                                risks: [], restrictedEntries: []};
+                                risks: [], restrictedEntries: [], informationLoss: 0};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
                     });
@@ -551,12 +569,12 @@ export default class Deidentifier extends Vue {
                     }
                 });
             });
-            this.getResultsAsMapping();
             if (this.deidentificationStatus !== 'error') {
                 this.deidentificationStatus = 'success';
                 this.$notify.success('Resources are de-identified successfully')
             }
             this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
+            this.getResultsAsMapping();
         });
     }
 
@@ -721,6 +739,19 @@ export default class Deidentifier extends Vue {
         const previosPages = this.currentPage - 1;
         return this.selectedResource + ' ' + Number((previosPages * environment.JSON_NUMBER_IN_A_PAGE) + index + 1);
     }
+
+    disableSave () {
+        if (!this.selectedResources.length) {
+            return true;
+        }
+        for (let resource of this.selectedResources) {
+            if (resource.status === 'error' || resource.status === 'in-progress' ||
+	            resource.status === 'pending' || resource.status === 'loading') {
+                return true;
+            }
+        }
+        return false;
+	}
 
 }
 </script>

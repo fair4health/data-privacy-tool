@@ -308,6 +308,14 @@ const fhirStore = {
             tempRisk.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
 
             state.deidentificationResults[type.resource].risks.push(tempRisk);
+
+            // AECS F. Kohlmayer, et al. in https://doi.org/10.1016/j.jbi.2015.09.007
+            // https://books.google.com.tr/books?id=2R7XTlebSF8C&pg=PA215&lpg=PA215&dq=Average+Equivalence+Class+Size&source=bl&ots=WAbLwIhZiY&sig=ACfU3U1viElk7WQkkJIN9CxiWVkFHOfb0A&hl=tr&sa=X&ved=2ahUKEwj_wYqbn9npAhXQOcAKHaWeCDoQ6AEwCXoECAgQAg#v=onepage&q=Average%20Equivalence%20Class%20Size&f=false
+            let eqClassSizesSum = 0;
+            equivalenceClasses.forEach(eqClass => {
+                eqClassSizesSum += Math.pow(eqClass.length, 2);
+            })
+            state.deidentificationResults[type.resource].informationLoss = eqClassSizesSum / Math.pow(totalNumberOfRecords, 2);
         },
         validateEntries ({ state }, entries): Promise<any> {
             return state.evaluationService.validateEntries(entries);
