@@ -5,7 +5,7 @@
 			       @click="$q.screen.lt.lg || !drawerOpen ? (drawerOpen = !drawerOpen) : (drawerMiniState = !drawerMiniState)"
 			/>
 			<img class="flex flex-center" src="../assets/FAIR4Health-logo.png" width="80px">
-			<div class="text-weight-bold" style="font-size: 14px">Data Privacy Tool</div>
+			<div class="text-weight-bold" style="font-size: 14px">{{ $t('COMMON.APP_NAME') }}</div>
 			<q-space />
 			<div class="q-mx-none q-px-none">
 				<q-btn flat square icon="remove" class="title-bar-btn" @click="minimizeApp" />
@@ -15,45 +15,66 @@
 		</q-bar>
 		<div class="bg-grey-10 q-pa-sm q-pl-md row items-center">
 			<div class="cursor-pointer non-selectable">
-				File
+				{{ $tc('MENU.FILE') }}
 				<q-menu>
 					<q-list dense>
 						<q-item clickable v-close-popup @click="closeApp">
-							<q-item-section>Close</q-item-section>
+							<q-item-section>{{ $tc('MENU.EXIT') }}</q-item-section>
 						</q-item>
 					</q-list>
 				</q-menu>
 			</div>
 			<div class="q-ml-md cursor-pointer non-selectable">
-				View
+				{{ $tc('MENU.VIEW') }}
 				<q-menu auto-close>
 					<q-list dense style="min-width: 150px">
 						<q-item clickable @click="toggleFullScreen">
-							<q-item-section>Toggle Full Screen</q-item-section>
+							<q-item-section>{{ $tc('MENU.TOGGLE_FULL_SCREEN') }}</q-item-section>
 						</q-item>
 					</q-list>
 				</q-menu>
 			</div>
 			<div class="q-ml-md cursor-pointer non-selectable">
-				Tool
+				{{ $tc('MENU.TOOLS') }}
 				<q-menu auto-close>
 					<q-list dense style="min-width: 150px">
 						<q-item clickable @click="toggleDevTools">
-							<q-item-section>Toggle Developer Tools</q-item-section>
+							<q-item-section>{{ $tc('MENU.TOGGLE_DEVELOPER_TOOLS') }}</q-item-section>
 						</q-item>
 					</q-list>
 				</q-menu>
 			</div>
 			<div class="q-ml-md cursor-pointer non-selectable">
-				Help
+				{{ $tc('MENU.HELP') }}
 				<q-menu auto-close>
 					<q-list dense>
 						<q-item clickable @click="openExternal(projectHomePage)">
-							<q-item-section>Help</q-item-section>
+							<q-item-section>{{ $tc('MENU.HELP') }}</q-item-section>
 						</q-item>
 					</q-list>
 				</q-menu>
 			</div>
+			<q-space />
+			<q-btn-dropdown dense
+			                flat
+			                :label="$i18n.locale"
+			                :menu-offset="[0, 4]"
+			                size="9px"
+			                icon="language"
+			>
+				<q-list dense>
+					<q-item
+					        clickable
+					        v-close-popup
+					        v-for="lang in langs"
+					        :key="lang"
+					        class="flex flex-center"
+					        @click="$i18n.locale = lang"
+					>
+						<span class="text-size-xs text-uppercase">{{ lang }}</span>
+					</q-item>
+				</q-list>
+			</q-btn-dropdown>
 		</div>
 	</div>
 </template>
@@ -61,11 +82,13 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator'
     import {remote, shell} from 'electron'
+    import {environment} from '@/common/environment';
 
     @Component
     export default class TitleBar extends Vue {
         private currentWindow = remote.getCurrentWindow()
         private isMaximized = this.currentWindow.isMaximized()
+        private langs = environment.langs
 
         get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
 

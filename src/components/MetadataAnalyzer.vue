@@ -1,14 +1,12 @@
 <template>
 	<div>
 		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8">
-				Metadata Analyzer
-			</q-toolbar-title>
-			<q-btn v-if="metaStep === 2" unelevated label="Select" color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps class="q-mr-sm" >
-				<q-tooltip anchor="bottom middle" self="top middle">Select Saved Configuration</q-tooltip>
+			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.METADATA_ANALYZER') }} </q-toolbar-title>
+			<q-btn v-if="metaStep === 2" unelevated :label="$t('BUTTONS.SELECT')" color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps class="q-mr-sm" >
+				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SELECT_SAVED_CONFIGURATION') }} </q-tooltip>
 			</q-btn>
-			<q-btn v-if="metaStep === 2" unelevated label="Import" color="primary" @click="importSavedConfigurations" icon="fas fa-file-import" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle">Import Configuration</q-tooltip>
+			<q-btn v-if="metaStep === 2" unelevated :label="$t('BUTTONS.IMPORT')" color="primary" @click="importSavedConfigurations" icon="fas fa-file-import" no-caps >
+				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.IMPORT_CONFIGURATION') }} </q-tooltip>
 			</q-btn>
 		</q-toolbar>
 
@@ -23,16 +21,16 @@
 		<div v-if="metaStep === 2" class="q-ma-sm">
 			<FhirAttributeTable :key="fhirAttributeTableKey" />
 			<div class="row q-ma-md">
-				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="metaStep--" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="metaStep--" no-caps />
 				<q-space />
-				<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
 			</div>
 		</div>
 
 		<q-dialog v-model="selectDialog">
 			<q-card style="width: 500px; max-width: 80vw;">
 				<q-card-section class="row items-center q-pb-none text-primary">
-					<div class="text-h5">Saved Configurations</div>
+					<div class="text-h5"> {{ $t('TITLES.SAVED_CONFIGURATIONS') }} </div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
@@ -61,7 +59,7 @@
 				</q-card-section>
 				<q-card-section v-else class="text-subtitle1">
 					<div class="text-grey-7">
-						No saved configuration exists right now.
+						{{ $t('INFO.NO_SAVED_CONFIGURATIONS') }}
 					</div>
 				</q-card-section>
 			</q-card>

@@ -2,6 +2,7 @@ import { FhirService } from '@/common/services/fhir.service'
 import { environment } from '@/common/environment'
 import { FHIRUtils } from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
+import i18n from '@/i18n';
 
 const fhirStore = {
     capitalizeFirstLetter (str) {
@@ -333,13 +334,13 @@ const fhirStore = {
                             if (environment.server.compatibleFhirVersions.includes(metadata.fhirVersion)) {
                                 resolve(res)
                             } else {
-                                reject(`FHIR version (${metadata.fhirVersion}) is not supported. FHIR version must be R4.`)
+                                reject(i18n.t('ERROR.FHIR_VERSION_NOT_SUPPORTED', {version: metadata.fhirVersion}))
                             }
                         } else {
-                            throw Error()
+                            reject(i18n.t('ERROR.FHIR_VERSION_COULDNT_DETECTED'))
                         }
                     })
-                    .catch(err => reject('Given url is not verified.'))
+                    .catch(err => reject(i18n.t('ERROR.FHIR_URL_NOT_VERIFIED')))
             })
         },
         currentState ({ state }) {

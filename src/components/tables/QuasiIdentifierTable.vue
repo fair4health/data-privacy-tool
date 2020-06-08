@@ -6,7 +6,7 @@
 		</div>
 		<q-separator />
 		<q-item-section class="q-px-xs">
-			<q-input borderless dense v-model="filter" label="Filter">
+			<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
 				<template v-slot:prepend>
 					<q-icon name="sort" />
 				</template>
@@ -22,13 +22,13 @@
 				<template v-slot:before>
 					<div class="row items-center full-width bg-primary q-pa-xs">
 						<div class="text-center col">
-							<span class="text-white">Attribute</span>
+							<span class="text-white"> {{ $t('TABLE.ATTRIBUTE') }} </span>
 						</div>
 						<div class="text-center col-4">
-							<span class="text-white">Type</span>
+							<span class="text-white"> {{ $t('TABLE.TYPE') }} </span>
 						</div>
 						<div class="text-center col-6">
-							<span class="text-white">De-identification Algorithm</span>
+							<span class="text-white"> {{ $t('TABLE.DEIDENTIFICATION_ALGORITHM') }} </span>
 						</div>
 					</div>
 					<q-scroll-area style="height: 50vh">
@@ -39,8 +39,8 @@
 						        :selected.sync="selectedStr"
 						        :filter="filter"
 						        :filter-method="filterTree"
-						        no-nodes-label="No quasi-identifier was selected"
-						        no-results-label="No result found"
+						        :no-nodes-label="$t('LABELS.NO_QUASI_IDENTIFIER')"
+						        :no-results-label="$t('LABELS.NO_RESULT')"
 						        selected-color="primary"
 						        @update:selected="onSelected"
 						        default-expand-all
@@ -110,21 +110,21 @@
 							<div class="q-ma-sm q-gutter-sm">
 								<q-card flat bordered v-if="selectedElem.short">
 									<q-card-section>
-										<div class="text-h6">Short</div>
+										<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.short }}</div>
 									</q-card-section>
 								</q-card>
 								<q-card flat bordered v-if="selectedElem.definition">
 									<q-card-section>
-										<div class="text-h6">Definition</div>
+										<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.definition }}</div>
 									</q-card-section>
 								</q-card>
 								<q-card flat bordered v-if="selectedElem.comment">
 									<q-card-section>
-										<div class="text-h6">Comments</div>
+										<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.comment }}</div>
 									</q-card-section>

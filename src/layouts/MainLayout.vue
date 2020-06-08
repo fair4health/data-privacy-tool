@@ -18,19 +18,19 @@
 				<q-item to="/" exact active-class="text-primary bg-grey-3 text-weight-bold">
 					<q-item-section avatar>
 						<q-icon name="home" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">Home</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.HOME') }}</span>
 					</q-item-section>
 					<q-item-section>
-						<q-item-label>Home</q-item-label>
+						<q-item-label>{{ $t('MENU.HOME') }}</q-item-label>
 					</q-item-section>
 				</q-item>
 				<q-item to="/deidentification" exact active-class="text-primary bg-grey-3 text-weight-bold">
 					<q-item-section avatar class="items-center">
 						<q-icon name="security" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">De-identify</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.DEIDENTIFY') }}</span>
 					</q-item-section>
 					<q-item-section>
-						<q-item-label>De-identification</q-item-label>
+						<q-item-label>{{ $t('MENU.DEIDENTIFICATION') }}</q-item-label>
 					</q-item-section>
 				</q-item>
 				<q-item v-if="$route.name==='deidentification'" animation>
@@ -41,7 +41,7 @@
 						        :class="{'step-item cursor-pointer': currentStep > step.stepId}"
 						        @click="changeCurrentStep(step.stepId)"
 						        :name="step.stepId"
-						        :title="step.title"
+						        :title="$t(step.title)"
 						        :icon="step.icon"
 						        :done-icon="step.icon"
 						        :done="currentStep > step.stepId"
@@ -54,10 +54,10 @@
 				<q-item to="/about" exact active-class="text-primary bg-grey-3">
 					<q-item-section avatar class="items-center">
 						<q-icon name="info" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">About</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.ABOUT') }}</span>
 					</q-item-section>
 					<q-item-section>
-						<q-item-label>About</q-item-label>
+						<q-item-label>{{ $t('MENU.ABOUT') }}</q-item-label>
 					</q-item-section>
 				</q-item>
 			</q-list>
@@ -70,7 +70,7 @@
 						</q-avatar>
 					</q-item-section>
 					<q-item-section class="text-grey-7">
-						<span>View on <span class="text-weight-bold">GitHub</span></span>
+						<span>{{ $t('MENU.VIEW_ON') }} <span class="text-weight-bold">GitHub</span></span>
 					</q-item-section>
 				</q-item>
 			</q-list>
@@ -97,9 +97,9 @@ import {shell} from 'electron';
 })
 export default class MainLayout extends Vue {
     private steps: StepItem[] = [
-        { title: 'Metadata Analyzer', icon: 'fas fa-database', stepId: 1 },
-        { title: 'Configuration Manager', icon: 'fas fa-sliders-h', stepId: 2 },
-        { title: 'De-identifier', icon: 'fas fa-user-secret', stepId: 3 }
+        { title: 'MENU.METADATA_ANALYZER', icon: 'fas fa-database', stepId: 1 },
+        { title: 'MENU.CONFIGURATION_MANAGER', icon: 'fas fa-sliders-h', stepId: 2 },
+        { title: 'MENU.DEIDENTIFIER', icon: 'fas fa-user-secret', stepId: 3 }
     ];
 
     get drawerOpen (): boolean { return this.$store.getters.drawerOpen }

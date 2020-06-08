@@ -69,7 +69,8 @@ import {
     QTabPanel,
     QToggle,
     QField,
-    QPagination
+    QPagination,
+    QBtnDropdown
 } from 'quasar'
 
 Vue.use(Quasar, {
@@ -146,7 +147,8 @@ Vue.use(Quasar, {
         QTabPanel,
         QToggle,
         QField,
-        QPagination
+        QPagination,
+        QBtnDropdown
     },
     directives: {
         ClosePopup

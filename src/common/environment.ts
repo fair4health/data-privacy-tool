@@ -24,6 +24,7 @@ export const environment = {
         },
         compatibleFhirVersions: ['4.0.0', '4.0.1']
     },
+    langs: ['en'],
     hl7: hl7Base,
     resourceTypesToBeFiltered: ['CapabilityStatement', 'CodeSystem', 'ConceptMap', 'NamingSystem', 'OperationDefinition',
         'SearchParameter', 'StructureDefinition', 'ValueSet'],

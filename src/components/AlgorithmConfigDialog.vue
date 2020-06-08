@@ -1,7 +1,7 @@
 <template>
 	<q-card style="width: 700px; max-width: 80vw;">
 		<q-card-section class="row items-center q-pb-none">
-			<div class="text-h6">Algorithm Configuration</div>
+			<div class="text-h6"> {{ $t('TITLES.ALGORITHM_CONFIGURATION') }} </div>
 			<q-space />
 			<q-btn icon="close" flat round dense v-close-popup />
 		</q-card-section>
@@ -44,8 +44,8 @@
 				new-value-mode="add"
 				stack-label
 				hide-dropdown-icon
-				placeholder="Enter rare values here..."
-				label="Rare Values"
+				:placeholder="$t('LABELS.RARE_VALUES_PLACEHOLDER')"
+				:label="$t('LABELS.RARE_VALUES')"
 				@input.native="rareInput = $event.target.value"
 				@new-value="createValue"
 			>
@@ -67,17 +67,17 @@
 		<q-card-section v-if="isSensitive() && getAlgorithmName() === envAlgorithms.REPLACE.name" class="q-pt-none">
 			<div class="row items-center">
 				<div class="col-4">
-					<q-input v-model="rareFirstValue" dense outlined label="Enter rare value" />
+					<q-input v-model="rareFirstValue" dense outlined :label="$t('LABELS.ENTER_RARE_VALUE')" />
 				</div>
 				<div class="col-1 text-center">
 					<q-icon size="xs" name="fas fa-arrow-right" color="primary" />
 				</div>
 				<div class="col-4">
-					<q-input v-model="rareAfterValue" dense outlined label="Enter the new value" />
+					<q-input v-model="rareAfterValue" dense outlined :label="$t('LABELS.ENTER_NEW_VALUE')" />
 				</div>
 				<div class="col-2 q-ml-md">
 					<q-btn unelevated round color="primary" icon="add" size="xs" @click="addRareReplacement()" :disable="!rareFirstValue" >
-						<q-tooltip anchor="center right" self="center left" content-class="bg-white text-primary">Add</q-tooltip>
+						<q-tooltip anchor="center right" self="center left" content-class="bg-white text-primary"> {{ $t('BUTTONS.ADD') }} </q-tooltip>
 					</q-btn>
 				</div>
 			</div>
@@ -93,10 +93,10 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.SUBSTITUTION.name && !hasRegex()" class="q-pt-none">
 			<div class="row">
 				<div class="col-4">
-					<q-radio v-model="tempParameterMappings.lengthPreserved" :val="true" label="Original Length" @input="updateParameters" />
+					<q-radio v-model="tempParameterMappings.lengthPreserved" :val="true" :label="$t('LABELS.ORIGINAL_LENGTH')" @input="updateParameters" />
 				</div>
 				<div class="col-3">
-					<q-radio v-model="tempParameterMappings.lengthPreserved" :val="false" label="Fixed Length" @input="updateParameters" />
+					<q-radio v-model="tempParameterMappings.lengthPreserved" :val="false" :label="$t('LABELS.FIXED_LENGTH')" @input="updateParameters" />
 				</div>
 				<div class="col-2">
 					<q-input type="number" dense outlined v-model="tempParameterMappings.fixedLength" :disable="tempParameterMappings.lengthPreserved" @input="updateParameters" />
@@ -106,7 +106,7 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.SUBSTITUTION.name && !hasRegex()" class="q-pt-none">
 			<div class="row">
 				<div class="col-3">
-					<q-field borderless label="Substitution Character:" readonly dense label-color="black" />
+					<q-field borderless :label="$t('LABELS.SUBSTITUTION_CHARACTER')" readonly dense label-color="black" />
 				</div>
 				<div class="col-1">
 					<q-input v-model="tempParameterMappings.substitutionChar" type="text" dense outlined maxlength="1" @input="updateParameters" />
@@ -118,7 +118,7 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.FUZZING.name" class="q-pt-none">
 			<div class="row">
 				<div class="col-3">
-					<q-field borderless label="Add noise within:" readonly dense label-color="black" />
+					<q-field borderless :label="$t('LABELS.ADD_NOISE')" readonly dense label-color="black" />
 				</div>
 				<div class="col-2">
 					<q-input v-model="tempParameterMappings.percentage" type="number" dense outlined @input="updateParameters" >
@@ -134,10 +134,10 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.GENERALIZATION.name && showRoundingBoundaries()" class="q-pt-none">
 			<div class="row">
 				<div class="col-3">
-					<q-radio v-model="tempParameterMappings.roundedToFloor" :val="true" label="Round to Floor" @input="updateParameters" />
+					<q-radio v-model="tempParameterMappings.roundedToFloor" :val="true" :label="$t('LABELS.ROUND_TO_FLOOR')" @input="updateParameters" />
 				</div>
 				<div class="col-3">
-					<q-radio v-model="tempParameterMappings.roundedToFloor" :val="false" label="Round to Ceiling" @input="updateParameters" />
+					<q-radio v-model="tempParameterMappings.roundedToFloor" :val="false" :label="$t('LABELS.ROUND_TO_CEILING')" @input="updateParameters" />
 				</div>
 			</div>
 		</q-card-section>
@@ -146,7 +146,7 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.GENERALIZATION.name && !isDateType() && isInteger()" class="q-pt-none">
 			<div class="row">
 				<div class="col-4">
-					<q-field borderless :label="isInteger() ? 'Last digits to be rounded:' : 'Rounding precision:'" readonly dense label-color="black" />
+					<q-field borderless :label="isInteger() ? $t('LABELS.LAST_DIGITS_TO_BE_ROUNDED') : $t('LABELS.ROUNDING_PRECISION')" readonly dense label-color="black" />
 				</div>
 				<div class="col-2">
 					<q-input v-model="tempParameterMappings.roundDigits" type="number" dense outlined @input="updateParameters" />
@@ -158,7 +158,7 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.GENERALIZATION.name && isDateType()" class="q-pt-none">
 			<div class="row">
 				<div class="col-4">
-					<q-field borderless label="Only keep information for:" readonly dense label-color="black" />
+					<q-field borderless :label="$t('LABELS.ONLY_KEEP_INFO_FOR')" readonly dense label-color="black" />
 				</div>
 				<div class="col-2">
 					<q-select outlined dense v-model="tempParameterMappings.dateUnit" :options="dateUnitOptions" @input="updateParameters" />
@@ -170,7 +170,7 @@
 		<q-card-section v-if="getAlgorithmName() === envAlgorithms.DATE_SHIFTING.name" class="q-pt-none">
 			<div class="row">
 				<div class="col-2">
-					<q-field borderless label="Shift within:" readonly dense label-color="black" />
+					<q-field borderless :label="$t('LABELS.SHIFT_WITHIN')" readonly dense label-color="black" />
 				</div>
 				<div class="col-2">
 					<q-input v-model="tempParameterMappings.range" type="number" dense outlined @input="updateParameters" />

@@ -3,13 +3,13 @@
 		<q-card-section>
 			<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
 				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
-					<template v-if="isSource"> Provide FHIR Repository URL that will be de-identified </template>
-					<template v-else> Provide FHIR Repository URL to save de-identified resources </template>
+					<template v-if="isSource"> {{ $t('LABELS.PROVIDE_FHIR_URL_TO_DEIDENTIFY') }} </template>
+					<template v-else> {{ $t('LABELS.PROVIDE_FHIR_URL_TO_SAVE') }} </template>
 				</span>
 			</q-item-label>
 			<q-input filled type="url" class="col-10" v-model="onfhirUrl" color="accent"
 			         @keydown="changeVerificationStatus('pending')"
-			         placeholder="FHIR Repository URL"
+			         :placeholder="$t('LABELS.FHIR_REPOSITORY_URL')"
 			         :disable="(isSource && fhirSourceVerificationStatus === 'in-progress') || (!isSource && fhirTargetVerificationStatus === 'in-progress')"
 			         @keypress.enter="verifyFhir">
 				<template v-slot:prepend>
@@ -29,10 +29,10 @@
 		</q-card-section>
 
 		<q-card-section v-if="isSource" class="row">
-			<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$router.push('/')" no-caps />
+			<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$router.push('/')" no-caps />
 			<q-space />
 			<div class="q-gutter-sm">
-				<q-btn unelevated label="Verify" icon="verified_user" color="grey-2" text-color="primary"
+				<q-btn unelevated :label="$t('BUTTONS.VERIFY')" icon="verified_user" color="grey-2" text-color="primary"
 				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
 						<q-spinner class="q-ml-sm" size="xs" v-show="fhirSourceVerificationStatus==='in-progress'" />
@@ -40,14 +40,14 @@
 						<q-icon name="error_outline" size="xs" color="red" v-show="fhirSourceVerificationStatus==='error'" />
 					</span>
 				</q-btn>
-				<q-btn unelevated label="Next" icon-right="chevron_right" color="primary" :disable="fhirSourceVerificationStatus!=='success'"
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" :disable="fhirSourceVerificationStatus!=='success'"
 				       @click="metaStep++" no-caps />
 			</div>
 		</q-card-section>
 		<q-card-section v-else class="row">
 			<q-space />
 			<div class="q-gutter-sm">
-				<q-btn unelevated label="Verify" icon="verified_user" color="grey-2" text-color="primary"
+				<q-btn unelevated :label="$t('BUTTONS.VERIFY')" icon="verified_user" color="grey-2" text-color="primary"
 				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
 						<q-spinner class="q-ml-sm" size="xs" v-show="fhirTargetVerificationStatus==='in-progress'" />
@@ -55,7 +55,7 @@
 						<q-icon name="error_outline" size="xs" color="red" v-show="fhirTargetVerificationStatus==='error'" />
 					</span>
 				</q-btn>
-				<q-btn unelevated label="Save" icon-right="save" color="primary" :disable="fhirTargetVerificationStatus!=='success'"
+				<q-btn unelevated :label="$t('BUTTONS.SAVE')" icon-right="save" color="primary" :disable="fhirTargetVerificationStatus!=='success'"
 				       @click="saveToRepositoryParentFunction(false)" no-caps v-close-popup />
 			</div>
 		</q-card-section>
@@ -63,9 +63,9 @@
 </template>
 
 <script lang="ts">
-    import {Component, Prop, Vue} from 'vue-property-decorator'
+import {Component, Prop, Vue} from 'vue-property-decorator'
 
-    @Component
+@Component
     export default class OnFHIRConfig extends Vue {
         @Prop() readonly saveToRepositoryParentFunction;
 
@@ -88,23 +88,23 @@
         }
 
         verifyFhir () {
-			if (this.onfhirUrl) {
-			    if (this.isSource) {
+            if (this.onfhirUrl) {
+                if (this.isSource) {
                     this.$store.commit('fhir/updateFhirSourceBase', this.onfhirUrl);
                 } else {
                     this.$store.commit('fhir/updateFhirTargetBase', this.onfhirUrl);
-			    }
+                }
                 this.changeVerificationStatus('in-progress');
                 this.$store.dispatch('fhir/verifyFhir', this.isSource)
                     .then(() => {
-                        this.statusDetail = 'FHIR Repository URL is verified.';
+                        this.statusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'))
                         this.changeVerificationStatus('success');
                     })
                     .catch(err => {
                         this.statusDetail = err;
                         this.changeVerificationStatus('error');
                     })
-			}
+            }
         }
 
         changeVerificationStatus (status: status) {

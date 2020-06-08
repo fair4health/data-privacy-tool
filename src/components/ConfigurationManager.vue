@@ -1,23 +1,21 @@
 <template>
     <div>
         <q-toolbar class="bg-grey-4">
-            <q-toolbar-title class="text-grey-8">
-                Configuration Manager
-            </q-toolbar-title>
+            <q-toolbar-title class="text-grey-8"> {{ $t('COMMON.CONFIGURATION_MANAGER') }} </q-toolbar-title>
         </q-toolbar>
 
         <div class="q-ma-sm">
             <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Configure de-identification parameters. </span>
+                <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.CONFIGURATION_MANAGER_INFO') }} </span>
             </q-item-label>
             <q-card flat class="bg-white">
                 <q-card-section class="row q-col-gutter-sm">
                     <div class="col-xs-12 col-sm-12 col-md-6">
                         <q-item-label class="text-weight-bold">
-                            <span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> FHIR Resource</span>
+                            <span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.FHIR_RESOURCE') }} </span>
                         </q-item-label>
                         <q-separator spaced />
-                        <q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" label="FHIR Resource"
+                        <q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
                                   @filter="filterFn" use-input input-debounce="0">
                             <template v-slot:option="scope">
                                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
@@ -33,10 +31,10 @@
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6">
                         <q-item-label class="text-weight-bold">
-                            <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
+                            <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
                         </q-item-label>
                         <q-separator spaced />
-                        <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+                        <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
                             <template v-slot:option="scope">
                                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                                     <q-item-section avatar>
@@ -57,8 +55,8 @@
                         align="justify"
                         inline-label
                     >
-                        <q-tab name="quasi" label="Quasi-identifiers" />
-                        <q-tab name="sensitive" label="Sensitive Attributes" />
+                        <q-tab name="quasi" :label="$t('LABELS.QUASI_IDENTIFIERS')" />
+                        <q-tab name="sensitive" :label="$t('LABELS.SENSITIVE_ATTRIBUTES')" />
                     </q-tabs>
                     <q-separator />
                     <q-tab-panels v-model="tab" animated>
@@ -72,9 +70,9 @@
                 </q-card-section>
             </q-card>
             <div class="row q-ma-md">
-                <q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
                 <q-space />
-                <q-btn unelevated label="Next" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
             </div>
         </div>
     </div>

@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<q-item-section class="q-px-xs">
-		<q-input borderless dense v-model="filter" label="Filter">
+		<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
 			<template v-slot:prepend>
 				<q-icon name="sort" />
 			</template>
@@ -17,16 +17,16 @@
 				<template v-slot:before>
 					<div class="row items-center full-width bg-primary q-pa-xs">
 						<div class="text-center col">
-							<span class="text-white">Attribute</span>
+							<span class="text-white"> {{ $t('TABLE.ATTRIBUTE') }} </span>
 						</div>
 						<div class="text-center col-4">
-							<span class="text-white">Type</span>
+							<span class="text-white"> {{ $t('TABLE.TYPE') }} </span>
 						</div>
 						<div class="text-center col-2">
-							<span class="text-white">Has Rare Values?</span>
+							<span class="text-white"> {{ $t('TABLE.HAS_RARE_VALUES') }} </span>
 						</div>
 						<div class="text-center col-2">
-							<span class="text-white">L-diversity (l)</span>
+							<span class="text-white"> {{ $t('TABLE.L_DIVERSITY') }} (l)</span>
 						</div>
 					</div>
 					<q-scroll-area style="height: 50vh">
@@ -37,8 +37,8 @@
 						        :selected.sync="selectedStr"
 						        :filter="filter"
 						        :filter-method="filterTree"
-						        no-nodes-label="No sensitive attribute was selected"
-						        no-results-label="No result found"
+						        :no-nodes-label="$t('LABELS.NO_SENSITIVE_ATTRIBUTE')"
+						        :no-results-label="$t('LABELS.NO_RESULT')"
 						        selected-color="primary"
 						        @update:selected="onSelected"
 						        default-expand-all
@@ -74,7 +74,7 @@
 										<q-checkbox v-if="tempParameterMappings[prop.key] && !kAnonymityValidMappings[currentFHIRRes]"
 										            color="primary" class="q-ml-lg" disabled value="false"  >
 											<q-tooltip v-if="!kAnonymityValidMappings[currentFHIRRes]" anchor="bottom middle" self="top middle">
-												L-diversity cannot be applied if the resource does not have k-anonymity
+												{{ $t('WARNING.L_DIVERSITY_WITHOUT_K_ANONYMITY') }}
 											</q-tooltip>
 										</q-checkbox>
 										<q-select outlined dense v-if="tempParameterMappings[prop.key]" :options="[2,3,4,5]"
@@ -107,21 +107,21 @@
 							<div class="q-ma-sm q-gutter-sm">
 								<q-card flat bordered v-if="selectedElem.short">
 									<q-card-section>
-										<div class="text-h6">Short</div>
+										<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.short }}</div>
 									</q-card-section>
 								</q-card>
 								<q-card flat bordered v-if="selectedElem.definition">
 									<q-card-section>
-										<div class="text-h6">Definition</div>
+										<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.definition }}</div>
 									</q-card-section>
 								</q-card>
 								<q-card flat bordered v-if="selectedElem.comment">
 									<q-card-section>
-										<div class="text-h6">Comments</div>
+										<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
 										<q-separator spaced />
 										<div class="text-grey-10">{{ selectedElem.comment }}</div>
 									</q-card-section>

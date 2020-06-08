@@ -5,7 +5,7 @@
 				<div class="text-h6 row items-center">
 					<div>
 						<q-icon name="feedback" color="primary" size="sm" class="q-mx-sm" />
-						Outcome Details
+						{{ $t('TITLES.OUTCOME_DETAILS') }}
 					</div>
 					<q-space />
 					<div v-if="outcomeDetails.length" class="row q-gutter-sm">
@@ -24,10 +24,10 @@
 					</div>
 					<q-btn flat dense :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
 					       @click="fullscreen = !fullscreen" class="q-ml-md">
-						<q-tooltip content-class="bg-white text-primary">{{ fullscreen ? 'Minimize' : 'Maximize'}}</q-tooltip>
+						<q-tooltip content-class="bg-white text-primary">{{ $t(fullscreen ? 'BUTTONS.MINIMIZE' : 'BUTTONS.MAXIMIZE') }}</q-tooltip>
 					</q-btn>
 					<q-btn unelevated dense icon="close" color="grey-3" text-color="grey-10" @click="onCloseClick">
-						<q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
+						<q-tooltip content-class="bg-white text-primary"> :label="$t('BUTTONS.CLOSE')" </q-tooltip>
 					</q-btn>
 				</div>
 			</q-card-section>
@@ -37,13 +37,13 @@
 			<q-card-section class="scroll">
 				<div class="row q-gutter-sm">
 					<div class="bg-grey-2 q-mb-sm col">
-						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">Status</div>
+						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">{{ $t('LABELS.STATUS') }}</div>
 						<q-separator />
-						<q-toggle v-model="successDetails" checked-icon="check" color="green" label="Success" unchecked-icon="clear"/>
-						<q-toggle v-model="errorDetails" checked-icon="warning" color="orange-6" label="Error" unchecked-icon="clear"/>
+						<q-toggle v-model="successDetails" checked-icon="check" color="green" :label="$t('COMMON.SUCCESS')" unchecked-icon="clear"/>
+						<q-toggle v-model="errorDetails" checked-icon="warning" color="orange-6" :label="$t('COMMON.ERROR')" unchecked-icon="clear"/>
 					</div>
 					<div class="bg-grey-2 q-mb-sm col">
-						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">Resources</div>
+						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">{{ $t('LABELS.RESOURCES') }}</div>
 						<q-separator />
 						<q-toggle
 							v-model="selectedResources"
@@ -88,7 +88,7 @@
 
 			<q-separator />
 			<q-card-actions align="right">
-				<q-btn flat color="primary" label="Close" @click="onCloseClick" />
+				<q-btn flat color="primary" :label="$t('BUTTONS.CLOSE')" @click="onCloseClick" />
 			</q-card-actions>
 		</q-card>
 	</q-dialog>

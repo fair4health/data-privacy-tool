@@ -1,18 +1,17 @@
 <template>
 	<div>
 		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Select types of attributes from
-				privacy point of view. Note that you can only configure primitive types. </span>
+			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.FHIR_ATTRIBUTE_TABLE') }} </span>
 		</q-item-label>
 
 		<q-card flat class="bg-white">
 			<q-card-section class="row q-col-gutter-sm">
 				<div class="col-xs-12 col-sm-12 col-md-6">
 					<q-item-label class="text-weight-bold">
-						<span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> FHIR Resource</span>
+						<span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.FHIR_RESOURCE') }} </span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" label="FHIR Resource"
+					<q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
 					          @filter="filterFn" use-input input-debounce="0">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
@@ -28,10 +27,10 @@
 				</div>
 				<div class="col-xs-12 col-sm-12 col-md-6">
 					<q-item-label class="text-weight-bold">
-						<span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> Profiles</span>
+						<span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" label="Profiles" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
 								<q-item-section avatar>
@@ -48,7 +47,7 @@
 			<q-card-section>
 				<div>
 					<q-item-section class="q-px-xs">
-						<q-input borderless dense v-model="filter" label="Filter">
+						<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
 							<template v-slot:prepend>
 								<q-icon name="sort" />
 							</template>
@@ -64,10 +63,10 @@
 							<template v-slot:before>
 								<div class="row items-center full-width bg-primary q-pa-xs">
 									<div class="text-center col">
-										<span class="text-white">Attribute</span>
+										<span class="text-white"> {{ $t('TABLE.ATTRIBUTE') }} </span>
 									</div>
 									<div class="text-center col-4">
-										<span class="text-white">Type</span>
+										<span class="text-white"> {{ $t('TABLE.TYPE') }} </span>
 									</div>
 									<div class="text-right col-1">
 										<span class="text-white">{{attributeTypes.ID}}</span>
@@ -90,8 +89,8 @@
 									        :selected.sync="selectedStr"
 									        :filter="filter"
 									        :filter-method="filterTree"
-									        no-nodes-label="Please select a resource"
-									        no-results-label="No result found"
+									        :no-nodes-label="$t('LABELS.PLEASE_SELECT_A_RESOURCE')"
+									        :no-results-label="$t('LABELS.NO_RESULT')"
 									        selected-color="primary"
 									        @update:selected="onSelected"
 									        default-expand-all
@@ -108,7 +107,7 @@
 														<span v-if="prop.node.required" class="text-red text-weight-bold" style="font-size: 16px">
 															{{ prop.node.required ? '*' : '' }}
 															<q-tooltip v-if="prop.node.children.length" content-style="font-size: 12px" anchor="top right" self="top left">
-																Mandatory complex types must include at least one child.
+																{{ $t('WARNING.MANDATORY_COMPLEX_TYPES') }}
 															</q-tooltip>
 														</span>
 													</span>
@@ -157,21 +156,21 @@
 										<div class="q-ma-sm q-gutter-sm">
 											<q-card flat bordered v-if="selectedElem.short">
 												<q-card-section>
-													<div class="text-h6">Short</div>
+													<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
 													<q-separator spaced />
 													<div class="text-grey-10">{{ selectedElem.short }}</div>
 												</q-card-section>
 											</q-card>
 											<q-card flat bordered v-if="selectedElem.definition">
 												<q-card-section>
-													<div class="text-h6">Definition</div>
+													<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
 													<q-separator spaced />
 													<div class="text-grey-10">{{ selectedElem.definition }}</div>
 												</q-card-section>
 											</q-card>
 											<q-card flat bordered v-if="selectedElem.comment">
 												<q-card-section>
-													<div class="text-h6">Comments</div>
+													<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
 													<q-separator spaced />
 													<div class="text-grey-10">{{ selectedElem.comment }}</div>
 												</q-card-section>

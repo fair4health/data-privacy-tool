@@ -1,24 +1,22 @@
 <template>
 	<div>
 		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8">
-				De-identifier
-			</q-toolbar-title>
+			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.DEIDENTIFIER') }} </q-toolbar-title>
 			<q-btn unelevated label="Save" color="primary" @click="saveConfigurations" icon="save" no-caps class="q-mr-sm" >
-				<q-tooltip anchor="bottom middle" self="top middle">Save Configuration</q-tooltip>
+				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
 			</q-btn>
-			<q-btn unelevated label="Export" color="primary" @click="exportConfigurations" icon="publish" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle">Export Configuration</q-tooltip>
+			<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="primary" @click="exportConfigurations" icon="publish" no-caps >
+				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
 			</q-btn>
 		</q-toolbar>
 
 		<div class="q-ma-sm">
 			<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> Risk is calculated according to different models. </span>
+				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.DEIDENTIFIER_INFO') }} </span>
 			</q-item-label>
 			<q-card flat bordered class="q-ma-sm">
 				<q-card-section>
-					<q-table flat binary-state-sort title="Resources" :data="mappingList" :columns="columns" row-key="resource"
+					<q-table flat binary-state-sort :title="$t('LABELS.RESOURCES')" :data="mappingList" :columns="columns" row-key="resource"
 					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table" selection="multiple"
 					         table-style="max-height: 60vh" :loading="loading" color="primary" :selected.sync="selectedResources"
 					>
@@ -37,19 +35,19 @@
 									<template v-if="props.row.status === 'in-progress' || props.row.status === 'loading'">
 										<span>
 											<q-spinner color="grey-9" />
-											<q-tooltip v-if="props.row.status === 'in-progress'" content-class="bg-white text-grey-8">De-identifying...</q-tooltip>
-											<q-tooltip v-if="props.row.status === 'loading'" content-class="bg-white text-grey-8">Loading...</q-tooltip>
+											<q-tooltip v-if="props.row.status === 'in-progress'" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.DEIDENTIFYING') }} </q-tooltip>
+											<q-tooltip v-if="props.row.status === 'loading'" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.LOADING') }} </q-tooltip>
 										</span>
 									</template>
 									<template v-else-if="props.row.status === 'done'">
 										<div class="row items-center">
 											<div class="col-6">
 												<q-icon name="check" color="green">
-													<q-tooltip content-class="bg-white text-green">Completed</q-tooltip>
+													<q-tooltip content-class="bg-white text-green"> {{ $t('COMMON.COMPLETED') }} </q-tooltip>
 												</q-icon>
 											</div>
 											<div class="col-6 bg-grey-3">
-												<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"
+												<q-btn flat dense icon="feedback" color="grey-8" :label="$t('BUTTONS.DETAILS')" size="sm"
 												       @click="openOutcomeDetailCard(props.row.outcomeDetails)" no-caps />
 											</div>
 										</div>
@@ -58,23 +56,23 @@
 										<div class="row items-center">
 											<div class="col-6">
 												<q-icon name="warning" color="orange-6">
-													<q-tooltip content-class="bg-white text-orange-6">Warning</q-tooltip>
+													<q-tooltip content-class="bg-white text-orange-6"> {{ $t('COMMON.WARNING') }} </q-tooltip>
 												</q-icon>
 											</div>
 											<div class="col-6 bg-grey-3">
-												<q-btn flat dense icon="feedback" color="grey-8" label="Details" size="sm"
+												<q-btn flat dense icon="feedback" color="grey-8" :label="$t('BUTTONS.DETAILS')" size="sm"
 												       @click="openOutcomeDetailCard(props.row.outcomeDetails)" no-caps />
 											</div>
 										</div>
 									</template>
 									<template v-else-if="props.row.status === 'error'">
 										<q-icon name="error_outline" color="red" class="cursor-pointer" @click="openOutcomeDetailCard(props.row.outcomeDetails)">
-											<q-tooltip content-class="bg-white text-red-7">Error</q-tooltip>
+											<q-tooltip content-class="bg-white text-red-7"> {{ $t('COMMON.ERROR') }} </q-tooltip>
 										</q-icon>
 									</template>
 									<template v-else>
 										<q-icon name="access_time" color="grey-9">
-											<q-tooltip content-class="bg-white text-grey-8">Pending</q-tooltip>
+											<q-tooltip content-class="bg-white text-grey-8"> {{ $t('COMMON.PENDING') }} </q-tooltip>
 										</q-icon>
 									</template>
 								</q-td>
@@ -128,7 +126,7 @@
 														</q-avatar>
 													</q-item-section>
 													<q-item-section>
-														<q-item-label>{{risk.profile}} Evaluation</q-item-label>
+														<q-item-label>{{risk.profile}} {{ $t('LABELS.EVALUATION') }} </q-item-label>
 													</q-item-section>
 												</q-item>
 												<q-separator />
@@ -137,7 +135,7 @@
 														<q-item>
 															<div class="col-2">
 																<q-item-label class="text-weight-bold text-secondary q-mt-sm">
-																	Information Loss
+																	{{ $t('LABELS.INFORMATION_LOSS') }}
 																</q-item-label>
 															</div>
 															<div class="col-3">
@@ -150,8 +148,7 @@
 																</q-linear-progress>
 															</div>
 															<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
-																Percentage of information loss according to Expected Equivalence Class Size metric.
-																Restricted resources are excluded.
+																{{ $t('INFO.INFORMATION_LOSS_INFO') }}
 															</div>
 														</q-item>
 														<template v-for="riskey in Object.keys(risk)">
@@ -183,7 +180,7 @@
 									<template v-else>
 										<q-card-section class="text-subtitle1">
 											<div class="text-grey-7">
-												Evaluation results are shown here after de-identification is completed.
+												{{ $t('INFO.EVALUATION_LOSS') }}
 											</div>
 										</q-card-section>
 									</template>
@@ -196,7 +193,7 @@
 						<q-btn v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'"
 						       :disable="disableSave()" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
-							<q-tooltip anchor="bottom middle" self="top middle">Save Anonymized Data to Repository</q-tooltip>
+							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_ANONYMIZED_DATA') }} </q-tooltip>
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="deidentificationStatus !== 'pending' || !selectedResources.length
@@ -206,7 +203,7 @@
 								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
 								<q-icon name="error_outline" size="xs" color="red" v-show="deidentificationStatus === 'error'" />
 							</span>
-							<span>De-identify</span>
+							<span> {{ $t('COMMON.DEIDENTIFY') }} </span>
 						</q-btn>
 					</div>
 
@@ -214,14 +211,14 @@
 			</q-card>
 
 			<div class="row q-ma-md">
-				<q-btn unelevated label="Back" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
 			</div>
 		</div>
 
 		<q-dialog v-model="saveDialog">
 			<q-card>
 				<q-card-section class="row items-center q-pb-none text-primary">
-					<div class="text-h5">Save Anonymized Data</div>
+					<div class="text-h5"> {{ $t('TITLES.SAVE_ANONYMIZED') }} </div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
@@ -231,7 +228,7 @@
 							<div class="spinner-comp flex flex-center"></div>
 						</div>
 						<div class="row justify-center">
-							<span class="text-grey-8" style="font-size: 14px">Saving resources...</span>
+							<span class="text-grey-8" style="font-size: 14px"> {{ $t('COMMON.SAVING_RESOURCES') }} </span>
 						</div>
 					</div>
 					<div v-if="!loading" class="q-ma-sm">
@@ -242,19 +239,19 @@
 						</div>
 						<div class="row justify-center">
                             <span class="text-grey-8" style="font-size: 14px">
-                                {{savedResourceNumber}} resources are saved.
+                                {{savedResourceNumber}} {{ $t('INFO.RESOURCES_SAVED') }}
                             </span>
 						</div>
 					</div>
 				</q-card-section>
 				<q-card-actions v-if="saving && !loading" align="around">
 					<q-space />
-					<q-btn flat label="Return Home" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
+					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
 				</q-card-actions>
 				<q-card-actions v-if="!saving" align="around">
 					<q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
 					<q-space />
-					<q-btn class="q-ma-md" unelevated label="Save As New Data" color="primary" icon-right="save" @click="targetRepoDialog = true" no-caps />
+					<q-btn class="q-ma-md" unelevated :label="$t('LABELS.SAVE_AS_NEW_DATA')" color="primary" icon-right="save" @click="targetRepoDialog = true" no-caps />
 				</q-card-actions>
 			</q-card>
 		</q-dialog>
@@ -262,7 +259,7 @@
 		<q-dialog v-model="targetRepoDialog">
 			<q-card style="width: 700px; max-width: 80vw;">
 				<q-card-section class="row items-center text-negative">
-					<span class="text-h6"><q-icon class="material-icons md-24">save</q-icon> Save As New Data</span>
+					<span class="text-h6"><q-icon class="material-icons md-24">save</q-icon> {{ $t('LABELS.SAVE_AS_NEW_DATA') }} </span>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
@@ -276,17 +273,16 @@
 		<q-dialog v-model="restrictionWarning" persistent>
 			<q-card>
 				<q-card-section class="row items-center text-negative">
-					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> Some Resources Are Restricted</span>
+					<span class="text-h6"><q-icon class="material-icons md-24">notification_important</q-icon> {{ $t('INFO.RESOURCES_RESTRICTED') }} </span>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
 				<q-separator />
 				<q-card-section class="row items-center">
-					<p>In order to satisfy k-anonymity, <b> {{restrictedResourceNumber}} resources </b> are restricted since they were so unique.
-						You can examine those restricted ones by clicking on <b>Restricted Resource Count</b>s of corresponding resources. </p>
+					<p> {{ $t('INFO.RESTRICTED_RESOURCES_INFO', {restrictedResourceNumber}) }} </p>
 				</q-card-section>
 				<q-card-actions align="right">
-					<q-btn flat label="OK" color="negative" v-close-popup />
+					<q-btn flat :label="$t('BUTTONS.OK')" color="negative" v-close-popup />
 				</q-card-actions>
 			</q-card>
 		</q-dialog>
@@ -294,8 +290,8 @@
 		<q-dialog v-model="jsonResources">
 			<q-card style="width: 900px; max-width: 100vw;">
 				<q-card-section class="row items-center text-primary">
-					<div v-if="isRestricted" class="text-h5">Restricted {{selectedResource}} Resources</div>
-					<div v-else class="text-h5">De-identified {{selectedResource}} Resources</div>
+					<div v-if="isRestricted" class="text-h5"> {{ $t('TITLES.RESTRICTED_RESOURCES', {selectedResource}) }} </div>
+					<div v-else class="text-h5"> {{ $t('TITLES.DEIDENTIFIED_RESOURCES', {selectedResource}) }} </div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
@@ -463,7 +459,7 @@ export default class Deidentifier extends Vue {
         const selectedResourceNames = this.selectedResources.map(obj => obj.resource);
         const selectedGroups = this.groupedByProfiles.filter(attributes => {
             const resource: string = attributes[0].split('.')[0];
-			return selectedResourceNames.includes(resource);
+            return selectedResourceNames.includes(resource);
         })
         this.restrictedResourceNumber = 0;
         this.deidentificationStatus = 'in-progress';
@@ -662,7 +658,7 @@ export default class Deidentifier extends Vue {
             ipcRenderer.send('export-file', JSON.stringify(state))
             ipcRenderer.on('export-done', (event, result) => {
                 if (result) {
-                    this.$notify.success('File is exported successfully')
+                    this.$notify.success(String(this.$t('SUCCESS.FILE_IS_EXPORTED')))
                 }
                 this.$q.loading.hide()
                 ipcRenderer.removeAllListeners('export-done')
@@ -672,7 +668,7 @@ export default class Deidentifier extends Vue {
 
     saveConfigurations () {
         this.$q.dialog({
-            title: 'Save Configuration',
+            title: `${this.$t('TOOLTIPS.SAVE_CONFIGURATION')}`,
             prompt: {
                 model: '',
                 isValid: val => val.length > 0,
@@ -728,7 +724,7 @@ export default class Deidentifier extends Vue {
         const totalPages = environment.JSON_NUMBER_IN_A_PAGE;
         if (this.isRestricted) {
             return this.deidentificationResults[this.selectedResource].restrictedEntries.slice( (this.currentPage - 1) *
-	            totalPages, (this.currentPage - 1) * totalPages + totalPages );
+                totalPages, (this.currentPage - 1) * totalPages + totalPages );
         } else {
             return this.deidentificationResults[this.selectedResource].entries.slice( (this.currentPage - 1) *
                 totalPages, (this.currentPage - 1) * totalPages + totalPages );
@@ -744,14 +740,14 @@ export default class Deidentifier extends Vue {
         if (!this.selectedResources.length) {
             return true;
         }
-        for (let resource of this.selectedResources) {
+        for (const resource of this.selectedResources) {
             if (resource.status === 'error' || resource.status === 'in-progress' ||
-	            resource.status === 'pending' || resource.status === 'loading') {
+                resource.status === 'pending' || resource.status === 'loading') {
                 return true;
             }
         }
         return false;
-	}
+    }
 
 }
 </script>
