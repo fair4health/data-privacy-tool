@@ -101,7 +101,7 @@ export default class MetadataAnalyzer extends Vue {
         ipcRenderer.on('selected-configurations', (event, data) => {
             if (data) {
                 this.$store.dispatch('fhir/importState', data).then(() => {
-                    this.$notify.success('File is imported successfully')
+                    this.$notify.success(String(this.$t('SUCCESS.FILE_IS_IMPORTED')))
                     this.fhirAttributeTableKey++; // in order to re-render attribute table
                 });
             }
@@ -125,23 +125,24 @@ export default class MetadataAnalyzer extends Vue {
     restoreSaved (index: number) {
         const config = this.savedConfigs[index];
         this.$store.dispatch('fhir/importState', config.data).then(() => {
-            this.$notify.success('Configuration is loaded successfully')
+            this.$notify.success(String(this.$t('SUCCESS.CONFIGURATION_IS_LOADED')))
             this.fhirAttributeTableKey++; // in order to re-render attribute table
         });
     }
 
     deleteSaved (index: number) {
         const config = this.savedConfigs[index];
+        const configName = config.name;
         this.$q.dialog({
-            title: '<i class="fas fa-trash text-negative"> Remove Saved Configuration </i>',
-            message: `Are you sure to remove ${config.name}?`,
+            title: `<i class="fas fa-trash text-negative"> ${this.$t('TITLES.REMOVE_SAVED_CONFIGURATION')} </i>`,
+            message: `${this.$t('WARNING.ARE_YOU_SURE_TO_REMOVE', {configName})}`,
             class: 'text-grey-9',
             cancel: true,
             html: true
         }).onOk(() => {
             this.savedConfigs.splice(index, 1);
             localStorage.setItem('store-exportableState', JSON.stringify(this.savedConfigs))
-            this.$notify.info(config.name + ' is deleted')
+            this.$notify.info(String(this.$t('INFO.CONFIG_DELETED', {configName})))
         })
     }
 

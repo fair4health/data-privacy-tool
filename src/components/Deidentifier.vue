@@ -249,7 +249,7 @@
 					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
 				</q-card-actions>
 				<q-card-actions v-if="!saving" align="around">
-					<q-btn class="q-ma-md" unelevated label="Overwrite Existing Data" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
+					<q-btn class="q-ma-md" unelevated :label="$t('LABELS.OVERWRITE_EXISTING_DATA')" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
 					<q-space />
 					<q-btn class="q-ma-md" unelevated :label="$t('LABELS.SAVE_AS_NEW_DATA')" color="primary" icon-right="save" @click="targetRepoDialog = true" no-caps />
 				</q-card-actions>
@@ -544,7 +544,7 @@ export default class Deidentifier extends Vue {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'error', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
                                 this.deidentificationResults[resourceType].status = 'error';
                                 this.deidentificationStatus = 'error';
-                                this.$notify.error('Validation is failed')
+                                this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
                             } else if (issue.severity === 'information') {
                                 this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
                                 if (this.deidentificationResults[resourceType].status !== 'error' && this.deidentificationResults[resourceType].status !== 'warning') {
@@ -567,7 +567,7 @@ export default class Deidentifier extends Vue {
             });
             if (this.deidentificationStatus !== 'error') {
                 this.deidentificationStatus = 'success';
-                this.$notify.success('Resources are de-identified successfully')
+                this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')))
             }
             this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
             this.getResultsAsMapping();
@@ -606,7 +606,7 @@ export default class Deidentifier extends Vue {
             .then(response => {
                 this.savedResourceNumber = response;
                 this.loading = false;
-                this.$notify.success('Resources are saved successfully')
+                this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_SAVED')))
             });
     }
 
@@ -686,16 +686,15 @@ export default class Deidentifier extends Vue {
                     fileStore = [{date: new Date(), name: configName, data: state}]
                 }
                 localStorage.setItem('store-exportableState', JSON.stringify(fileStore))
-                this.$notify.success('Saved')
+                this.$notify.success(String(this.$t('SUCCESS.SAVED')))
             });
         })
     }
 
     overwriteExistingData () {
         this.$q.dialog({
-            title: '<span class="text-negative"><i class="material-icons md-24">swap_horiz</i> Overwrite Existing Data</span>',
-            message: `Current resources will be replaced with de-identified
-						resources in the same FHIR repository. <b>Are you sure to overwrite existing data?</b>`,
+            title: `<span class="text-negative"><i class="material-icons md-24">swap_horiz</i> ${this.$t('LABELS.OVERWRITE_EXISTING_DATA')} </span>`,
+            message: `${this.$t('WARNING.RESOURCES_WILL_BE_REPLACED')}`,
             class: 'text-grey-9',
             cancel: true,
             html: true

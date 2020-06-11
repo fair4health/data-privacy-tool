@@ -44,7 +44,7 @@
 				new-value-mode="add"
 				stack-label
 				hide-dropdown-icon
-				:placeholder="$t('LABELS.RARE_VALUES_PLACEHOLDER')"
+				:placeholder="$t('INFO.RARE_VALUES_PLACEHOLDER')"
 				:label="$t('LABELS.RARE_VALUES')"
 				@input.native="rareInput = $event.target.value"
 				@new-value="createValue"

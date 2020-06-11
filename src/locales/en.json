@@ -33,9 +33,11 @@
   "ERROR": {
     "FHIR_URL_NOT_VERIFIED": "Given FHIR Repository URL is not verified.",
     "FHIR_VERSION_COULDNT_DETECTED": "FHIR version couldn't be detected for given url.",
-    "FHIR_VERSION_NOT_SUPPORTED": "FHIR version ({version}) is not supported. FHIR version must be R4."
+    "FHIR_VERSION_NOT_SUPPORTED": "FHIR version ({version}) is not supported. FHIR version must be R4.",
+    "VALIDATION_FAILED": "Validation is failed"
   },
   "INFO": {
+    "CONFIG_DELETED": "{configName} is deleted",
     "CONFIGURATION_MANAGER_HOME_INFO": "Attributes of FHIR resources are categorized in a privacy point of view. Afterwards de-identification algorithms and are configured accordingly.",
     "CONFIGURATION_MANAGER_INFO": "Configure de-identification parameters.",
     "DEIDENTIFIER_HOME_INFO_1": "Resources are de-identified according to configurations.",
@@ -71,6 +73,7 @@
     "ONLY_KEEP_INFO_FOR": "Only keep information for:",
     "ORIGINAL_LENGTH": "Original Length",
     "OVERALL_STEPS": "Overall Steps",
+    "OVERWRITE_EXISTING_DATA": "Overwrite Existing Data",
     "PLEASE_SELECT_A_RESOURCE": "Please select a resource",
     "PROFILES": "Profiles",
     "PROVIDE_FHIR_URL_TO_DEIDENTIFY": "Provide FHIR Repository URL that will be de-identified",
@@ -108,8 +111,13 @@
     "VIEW_ON": "View on"
   },
   "SUCCESS": {
-    "FHIR_URL_VERIFIED": "FHIR Repository URL is verified.",
-    "FILE_IS_EXPORTED": "File is exported successfully"
+    "CONFIGURATION_IS_LOADED": "Configuration is loaded successfully",
+    "RESOURCES_ARE_DEIDENTIFIED": "Resources are de-identified successfully",
+    "RESOURCES_ARE_SAVED": "Resources are saved successfully",
+    "FHIR_URL_VERIFIED": "FHIR Repository URL is verified",
+    "FILE_IS_EXPORTED": "File is exported successfully",
+    "FILE_IS_IMPORTED": "File is imported successfully",
+    "SAVED": "Saved"
   },
   "TABLE": {
     "ATTRIBUTE": "Attribute",
@@ -124,6 +132,7 @@
     "ALGORITHM_CONFIGURATION": "Algorithm Configuration",
     "DEIDENTIFIED_RESOURCES": "De-identified {selectedResource} Resources",
     "OUTCOME_DETAILS": "Outcome Details",
+    "REMOVE_SAVED_CONFIGURATION": "Remove Saved Configuration",
     "RESTRICTED_RESOURCES": "Restricted {selectedResource} Resources",
     "SAVE_ANONYMIZED": "Save Anonymized Data",
     "SAVED_CONFIGURATIONS": "Saved Configurations"
@@ -138,8 +147,10 @@
     "SELECT_SAVED_CONFIGURATION": "Select Saved Configuration"
   },
   "WARNING": {
+    "ARE_YOU_SURE_TO_REMOVE": "Are you sure to remove {configName}?",
     "JAVASCRIPT_DISABLED": "We're sorry but FAIR4Health Tool doesn't work properly without JavaScript enabled. Please enable it to continue.",
     "L_DIVERSITY_WITHOUT_K_ANONYMITY": "L-diversity cannot be applied if the resource does not have k-anonymity",
-    "MANDATORY_COMPLEX_TYPES": "Mandatory complex types must include at least one child."
+    "MANDATORY_COMPLEX_TYPES": "Mandatory complex types must include at least one child.",
+    "RESOURCES_WILL_BE_REPLACED": "Current resources will be replaced with de-identified resources in the same FHIR repository. Are you sure to overwrite existing data?"
   }
 }
