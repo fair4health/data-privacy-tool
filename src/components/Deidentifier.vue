@@ -32,14 +32,14 @@
 									<q-checkbox dense v-model="props.selected" />
 								</q-td>
 								<q-td key="status" class="no-padding" :props="props">
-									<template v-if="props.row.status === 'in-progress' || props.row.status === 'loading'">
+									<template v-if="isInProgress(props.row.status) || isLoading(props.row.status)">
 										<span>
 											<q-spinner color="grey-9" />
-											<q-tooltip v-if="props.row.status === 'in-progress'" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.DEIDENTIFYING') }} </q-tooltip>
-											<q-tooltip v-if="props.row.status === 'loading'" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.LOADING') }} </q-tooltip>
+											<q-tooltip v-if="isInProgress(props.row.status)" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.DEIDENTIFYING') }} </q-tooltip>
+											<q-tooltip v-if="isLoading(props.row.status)" content-class="bg-white text-grey-8"> {{ $t('TOOLTIPS.LOADING') }} </q-tooltip>
 										</span>
 									</template>
-									<template v-else-if="props.row.status === 'done'">
+									<template v-else-if="isDone(props.row.status)">
 										<div class="row items-center">
 											<div class="col-6">
 												<q-icon name="check" color="green">
@@ -52,7 +52,7 @@
 											</div>
 										</div>
 									</template>
-									<template v-else-if="props.row.status === 'warning'">
+									<template v-else-if="isWarning(props.row.status)">
 										<div class="row items-center">
 											<div class="col-6">
 												<q-icon name="warning" color="orange-6">
@@ -65,7 +65,7 @@
 											</div>
 										</div>
 									</template>
-									<template v-else-if="props.row.status === 'error'">
+									<template v-else-if="isError(props.row.status)">
 										<q-icon name="error_outline" color="red" class="cursor-pointer" @click="openOutcomeDetailCard(props.row.outcomeDetails)">
 											<q-tooltip content-class="bg-white text-red-7"> {{ $t('COMMON.ERROR') }} </q-tooltip>
 										</q-icon>
@@ -87,27 +87,27 @@
 								</q-td>
 								<q-td key="count" :props="props">
 									<q-chip square class="bg-orange-6 text-white">
-										<q-spinner v-if="props.row.status === 'loading'" color="white" />
+										<q-spinner v-if="isLoading(props.row.status)" color="white" />
 										<template v-else>{{ props.row.count }}</template>
 									</q-chip>
 								</q-td>
 								<q-td key="final" :props="props">
-									<q-chip v-if="props.row.status === 'in-progress'" square class="bg-secondary text-white">
+									<q-chip v-if="isInProgress(props.row.status)" square class="bg-secondary text-white">
 										<q-spinner color="white" />
 									</q-chip>
-									<q-chip v-else-if="(props.row.status === 'done' || props.row.status === 'error'
-											|| props.row.status === 'warning') && props.row.entries.length"
+									<q-chip v-else-if="(isDone(props.row.status) || isError(props.row.status)
+											|| isWarning(props.row.status)) && props.row.entries.length"
 									        square class="bg-secondary text-white" clickable @click="showJSONResources(props.row.resource, false)">
 										{{ props.row.entries.length }}
 									</q-chip>
 									<q-chip v-else square class="bg-secondary text-white"> - </q-chip>
 								</q-td>
 								<q-td key="restricted" :props="props">
-									<q-chip v-if="props.row.status === 'in-progress'" square class="bg-negative text-white">
+									<q-chip v-if="isInProgress(props.row.status)" square class="bg-negative text-white">
 										<q-spinner color="white" />
 									</q-chip>
-									<q-chip v-else-if="(props.row.status === 'done' || props.row.status === 'error'
-											|| props.row.status === 'warning') && (props.row.count - props.row.entries.length)"
+									<q-chip v-else-if="(isDone(props.row.status) || isError(props.row.status)
+											|| isWarning(props.row.status)) && (props.row.count - props.row.entries.length)"
 									        square class="bg-negative text-white" clickable @click="showJSONResources(props.row.resource, true)">
 										{{ props.row.count - props.row.entries.length }}
 									</q-chip>
@@ -116,7 +116,7 @@
 							</q-tr>
 							<q-tr v-show="props.expand" :props="props">
 								<q-td colspan="100%" class="bg-grey-2">
-									<template v-if="props.row.status === 'done' || props.row.status === 'error' || props.row.status === 'warning'">
+									<template v-if="isDone(props.row.status) || isError(props.row.status) || isWarning(props.row.status)">
 										<template v-for="risk of props.row.risks">
 											<q-card v-if="risksShowCondition(risk, props.row.risks, props.row.resource)" flat bordered class="q-ml-md q-mr-md q-mt-sm q-mb-sm">
 												<q-item>
@@ -190,18 +190,18 @@
 					</q-table>
 					<div class="row content-end q-gutter-sm">
 						<q-space />
-						<q-btn v-if="deidentificationStatus === 'success' || deidentificationStatus === 'error'"
+						<q-btn v-if="isSuccess(deidentificationStatus) || isError(deidentificationStatus)"
 						       :disable="disableSave()" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
 							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_ANONYMIZED_DATA') }} </q-tooltip>
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
-						       :disable="deidentificationStatus !== 'pending' || !selectedResources.length
+						       :disable="!isPending(deidentificationStatus) || !selectedResources.length
 						       || !Object.keys(deidentificationResults).length" no-caps>
-							<span v-if="deidentificationStatus !== 'pending'" class="q-mr-sm">
-								<q-spinner size="xs" v-show="deidentificationStatus === 'in-progress' || deidentificationStatus === 'loading'" />
-								<q-icon name="check" size="xs" color="green" v-show="deidentificationStatus === 'success'" />
-								<q-icon name="error_outline" size="xs" color="red" v-show="deidentificationStatus === 'error'" />
+							<span v-if="!isPending(deidentificationStatus)" class="q-mr-sm">
+								<q-spinner size="xs" v-show="isInProgress(deidentificationStatus) || isLoading(deidentificationStatus)" />
+								<q-icon name="check" size="xs" color="green" v-show="isSuccess(deidentificationStatus)" />
+								<q-icon name="error_outline" size="xs" color="red" v-show="isError(deidentificationStatus)" />
 							</span>
 							<span> {{ $t('COMMON.DEIDENTIFY') }} </span>
 						</q-btn>
@@ -318,13 +318,15 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Watch} from 'vue-property-decorator';
 import {environment} from '@/common/environment';
 import {DeidentificationService} from '@/common/services/deidentification.service';
 import {Utils} from '@/common/utils/util';
 import OutcomeCard from '@/components/OutcomeCard.vue';
 import {ipcRenderer} from 'electron';
 import Loading from '@/components/Loading.vue';
+import Status from '@/common/Status'
+import StatusMixin from '@/common/mixins/statusMixin';
 
 @Component({
     components: {
@@ -335,7 +337,8 @@ import Loading from '@/components/Loading.vue';
         })
     } as any
 })
-export default class Deidentifier extends Vue {
+export default class Deidentifier extends Mixins(StatusMixin) {
+    private Status = Status;
     private saveDialog: boolean = false;
     private targetRepoDialog: boolean = false;
     private restrictionWarning: boolean = false;
@@ -358,7 +361,7 @@ export default class Deidentifier extends Vue {
         { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
         { name: 'restricted', align: 'center', label: 'Restricted Resource Count', field: 'restricted' }
     ];
-    private deidentificationStatus: status = 'loading';
+    private deidentificationStatus: status = Status.LOADING;
     private mappingList: any[] = [];
     private selectedResource: string = '';
     private currentPage: number = 1;
@@ -404,10 +407,10 @@ export default class Deidentifier extends Vue {
             });
             this.deidentificationResults = {};
             this.fetchAllData(groupedByResources).then(res => {
-                this.deidentificationStatus = 'pending';
+                this.deidentificationStatus = Status.PENDING;
             });
         } else {
-            this.deidentificationStatus = 'pending';
+            this.deidentificationStatus = Status.PENDING;
         }
     }
 
@@ -418,13 +421,13 @@ export default class Deidentifier extends Vue {
                 if (baseResource) { // fetch all data of base resource
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
-                        this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
+                        this.deidentificationResults[resource] = {status: Status.LOADING, entries: [], count: 0, outcomeDetails: [],
                             risks: [], restrictedEntries: [], informationLoss: 0};
                     }
                     this.deidentificationService.getEntries(resource, resource).then(entries => {
                         this.deidentificationResults[resource].entries = entries.entries;
                         this.deidentificationResults[resource].count = entries.entries.length;
-                        this.deidentificationResults[resource].status = 'pending';
+                        this.deidentificationResults[resource].status = Status.PENDING;
                         this.getResultsAsMapping();
                         resolve();
                     });
@@ -433,7 +436,7 @@ export default class Deidentifier extends Vue {
                         const resource = groups[0].split('.')[0];
                         const profile = groups[0].split('.')[1];
                         if (!this.deidentificationResults[resource]) {
-                            this.deidentificationResults[resource] = {status: 'loading', entries: [], count: 0, outcomeDetails: [],
+                            this.deidentificationResults[resource] = {status: Status.LOADING, entries: [], count: 0, outcomeDetails: [],
                                 risks: [], restrictedEntries: [], informationLoss: 0};
                         }
                         return this.deidentificationService.getEntries(resource, profile)
@@ -442,7 +445,7 @@ export default class Deidentifier extends Vue {
                         results.forEach((result: any) => {
                             this.deidentificationResults[result.resource].entries.push(...result.entries);
                             this.deidentificationResults[result.resource].count += result.entries.length;
-                            this.deidentificationResults[result.resource].status = 'pending';
+                            this.deidentificationResults[result.resource].status = Status.PENDING;
                             this.getResultsAsMapping();
                         });
                         resolve();
@@ -462,10 +465,10 @@ export default class Deidentifier extends Vue {
             return selectedResourceNames.includes(resource);
         })
         this.restrictedResourceNumber = 0;
-        this.deidentificationStatus = 'in-progress';
+        this.deidentificationStatus = Status.IN_PROGRESS;
         const promises = selectedGroups.map(attributes => {
             const resource: string = attributes[0].split('.')[0];
-            this.deidentificationResults[resource].status = 'in-progress';
+            this.deidentificationResults[resource].status = Status.IN_PROGRESS;
             this.getResultsAsMapping();
 
             const profile: string = attributes[0].split('.')[1];
@@ -541,32 +544,32 @@ export default class Deidentifier extends Vue {
                         const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
                         operationOutcome.issue.map(issue => {
                             if (issue.severity === 'error') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'error', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                this.deidentificationResults[resourceType].status = 'error';
-                                this.deidentificationStatus = 'error';
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = Status.ERROR;
+                                this.deidentificationStatus = Status.ERROR;
                                 this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
                             } else if (issue.severity === 'information') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                                if (this.deidentificationResults[resourceType].status !== 'error' && this.deidentificationResults[resourceType].status !== 'warning') {
-                                    this.deidentificationResults[resourceType].status = 'done';
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.DONE;
                                 }
                             } else if (issue.severity === 'warning') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: 'warning', resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                if (this.deidentificationResults[resourceType].status !== 'error') {
-                                    this.deidentificationResults[resourceType].status = 'warning';
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.WARNING;
                                 }
                             }
                         })
                     } else {
-                        this.deidentificationResults[resourceType].outcomeDetails.push({status: 'success', resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                        if (this.deidentificationResults[resourceType].status !== 'error' && this.deidentificationResults[resourceType].status !== 'warning') {
-                            this.deidentificationResults[resourceType].status = 'done';
+                        this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                        if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                            this.deidentificationResults[resourceType].status = Status.DONE;
                         }
                     }
                 });
             });
-            if (this.deidentificationStatus !== 'error') {
-                this.deidentificationStatus = 'success';
+            if (!this.isError(this.deidentificationStatus)) {
+                this.deidentificationStatus = Status.SUCCESS;
                 this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')))
             }
             this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
@@ -740,8 +743,8 @@ export default class Deidentifier extends Vue {
             return true;
         }
         for (const resource of this.selectedResources) {
-            if (resource.status === 'error' || resource.status === 'in-progress' ||
-                resource.status === 'pending' || resource.status === 'loading') {
+            if (this.isError(resource.status) || this.isInProgress(resource.status) ||
+                this.isPending(resource.status) || this.isLoading(resource.status)) {
                 return true;
             }
         }

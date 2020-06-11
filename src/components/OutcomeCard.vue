@@ -64,10 +64,10 @@
 					<template v-slot:body="props">
 						<q-tr :props="props">
 							<q-td key="status" :props="props">
-								<template v-if="props.row.status === 'success'">
+								<template v-if="isSuccess(props.row.status)">
 									<q-icon name="check" color="green" size="xs" />
 								</template>
-								<template v-else-if="props.row.status === 'error'">
+								<template v-else-if="isError(props.row.status)">
 									<q-icon name="warning" color="orange-6" size="xs" />
 								</template>
 							</q-td>
@@ -95,11 +95,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Mixins } from 'vue-property-decorator'
 import { QDialog } from 'quasar'
+import StatusMixin from '@/common/mixins/statusMixin'
 
 @Component
-export default class OutcomeCard extends Vue {
+export default class OutcomeCard extends Mixins(StatusMixin) {
     private columns = [
         { name: 'status', label: 'Status', field: 'status', align: 'center', icon: 'fas fa-info-circle',
             classes: 'bg-grey-2', headerClasses: 'bg-primary text-white col-1', style: 'width: 50px' },
@@ -117,12 +118,12 @@ export default class OutcomeCard extends Vue {
     get filteredOutcomeDetails (): OutcomeDetail[] {
         const details: OutcomeDetail[] = this.$store.getters['fhir/outcomeDetails'];
         return details.filter(_ => {
-            return ((this.successDetails ? _.status === 'success' : 0) || (this.errorDetails ? _.status === 'error' : 0))
+            return ((this.successDetails ? this.isSuccess(_.status) : 0) || (this.errorDetails ? this.isError(_.status) : 0))
                 && this.selectedResources.includes(_.resourceType)
         })
     }
-    get successTransformCount (): number { return this.outcomeDetails.filter(_ => _.status === 'success').length }
-    get errorTransformCount (): number { return this.outcomeDetails.filter(_ => _.status === 'error').length }
+    get successTransformCount (): number { return this.outcomeDetails.filter(_ => this.isSuccess(_.status)).length }
+    get errorTransformCount (): number { return this.outcomeDetails.filter(_ => this.isError(_.status)).length }
     get activeProfiles (): any[] {
         return this.selectedResources = Object.keys(this.outcomeDetails.reduce((acc, curr) => {
             (acc[curr.resourceType] = acc[curr.resourceType] || []);

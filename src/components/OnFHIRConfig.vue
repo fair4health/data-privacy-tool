@@ -8,9 +8,9 @@
 				</span>
 			</q-item-label>
 			<q-input filled type="url" class="col-10" v-model="onfhirUrl" color="accent"
-			         @keydown="changeVerificationStatus('pending')"
+			         @input="changeVerificationStatus(Status.PENDING)"
 			         :placeholder="$t('LABELS.FHIR_REPOSITORY_URL')"
-			         :disable="(isSource && fhirSourceVerificationStatus === 'in-progress') || (!isSource && fhirTargetVerificationStatus === 'in-progress')"
+			         :disable="(isSource && isInProgress(fhirSourceVerificationStatus)) || (!isSource && isInProgress(fhirTargetVerificationStatus))"
 			         @keypress.enter="verifyFhir">
 				<template v-slot:prepend>
 					<q-avatar>
@@ -19,11 +19,11 @@
 				</template>
 			</q-input>
 			<q-item-label class="text-weight-regular bg-red-1 q-mt-md q-pa-md" v-if="statusDetail &&
-				((isSource && fhirSourceVerificationStatus === 'error') || (!isSource && fhirTargetVerificationStatus === 'error'))">
+				((isSource && isError(fhirSourceVerificationStatus)) || (!isSource && isError(fhirTargetVerificationStatus)))">
 				<span class="text-red"><q-icon name="error" size="xs" class="q-mr-xs" /> {{ statusDetail }} </span>
 			</q-item-label>
 			<q-item-label class="text-weight-regular bg-green-1 q-mt-md q-pa-md" v-if="statusDetail &&
-				((isSource && fhirSourceVerificationStatus === 'success') || (!isSource && fhirTargetVerificationStatus === 'success'))">
+				((isSource && isSuccess(fhirSourceVerificationStatus)) || (!isSource && isSuccess(fhirTargetVerificationStatus)))">
 				<span class="text-green-8"><q-icon name="check" size="xs" class="q-mr-xs" /> {{ statusDetail }} </span>
 			</q-item-label>
 		</q-card-section>
@@ -35,12 +35,12 @@
 				<q-btn unelevated :label="$t('BUTTONS.VERIFY')" icon="verified_user" color="grey-2" text-color="primary"
 				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
-						<q-spinner class="q-ml-sm" size="xs" v-show="fhirSourceVerificationStatus==='in-progress'" />
-						<q-icon name="check" size="xs" color="green" v-show="fhirSourceVerificationStatus==='success'" />
-						<q-icon name="error_outline" size="xs" color="red" v-show="fhirSourceVerificationStatus==='error'" />
+						<q-spinner class="q-ml-sm" size="xs" v-show="isInProgress(fhirSourceVerificationStatus)" />
+						<q-icon name="check" size="xs" color="green" v-show="isSuccess(fhirSourceVerificationStatus)" />
+						<q-icon name="error_outline" size="xs" color="red" v-show="isError(fhirSourceVerificationStatus)" />
 					</span>
 				</q-btn>
-				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" :disable="fhirSourceVerificationStatus!=='success'"
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" :disable="!isSuccess(fhirSourceVerificationStatus)"
 				       @click="metaStep++" no-caps />
 			</div>
 		</q-card-section>
@@ -50,12 +50,12 @@
 				<q-btn unelevated :label="$t('BUTTONS.VERIFY')" icon="verified_user" color="grey-2" text-color="primary"
 				       :disable="!onfhirUrl" @click="verifyFhir" no-caps>
 					<span class="q-ml-sm">
-						<q-spinner class="q-ml-sm" size="xs" v-show="fhirTargetVerificationStatus==='in-progress'" />
-						<q-icon name="check" size="xs" color="green" v-show="fhirTargetVerificationStatus==='success'" />
-						<q-icon name="error_outline" size="xs" color="red" v-show="fhirTargetVerificationStatus==='error'" />
+						<q-spinner class="q-ml-sm" size="xs" v-show="isInProgress(fhirTargetVerificationStatus)" />
+						<q-icon name="check" size="xs" color="green" v-show="isSuccess(fhirTargetVerificationStatus)" />
+						<q-icon name="error_outline" size="xs" color="red" v-show="isError(fhirTargetVerificationStatus)" />
 					</span>
 				</q-btn>
-				<q-btn unelevated :label="$t('BUTTONS.SAVE')" icon-right="save" color="primary" :disable="fhirTargetVerificationStatus!=='success'"
+				<q-btn unelevated :label="$t('BUTTONS.SAVE')" icon-right="save" color="primary" :disable="!isSuccess(fhirTargetVerificationStatus)"
 				       @click="saveToRepositoryParentFunction(false)" no-caps v-close-popup />
 			</div>
 		</q-card-section>
@@ -63,13 +63,16 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue} from 'vue-property-decorator'
+import {Component, Prop, Mixins} from 'vue-property-decorator'
+import Status from '@/common/Status'
+import StatusMixin from '@/common/mixins/statusMixin';
 
 @Component
-    export default class OnFHIRConfig extends Vue {
+    export default class OnFHIRConfig extends Mixins(StatusMixin) {
         @Prop() readonly saveToRepositoryParentFunction;
 
-        private onfhirUrl: string | null = '';
+	    private Status = Status;
+	    private onfhirUrl: string | null = '';
         private statusDetail: string = '';
         private isSource: boolean = true;
 
@@ -94,15 +97,15 @@ import {Component, Prop, Vue} from 'vue-property-decorator'
                 } else {
                     this.$store.commit('fhir/updateFhirTargetBase', this.onfhirUrl);
                 }
-                this.changeVerificationStatus('in-progress');
+                this.changeVerificationStatus(Status.IN_PROGRESS);
                 this.$store.dispatch('fhir/verifyFhir', this.isSource)
                     .then(() => {
                         this.statusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'))
-                        this.changeVerificationStatus('success');
+                        this.changeVerificationStatus(Status.SUCCESS);
                     })
                     .catch(err => {
                         this.statusDetail = err;
-                        this.changeVerificationStatus('error');
+                        this.changeVerificationStatus(Status.ERROR);
                     })
             }
         }
