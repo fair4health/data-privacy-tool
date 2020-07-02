@@ -1,18 +1,23 @@
 <template>
 	<div>
 
-		<!--The first step - Metadata Analyzing-->
+		<!--The first step - Verification of onFHIR-->
 		<template v-if="step === 1">
+			<OnFHIRVerifier />
+		</template>
+
+		<!--The second step - Metadata Analyzing-->
+		<template v-if="step === 2">
 			<MetadataAnalyzer />
 		</template>
 
-		<!--The second step - Configuration of Parameters-->
-		<template v-if="step === 2">
+		<!--The third step - Configuration of Parameters-->
+		<template v-if="step === 3">
 			<ConfigurationManager />
 		</template>
 
 		<!--The last step - Deidentifying and Evaluation of Results-->
-		<template v-if="step === 3">
+		<template v-if="step === 4">
 			<Deidentifier />
 		</template>
 
@@ -25,6 +30,11 @@ import Loading from '@/components/Loading.vue'
 
 @Component({
     components: {
+        OnFHIRVerifier: () => ({
+            component: import('@/components/OnFHIRVerifier.vue'),
+            loading: Loading,
+            delay: 0
+        }),
         MetadataAnalyzer: () => ({
             component: import('@/components/MetadataAnalyzer.vue'),
             loading: Loading,

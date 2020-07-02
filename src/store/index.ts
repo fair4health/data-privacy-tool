@@ -11,14 +11,12 @@ export default new Vuex.Store({
         drawerMiniState: true,
         privacyStep: 1,
         log: '',
-        metaStep: 1
     },
     getters: {
         drawerOpen: state => state.drawerOpen,
         drawerMiniState: state => state.drawerMiniState,
         privacyStep: state => state.privacyStep,
         log: state => state.log,
-        metaStep: state => state.metaStep,
     },
     mutations: {
         setDrawerOpen (state, value: boolean) {
@@ -41,9 +39,6 @@ export default new Vuex.Store({
         },
         updateLog (state, message) {
             state.log += message + '<br/>'
-        },
-        setMetaStep (state, value: number) {
-            state.metaStep = value;
         }
     },
     actions: {},

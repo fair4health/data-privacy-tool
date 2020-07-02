@@ -1,17 +1,23 @@
 <template>
 	<div>
 		<q-bar class="bg-black text-weight-light text-white q-electron-drag q-pr-none">
-			<q-btn flat dense round aria-label="Menu" icon="menu"
-			       @click="$q.screen.lt.lg || !drawerOpen ? (drawerOpen = !drawerOpen) : (drawerMiniState = !drawerMiniState)"
-			/>
-			<img class="flex flex-center" src="../assets/FAIR4Health-logo.png" width="80px">
-			<div class="text-weight-bold" style="font-size: 14px">{{ $t('COMMON.APP_NAME') }}</div>
-			<q-space />
-			<div class="q-mx-none q-px-none">
-				<q-btn flat square icon="remove" class="title-bar-btn" @click="minimizeApp" />
-				<q-btn flat :icon="isMaximized ? 'mdi-window-restore' : 'mdi-crop-square'" class="title-bar-btn" @click="toggleFullScreen" />
-				<q-btn flat icon="close" class="title-bar-btn btn-close" @click="closeApp" />
+			<div :class="{'col flex flex-center': isDarwin}">
+				<div class="row items-center">
+					<q-btn v-if="!isDarwin" flat dense round icon="menu" @click="toggleSidebar" />
+					<div class="col-auto">
+						<img class="flex flex-center" src="../assets/FAIR4Health-logo.png" width="80px">
+					</div>
+					<div class="col text-weight-bold text-size-xl">{{ $t('COMMON.APP_NAME') }}</div>
+				</div>
 			</div>
+			<template v-if="!isDarwin">
+				<q-space />
+				<div class="q-mx-none q-px-none">
+					<q-btn flat square icon="remove" class="title-bar-btn" @click="minimizeApp" />
+					<q-btn flat :icon="isMaximized ? 'mdi-window-restore' : 'mdi-crop-square'" class="title-bar-btn" @click="toggleFullScreen" />
+					<q-btn flat icon="close" class="title-bar-btn btn-close" @click="closeApp" />
+				</div>
+			</template>
 		</q-bar>
 		<div class="bg-grey-10 q-pa-sm q-pl-md row items-center">
 			<div class="cursor-pointer non-selectable">
@@ -35,7 +41,7 @@
 				</q-menu>
 			</div>
 			<div class="q-ml-md cursor-pointer non-selectable">
-				{{ $tc('MENU.TOOLS') }}
+				{{ $tc('MENU.TOOL') }}
 				<q-menu auto-close>
 					<q-list dense style="min-width: 150px">
 						<q-item clickable @click="toggleDevTools">
@@ -91,6 +97,7 @@
         private langs = environment.langs
 
         get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
+        get isDarwin (): boolean { return remote.process.platform === 'darwin' }
 
         get drawerOpen (): boolean { return this.$store.getters.drawerOpen }
         set drawerOpen (value) { this.$store.commit('setDrawerOpen', value) }
@@ -107,6 +114,12 @@
             if (this.currentWindow.isMaximized()) this.currentWindow.unmaximize()
             else this.currentWindow.maximize()
         }
+
+        toggleSidebar () {
+            if (this.$q.screen.lt.lg || !this.drawerOpen) this.drawerOpen = !this.drawerOpen
+            else this.drawerMiniState = !this.drawerMiniState
+        }
+
         minimizeApp () { this.currentWindow.minimize() }
         closeApp () { this.currentWindow.close() }
         toggleDevTools () { remote.getCurrentWebContents().toggleDevTools() }

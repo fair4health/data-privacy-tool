@@ -97,9 +97,10 @@ import {shell} from 'electron';
 })
 export default class MainLayout extends Vue {
     private steps: StepItem[] = [
-        { title: 'MENU.METADATA_ANALYZER', icon: 'fas fa-database', stepId: 1 },
-        { title: 'MENU.CONFIGURATION_MANAGER', icon: 'fas fa-sliders-h', stepId: 2 },
-        { title: 'MENU.DEIDENTIFIER', icon: 'fas fa-user-secret', stepId: 3 }
+        { title: 'MENU.ONFHIR_VERIFIER', icon: 'fas fa-fire', stepId: 1 },
+        { title: 'MENU.METADATA_ANALYZER', icon: 'fas fa-database', stepId: 2 },
+        { title: 'MENU.CONFIGURATION_MANAGER', icon: 'fas fa-sliders-h', stepId: 3 },
+        { title: 'MENU.DEIDENTIFIER', icon: 'fas fa-user-secret', stepId: 4 }
     ];
 
     get drawerOpen (): boolean { return this.$store.getters.drawerOpen }

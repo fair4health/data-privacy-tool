@@ -297,6 +297,12 @@
 				</q-card-section>
 				<q-separator />
 				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" style="max-height: 70vh" class="scroll">
+					<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
+						<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+							<template v-if="isRestricted"> {{ $t('INFO.RESTRICTED_JSONS') }} </template>
+							<template v-else> {{ $t('INFO.DEIDENTIFIED_JSONS') }} </template>
+						</span>
+					</q-item-label>
 					<q-list class="q-mb-md bg-grey-3" bordered v-for="(entry, index) in getJsonsInPage()" :key="index">
 						<q-item>
 							<tree-view class="q-mb-lg q-ml-sm" :data="entry" :options="{maxDepth: 2, link: true, rootObjectKey: getResourceNumber(index)}" />
@@ -537,44 +543,52 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     validateEntries (resourceType) {
         this.deidentificationResults[resourceType].outcomeDetails = [];
         const entries = this.deidentificationResults[resourceType].entries;
-        this.$store.dispatch('fhir/validateEntries', entries).then(response => {
-            response.forEach(bulk => {
-                bulk.data.entry.map(item => {
-                    if (!item.resource) {
-                        const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
-                        operationOutcome.issue.map(issue => {
-                            if (issue.severity === 'error') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                this.deidentificationResults[resourceType].status = Status.ERROR;
-                                this.deidentificationStatus = Status.ERROR;
-                                this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
-                            } else if (issue.severity === 'information') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                                if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                    this.deidentificationResults[resourceType].status = Status.DONE;
-                                }
-                            } else if (issue.severity === 'warning') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                if (!this.isError(this.deidentificationResults[resourceType].status)) {
-                                    this.deidentificationResults[resourceType].status = Status.WARNING;
-                                }
-                            }
-                        })
-                    } else {
-                        this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                        if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                            this.deidentificationResults[resourceType].status = Status.DONE;
-                        }
-                    }
-                });
-            });
-            if (!this.isError(this.deidentificationStatus)) {
-                this.deidentificationStatus = Status.SUCCESS;
-                this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')))
-            }
+        if (!entries.length) {
+            this.deidentificationResults[resourceType].status = Status.DONE;
+            this.deidentificationStatus = Status.SUCCESS;
+            this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')));
             this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
             this.getResultsAsMapping();
-        });
+        } else {
+            this.$store.dispatch('fhir/validateEntries', entries).then(response => {
+                response.forEach(bulk => {
+                    bulk.data.entry.map(item => {
+                        if (!item.resource) {
+                            const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
+                            operationOutcome.issue.map(issue => {
+                                if (issue.severity === 'error') {
+                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                    this.deidentificationResults[resourceType].status = Status.ERROR;
+                                    this.deidentificationStatus = Status.ERROR;
+                                    this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
+                                } else if (issue.severity === 'information') {
+                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                                    if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                                        this.deidentificationResults[resourceType].status = Status.DONE;
+                                    }
+                                } else if (issue.severity === 'warning') {
+                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                    if (!this.isError(this.deidentificationResults[resourceType].status)) {
+                                        this.deidentificationResults[resourceType].status = Status.WARNING;
+                                    }
+                                }
+                            })
+                        } else {
+                            this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
+                            if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                                this.deidentificationResults[resourceType].status = Status.DONE;
+                            }
+                        }
+                    });
+                });
+                if (!this.isError(this.deidentificationStatus)) {
+                    this.deidentificationStatus = Status.SUCCESS;
+                    this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')));
+                }
+                this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
+                this.getResultsAsMapping();
+            });
+        }
     }
 
     openOutcomeDetailCard (outcomeDetails: OutcomeDetail[]) {

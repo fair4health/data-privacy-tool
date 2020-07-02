@@ -7,7 +7,7 @@
 This is a standalone, desktop application developed by the FAIR4Health project (https://www.fair4health.eu/).
 The tool aims to handle the privacy challenges exposed by the sensitive health data.
 It is designed to work on an HL7 FHIR API so that it can be used on top of any standard FHIR Repository
-as a data de-identification, anonymization and related actions toolset.
+as a data de-identification, anonymization, and related actions toolset.
 The tool accesses FHIR resources, presents metadata to the user, guide the user about the configuration to be
 applied and then output the processed FHIR resources.
 

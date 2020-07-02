@@ -41,7 +41,7 @@
 					</span>
 				</q-btn>
 				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" :disable="!isSuccess(fhirSourceVerificationStatus)"
-				       @click="metaStep++" no-caps />
+				       @click="$store.commit('incrementStep')" no-caps />
 			</div>
 		</q-card-section>
 		<q-card-section v-else class="row">
@@ -71,8 +71,8 @@ import StatusMixin from '@/common/mixins/statusMixin';
     export default class OnFHIRConfig extends Mixins(StatusMixin) {
         @Prop() readonly saveToRepositoryParentFunction;
 
-	    private Status = Status;
-	    private onfhirUrl: string | null = '';
+        private Status = Status;
+        private onfhirUrl: string | null = '';
         private statusDetail: string = '';
         private isSource: boolean = true;
 
@@ -82,26 +82,23 @@ import StatusMixin from '@/common/mixins/statusMixin';
         get fhirTargetVerificationStatus (): status { return this.$store.getters['fhir/fhirTargetVerificationStatus'] }
         set fhirTargetVerificationStatus (value) { this.$store.commit('fhir/setFhirTargetVerificationStatus', value) }
 
-        get metaStep (): number { return this.$store.getters.metaStep }
-        set metaStep (value) { this.$store.commit('setMetaStep', value) }
-
         mounted () {
-            this.isSource = this.$parent.$options['_componentTag'] === 'MetadataAnalyzer';
-			this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
+            this.isSource = this.$parent.$options['_componentTag'] === 'OnFHIRVerifier';
+            this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
         }
 
         verifyFhir () {
             if (this.onfhirUrl) {
-                if (this.isSource) {
-                    this.$store.commit('fhir/updateFhirSourceBase', this.onfhirUrl);
-                } else {
-                    this.$store.commit('fhir/updateFhirTargetBase', this.onfhirUrl);
-                }
                 this.changeVerificationStatus(Status.IN_PROGRESS);
                 this.$store.dispatch('fhir/verifyFhir', this.isSource)
                     .then(() => {
                         this.statusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'))
                         this.changeVerificationStatus(Status.SUCCESS);
+                        if (this.isSource) {
+                            this.$store.commit('fhir/updateFhirSourceBase', this.onfhirUrl);
+                        } else {
+                            this.$store.commit('fhir/updateFhirTargetBase', this.onfhirUrl);
+                        }
                     })
                     .catch(err => {
                         this.statusDetail = err;

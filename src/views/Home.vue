@@ -17,15 +17,34 @@
 			<q-item-section>
 				<q-item-label class="text-h4 text-weight-bold">{{ $t('LABELS.OVERALL_STEPS') }}</q-item-label>
 				<q-stepper flat v-model="step" ref="stepper" alternative-labels color="primary" class="bg-grey-3">
-					<q-step :name="1" :title="$t('COMMON.METADATA_ANALYZER')" icon="fas fa-database" color="secondary"></q-step>
-					<q-step :name="2" :title="$t('COMMON.CONFIGURATION_MANAGER')" icon="fas fa-sliders-h" color="secondary"></q-step>
-					<q-step :name="3" :title="$t('COMMON.DEIDENTIFIER')" icon="fas fa-user-secret" color="secondary"></q-step>
+					<q-step :name="1" :title="$t('COMMON.ONFHIR_VERIFIER')" icon="fas fa-fire" color="secondary"></q-step>
+					<q-step :name="2" :title="$t('COMMON.METADATA_ANALYZER')" icon="fas fa-database" color="secondary"></q-step>
+					<q-step :name="3" :title="$t('COMMON.CONFIGURATION_MANAGER')" icon="fas fa-sliders-h" color="secondary"></q-step>
+					<q-step :name="4" :title="$t('COMMON.DEIDENTIFIER')" icon="fas fa-user-secret" color="secondary"></q-step>
 				</q-stepper>
 			</q-item-section>
 		</q-item>
 
+		<!--OnFHIR Verifier-->
+		<q-item class="q-pt-xl q-pl-xl q-pr-xl text-grey-8">
+			<q-item-section>
+				<q-item-label class="text-h7 text-weight-bold">
+					<q-icon class=" q-mr-xs" size="xs" name="fas fa-fire" /> {{ $t('COMMON.ONFHIR_VERIFIER') }}
+				</q-item-label>
+				<q-card flat class="q-ma-md">
+					<q-card-section>
+						<q-list dense class="rounded-borders">
+							<q-item>
+								<q-item-section> {{ $t('INFO.ONFHIR_VERIFIER_HOME_INFO') }} </q-item-section>
+							</q-item>
+						</q-list>
+					</q-card-section>
+				</q-card>
+			</q-item-section>
+		</q-item>
+
 		<!--Metadata Analyzer-->
-		<q-item class="q-pa-xl text-grey-8">
+		<q-item class="q-pt-xl q-pl-xl q-pr-xl text-grey-8">
 			<q-item-section>
 				<q-item-label class="text-h7 text-weight-bold">
 					<q-icon class=" q-mr-xs" size="xs" name="fas fa-database" /> {{ $t('COMMON.METADATA_ANALYZER') }}
@@ -43,7 +62,7 @@
 		</q-item>
 
 		<!--Configuration Manager-->
-		<q-item class="q-pa-xl text-grey-8">
+		<q-item class="q-pt-xl q-pl-xl q-pr-xl text-grey-8">
 			<q-item-section>
 				<q-item-label class="text-h7 text-weight-bold">
 					<q-icon class=" q-mr-xs" size="xs" name="fas fa-sliders-h" /> {{ $t('COMMON.CONFIGURATION_MANAGER') }}
@@ -61,7 +80,7 @@
 		</q-item>
 
 		<!--De-identifier-->
-		<q-item class="q-pa-xl text-grey-8">
+		<q-item class="q-pt-xl q-pl-xl q-pr-xl text-grey-8">
 			<q-item-section>
 				<q-item-label class="text-h7 text-weight-bold">
 					<q-icon class=" q-mr-xs" size="xs" name="fas fa-user-secret" /> {{ $t('COMMON.DEIDENTIFIER') }}
