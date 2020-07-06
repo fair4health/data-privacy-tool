@@ -193,6 +193,7 @@
 
 <script lang="ts">
 import {Component, Vue, Watch} from 'vue-property-decorator'
+import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 import {environment} from '@/common/environment'
 
 @Component
@@ -206,23 +207,23 @@ export default class AlgorithmConfigDialog extends Vue {
     private rareFirstValue: string = '';
     private rareAfterValue: string = '';
 
-    get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
-    set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
+    get currentAttribute (): string { return this.$store.getters[types.Fhir.CURRENT_ATTRIBUTE] }
+    set currentAttribute (value) { this.$store.commit(types.Fhir.SET_CURRENT_ATTRIBUTE, value) }
 
-    get currentNode (): any { return this.$store.getters['fhir/currentNode'] }
-    set currentNode (value) { this.$store.commit('fhir/setCurrentNode', value) }
+    get currentNode (): any { return this.$store.getters[types.Fhir.CURRENT_NODE] }
+    set currentNode (value) { this.$store.commit(types.Fhir.SET_CURRENT_NODE, value) }
 
-    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
-    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+    get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
+    set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
 
-    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters[types.Fhir.PARAMETER_MAPPINGS] }
+    set parameterMappings (value) { this.$store.commit(types.Fhir.SET_PARAMETER_MAPPINGS, value) }
 
-    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
-    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+    get typeMappings (): any { return this.$store.getters[types.Fhir.TYPE_MAPPINGS] }
+    set typeMappings (value) { this.$store.commit(types.Fhir.SET_TYPE_MAPPINGS, value) }
 
-    get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
-    set rareValueMappings (value) { this.$store.commit('fhir/setRareValueMappings', value) }
+    get rareValueMappings (): any { return this.$store.getters[types.Fhir.RARE_VALUE_MAPPINGS] }
+    set rareValueMappings (value) { this.$store.commit(types.Fhir.SET_RARE_VALUE_MAPPINGS, value) }
 
     created () {
         if (this.isSensitive()) {

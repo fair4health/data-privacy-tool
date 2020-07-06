@@ -144,6 +144,7 @@
 <script lang="ts">
     import {Component, Vue, Watch} from 'vue-property-decorator'
     import Loading from '@/components/Loading.vue';
+    import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
     @Component({
     components: {
@@ -162,37 +163,38 @@ export default class SensitiveAttributeTable extends Vue {
     private filter: string = '';
     private tempParameterMappings = JSON.parse(JSON.stringify(this.parameterMappings));
 
-    get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
-    set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
+    get currentFHIRRes (): string { return this.$store.getters[types.Fhir.CURRENT_RESOURCE] }
+    set currentFHIRRes (value) { this.$store.commit(types.Fhir.SET_CURRENT_RESOURCE, value) }
 
-    get currentFHIRProf (): string { return this.$store.getters['fhir/currentProfile'] }
-    set currentFHIRProf (value) { this.$store.commit('fhir/setCurrentProfile', value) }
+    get currentFHIRProf (): string { return this.$store.getters[types.Fhir.CURRENT_PROFILE] }
+    set currentFHIRProf (value) { this.$store.commit(types.Fhir.SET_CURRENT_PROFILE, value) }
 
-    get currentAttribute (): string { return this.$store.getters['fhir/currentAttribute'] }
-    set currentAttribute (value) { this.$store.commit('fhir/setCurrentAttribute', value) }
+    get currentAttribute (): string { return this.$store.getters[types.Fhir.CURRENT_ATTRIBUTE] }
+    set currentAttribute (value) { this.$store.commit(types.Fhir.SET_CURRENT_ATTRIBUTE, value) }
 
-    get currentNode (): any { return this.$store.getters['fhir/currentNode'] }
-    set currentNode (value) { this.$store.commit('fhir/setCurrentNode', value) }
+    get currentNode (): any { return this.$store.getters[types.Fhir.CURRENT_NODE] }
+    set currentNode (value) { this.$store.commit(types.Fhir.SET_CURRENT_NODE, value) }
 
-    get fhirElementListFlat (): any { return this.$store.getters['fhir/elementListFlat'] }
-    get sensitiveElementList (): object[] { return this.$store.getters['fhir/sensitiveElementList'] }
+    get fhirElementListFlat (): any { return this.$store.getters[types.Fhir.ELEMENT_LIST_FLAT] }
+    get sensitiveElementList (): object[] { return this.$store.getters[types.Fhir.SENSITIVE_ELEMENT_LIST] }
 
-    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
-    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+    get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
+    set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
 
-    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters[types.Fhir.PARAMETER_MAPPINGS] }
+    set parameterMappings (value) { this.$store.commit(types.Fhir.SET_PARAMETER_MAPPINGS, value) }
 
-    get rareElements (): any { return this.$store.getters['fhir/rareElements'] }
-    set rareElements (value) { this.$store.commit('fhir/setRareElements', value) }
+    get rareElements (): any { return this.$store.getters[types.Fhir.RARE_ELEMENTS] }
+    set rareElements (value) { this.$store.commit(types.Fhir.SET_RARE_ELEMENTS, value) }
 
-    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
-    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+    get typeMappings (): any { return this.$store.getters[types.Fhir.TYPE_MAPPINGS] }
+    set typeMappings (value) { this.$store.commit(types.Fhir.SET_TYPE_MAPPINGS, value) }
 
-    get kAnonymityValidMappings (): any { return this.$store.getters['fhir/kAnonymityValidMappings'] }
-    set kAnonymityValidMappings (value) { this.$store.commit('fhir/setKAnonymityValidMappings', value) }
-    get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
-    set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
+    get kAnonymityValidMappings (): any { return this.$store.getters[types.Fhir.K_ANONYMITY_VALID_MAPPINGS] }
+    set kAnonymityValidMappings (value) { this.$store.commit(types.Fhir.SET_K_ANONYMITY_VALID_MAPPINGS, value) }
+
+    get kValueMappings (): any { return this.$store.getters[types.Fhir.K_VALUE_MAPPINGS] }
+    set kValueMappings (value) { this.$store.commit(types.Fhir.SET_K_VALUE_MAPPINGS, value) }
 
     @Watch('currentFHIRRes')
     onFHIRResourceChanged (): void {

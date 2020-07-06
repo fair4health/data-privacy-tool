@@ -27,6 +27,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue'
+import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 
 @Component({
     components: {
@@ -53,6 +54,6 @@ import Loading from '@/components/Loading.vue'
     } as any
 })
 export default class Stepper extends Vue {
-    get step (): number { return this.$store.getters.privacyStep }
+    get step (): number { return this.$store.getters[types.PRIVACY_STEP] }
 }
 </script>

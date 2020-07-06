@@ -192,6 +192,7 @@
 import { Component, Vue, Watch } from 'vue-property-decorator'
 import {environment} from '@/common/environment'
 import {FHIRUtils} from '@/common/utils/fhir-util';
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
 @Component
 export default class FhirAttributeTable extends Vue {
@@ -205,36 +206,36 @@ export default class FhirAttributeTable extends Vue {
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
 
-    get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
-    get fhirProfileList (): string[] { return this.$store.getters['fhir/profileList'].map(r => r.id) }
+    get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
+    get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.id) }
 
-    get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
-    set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
+    get currentFHIRRes (): string { return this.$store.getters[types.Fhir.CURRENT_RESOURCE] }
+    set currentFHIRRes (value) { this.$store.commit(types.Fhir.SET_CURRENT_RESOURCE, value) }
 
-    get currentFHIRProf (): string { return this.$store.getters['fhir/currentProfile'] }
-    set currentFHIRProf (value) { this.$store.commit('fhir/setCurrentProfile', value) }
+    get currentFHIRProf (): any { return this.$store.getters[types.Fhir.CURRENT_PROFILE] }
+    set currentFHIRProf (value) { this.$store.commit(types.Fhir.SET_CURRENT_PROFILE, value) }
 
-    get fhirElementList (): object[] { return this.$store.getters['fhir/elementList'] }
-    set fhirElementList (value) { this.$store.commit('fhir/setElementList', value) }
+    get fhirElementList (): object[] { return this.$store.getters[types.Fhir.ELEMENT_LIST] }
+    set fhirElementList (value) { this.$store.commit(types.Fhir.SET_ELEMENT_LIST, value) }
 
-    get fhirElementListFlat (): any { return this.$store.getters['fhir/elementListFlat'] }
+    get fhirElementListFlat (): any { return this.$store.getters[types.Fhir.ELEMENT_LIST_FLAT] }
 
-    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
-    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+    get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
+    set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
 
-    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters[types.Fhir.PARAMETER_MAPPINGS] }
+    set parameterMappings (value) { this.$store.commit(types.Fhir.SET_PARAMETER_MAPPINGS, value) }
 
-    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
-    set typeMappings (value) { this.$store.commit('fhir/setTypeMappings', value) }
+    get typeMappings (): any { return this.$store.getters[types.Fhir.TYPE_MAPPINGS] }
+    set typeMappings (value) { this.$store.commit(types.Fhir.SET_TYPE_MAPPINGS, value) }
 
-    get resourceProfileMappings (): any { return this.$store.getters['fhir/resourceProfileMappings'] }
-    set resourceProfileMappings (value) { this.$store.commit('fhir/setResourceProfileMappings', value) }
+    get resourceProfileMappings (): any { return this.$store.getters[types.Fhir.RESOURCE_PROFILE_MAPPINGS] }
+    set resourceProfileMappings (value) { this.$store.commit(types.Fhir.SET_RESOURCE_PROFILE_MAPPINGS, value) }
 
     created () {
-        this.$store.dispatch('fhir/getResources').then(res => {
+        this.$store.dispatch(types.Fhir.GET_RESOURCES).then(res => {
             for (const resource of this.fhirResourceList) {
-                this.$store.dispatch('fhir/getProfilesByRes', resource).then(pro => {
+                this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resource).then(pro => {
                     this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
                 });
@@ -257,7 +258,7 @@ export default class FhirAttributeTable extends Vue {
     }
 
     getElements () {
-        this.$store.dispatch('fhir/getElements', !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
             .then(() => {
                 this.loadingFhir = false;
                 this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));

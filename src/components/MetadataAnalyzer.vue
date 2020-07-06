@@ -13,9 +13,9 @@
 		<div class="q-ma-sm">
 			<FhirAttributeTable :key="fhirAttributeTableKey" />
 			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
 				<q-space />
-				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit(types.INCREMENT_STEP)" no-caps />
 			</div>
 		</div>
 
@@ -64,6 +64,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {ipcRenderer} from 'electron';
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
 @Component({
     components: {
@@ -89,7 +90,7 @@ export default class MetadataAnalyzer extends Vue {
         ipcRenderer.send('browse-configurations')
         ipcRenderer.on('selected-configurations', (event, data) => {
             if (data) {
-                this.$store.dispatch('fhir/importState', data).then(() => {
+                this.$store.dispatch(types.Fhir.IMPORT_STATE, data).then(() => {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_IMPORTED')))
                     this.fhirAttributeTableKey++; // in order to re-render attribute table
                 });
@@ -113,7 +114,7 @@ export default class MetadataAnalyzer extends Vue {
 
     restoreSaved (index: number) {
         const config = this.savedConfigs[index];
-        this.$store.dispatch('fhir/importState', config.data).then(() => {
+        this.$store.dispatch(types.Fhir.IMPORT_STATE, config.data).then(() => {
             this.$notify.success(String(this.$t('SUCCESS.CONFIGURATION_IS_LOADED')))
             this.fhirAttributeTableKey++; // in order to re-render attribute table
         });

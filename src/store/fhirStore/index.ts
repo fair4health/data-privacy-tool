@@ -2,6 +2,7 @@ import { FhirService } from '@/common/services/fhir.service'
 import { environment } from '@/common/environment'
 import { FHIRUtils } from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
+import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 import i18n from '@/i18n';
 
 const fhirStore = {
@@ -37,7 +38,6 @@ const fhirStore = {
         }
         return tmpObj;
     },
-    namespaced: true,
     state: {
         resourceList: null,
         profileList: null,
@@ -57,9 +57,11 @@ const fhirStore = {
         kValueMappings: {},
         fhirSourceBase: environment.server.config.source.baseUrl,
         fhirSourceVerificationStatus: '',
+        fhirSourceVerificationStatusDetail: '',
         sourceFhirService: new FhirService(true),
         fhirTargetBase: environment.server.config.target.baseUrl,
         fhirTargetVerificationStatus: '',
+        fhirTargetVerificationStatusDetail: '',
         targetFhirService: new FhirService(false),
         evaluationService: new EvaluationService(),
         typeMappings: {},
@@ -72,45 +74,44 @@ const fhirStore = {
         selectedResources: []
     },
     getters: {
-        resourceList: state => state.resourceList || [],
-        profileList: state => state.profileList || [],
-        elementList: state => state.elementList || [],
-        elementListFlat: state => state.elementListFlat || [],
-        quasiElementList: state => state.quasiElementList || [],
-        sensitiveElementList: state => state.sensitiveElementList || [],
-        currentResource: state => state.currentResource || '',
-        currentProfile: state => state.currentProfile || '',
-        currentAttribute: state => state.currentAttribute || '',
-        currentNode: state => state.currentNode || null,
-        rareElements: state => state.rareElements || [],
-        requiredElements: state => state.requiredElements || [],
-        attributeMappings: state => state.attributeMappings || {},
-        parameterMappings: state => state.parameterMappings || {},
-        kAnonymityValidMappings: state => state.kAnonymityValidMappings || {},
-        kValueMappings: state => state.kValueMappings || {},
-        fhirSourceBase: state => state.fhirSourceBase,
-        fhirSourceVerificationStatus: state => state.fhirSourceVerificationStatus,
-        sourceFhirService: state => state.sourceFhirService,
-        fhirTargetBase: state => state.fhirTargetBase,
-        fhirTargetVerificationStatus: state => state.fhirTargetVerificationStatus,
-        targetFhirService: state => state.targetFhirService,
-        evaluationService: state => state.evaluationService,
-        typeMappings: state => state.typeMappings || {},
-        rareValueMappings: state => state.rareValueMappings || {},
-        resourceProfileMappings: state => state.resourceProfileMappings || {},
-        deidentificationResults: state => state.deidentificationResults || {},
-        profileUrlMappings: state => state.profileUrlMappings || {},
-        outcomeDetails: state => state.outcomeDetails || [],
-        selectedResources: state => state.selectedResources || []
+        [types.Fhir.RESOURCE_LIST]: state => state.resourceList || [],
+        [types.Fhir.PROFILE_LIST]: state => state.profileList || [],
+        [types.Fhir.ELEMENT_LIST]: state => state.elementList || [],
+        [types.Fhir.ELEMENT_LIST_FLAT]: state => state.elementListFlat || [],
+        [types.Fhir.QUASI_ELEMENT_LIST]: state => state.quasiElementList || [],
+        [types.Fhir.SENSITIVE_ELEMENT_LIST]: state => state.sensitiveElementList || [],
+        [types.Fhir.CURRENT_RESOURCE]: state => state.currentResource || '',
+        [types.Fhir.CURRENT_PROFILE]: state => state.currentProfile || '',
+        [types.Fhir.CURRENT_ATTRIBUTE]: state => state.currentAttribute || '',
+        [types.Fhir.CURRENT_NODE]: state => state.currentNode || null,
+        [types.Fhir.RARE_ELEMENTS]: state => state.rareElements || [],
+        [types.Fhir.REQUIRED_ELEMENTS]: state => state.requiredElements || [],
+        [types.Fhir.ATTRIBUTE_MAPPINGS]: state => state.attributeMappings || {},
+        [types.Fhir.PARAMETER_MAPPINGS]: state => state.parameterMappings || {},
+        [types.Fhir.K_ANONYMITY_VALID_MAPPINGS]: state => state.kAnonymityValidMappings || {},
+        [types.Fhir.K_VALUE_MAPPINGS]: state => state.kValueMappings || {},
+        [types.Fhir.FHIR_SOURCE_BASE]: state => state.fhirSourceBase,
+        [types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS]: state => state.fhirSourceVerificationStatus,
+        [types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS_DETAIL]: state => state.fhirSourceVerificationStatusDetail,
+        [types.Fhir.FHIR_TARGET_BASE]: state => state.fhirTargetBase,
+        [types.Fhir.FHIR_TARGET_VERIFICATION_STATUS]: state => state.fhirTargetVerificationStatus,
+        [types.Fhir.FHIR_TARGET_VERIFICATION_STATUS_DETAIL]: state => state.fhirTargetVerificationStatusDetail,
+        [types.Fhir.TYPE_MAPPINGS]: state => state.typeMappings || {},
+        [types.Fhir.RARE_VALUE_MAPPINGS]: state => state.rareValueMappings || {},
+        [types.Fhir.RESOURCE_PROFILE_MAPPINGS]: state => state.resourceProfileMappings || {},
+        [types.Fhir.DEIDENTIFICATION_RESULTS]: state => state.deidentificationResults || {},
+        [types.Fhir.PROFILE_URL_MAPPINGS]: state => state.profileUrlMappings || {},
+        [types.Fhir.OUTCOME_DETAILS]: state => state.outcomeDetails || [],
+        [types.Fhir.SELECTED_RESOURCES]: state => state.selectedResources || []
     },
     mutations: {
-        setResourceList (state, list) {
+        [types.Fhir.SET_RESOURCE_LIST] (state, list) {
             state.resourceList = list
         },
-        setProfileList (state, list) {
+        [types.Fhir.SET_PROFILE_LIST] (state, list) {
             state.profileList = list
         },
-        setElementList (state, list) {
+        [types.Fhir.SET_ELEMENT_LIST] (state, list) {
             state.elementList = list?.length ? FHIRUtils.filterDataTypes(list, state) : [];
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
             state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
@@ -118,76 +119,82 @@ const fhirStore = {
             state.sensitiveElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
                                                         environment.attributeTypes.SENSITIVE, state.typeMappings) : [];
         },
-        setRareElements (state, list) {
+        [types.Fhir.SET_RARE_ELEMENTS] (state, list) {
             state.rareElements = list;
         },
-        setRequiredElements (state, list) {
+        [types.Fhir.SET_REQUIRED_ELEMENTS] (state, list) {
             state.requiredElements = list;
         },
-        setAttributeMappings (state, value) {
+        [types.Fhir.SET_ATTRIBUTE_MAPPINGS] (state, value) {
             state.attributeMappings = value
         },
-        setParameterMappings (state, value) {
+        [types.Fhir.SET_PARAMETER_MAPPINGS] (state, value) {
             state.parameterMappings = value
         },
-        setCurrentResource (state, value) {
+        [types.Fhir.SET_CURRENT_RESOURCE] (state, value) {
             state.currentResource = value
         },
-        setCurrentProfile (state, value) {
+        [types.Fhir.SET_CURRENT_PROFILE] (state, value) {
             state.currentProfile = value
         },
-        setCurrentAttribute (state, value) {
+        [types.Fhir.SET_CURRENT_ATTRIBUTE] (state, value) {
             state.currentAttribute = value
         },
-        setCurrentNode (state, value) {
+        [types.Fhir.SET_CURRENT_NODE] (state, value) {
             state.currentNode = value
         },
-        setKAnonymityValidMappings (state, value) {
+        [types.Fhir.SET_K_ANONYMITY_VALID_MAPPINGS] (state, value) {
             state.kAnonymityValidMappings = value
         },
-        setKValueMappings (state, value) {
+        [types.Fhir.SET_K_VALUE_MAPPINGS] (state, value) {
           state.kValueMappings = value
         },
-        updateFhirSourceBase (state, sourceRepoUrl: string) {
+        [types.Fhir.UPDATE_FHIR_SOURCE_BASE] (state, sourceRepoUrl: string) {
             state.fhirSourceBase = sourceRepoUrl;
             state.sourceFhirService = new FhirService(true, sourceRepoUrl);
             localStorage.setItem('fhirSourceUrl', sourceRepoUrl);
         },
-        setFhirSourceVerificationStatus (state, status: status) {
+        [types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS] (state, status: status) {
             state.fhirSourceVerificationStatus = status
         },
-        updateFhirTargetBase (state, targetRepoUrl: string) {
+        [types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS_DETAIL] (state, details: string) {
+            state.fhirSourceVerificationStatusDetail = details
+        },
+        [types.Fhir.UPDATE_FHIR_TARGET_BASE] (state, targetRepoUrl: string) {
             state.fhirTargetBase = targetRepoUrl;
             state.targetFhirService = new FhirService(false, targetRepoUrl);
             localStorage.setItem('fhirTargetUrl', targetRepoUrl);
         },
-        setFhirTargetVerificationStatus (state, status: status) {
+        [types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS] (state, status: status) {
             state.fhirTargetVerificationStatus = status
         },
-        setTypeMappings (state, value) {
+        [types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS_DETAIL] (state, details: string) {
+            state.fhirTargetVerificationStatusDetail = details
+        },
+        [types.Fhir.SET_TYPE_MAPPINGS] (state, value) {
             state.typeMappings = value
         },
-        setRareValueMappings (state, value) {
+        [types.Fhir.SET_RARE_VALUE_MAPPINGS] (state, value) {
             state.rareValueMappings = value
         },
-        setResourceProfileMappings (state, value) {
+        [types.Fhir.SET_RESOURCE_PROFILE_MAPPINGS] (state, value) {
             state.resourceProfileMappings = value
         },
-        setDeidentificationResults (state, value) {
+        [types.Fhir.SET_DEIDENTIFICATION_RESULTS] (state, value) {
             state.deidentificationResults = value
         },
-        setProfileUrlMappings (state, value) {
+        [types.Fhir.SET_PROFILE_URL_MAPPINGS] (state, value) {
             state.profileUrlMappings = value
         },
-        setOutcomeDetails (state, outcomeDetails: OutcomeDetail[]) {
+        [types.Fhir.SET_OUTCOME_DETAILS] (state, outcomeDetails: OutcomeDetail[]) {
             state.outcomeDetails = outcomeDetails
         },
-        setSelectedResources (state, value) {
+        [types.Fhir.SET_SELECTED_RESOURCES] (state, value) {
             state.selectedResources = value;
         }
     },
     actions: {
-        getResources ({ commit, state }): Promise<boolean> {
+        [types.Fhir.GET_RESOURCES] ({ commit, state }): Promise<boolean> {
             return new Promise((resolve, reject) => {
                 state.sourceFhirService.search('CapabilityStatement', null)
                     .then(res => {
@@ -211,7 +218,7 @@ const fhirStore = {
                                         availableResources.push(counter.resourceType);
                                     }
                                 }
-                                commit('setResourceList', availableResources);
+                                commit(types.Fhir.SET_RESOURCE_LIST, availableResources);
                                 resolve(true)
                             }).catch(err => reject(err));
                         }
@@ -219,7 +226,7 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        getProfilesByRes ({ commit, state }, resource: string): Promise<boolean> {
+        [types.Fhir.GET_PROFILES_BY_RES] ({ commit, state }, resource: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
                 state.sourceFhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
@@ -243,7 +250,7 @@ const fhirStore = {
                                     availableProfiles.push(counter);
                                 }
                             }
-                            commit('setProfileList', availableProfiles.map(e => {
+                            commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
                                 return {id: e.profile, title: e.title, description: e.description}
                             }) || []);
                             resolve(true)
@@ -252,7 +259,7 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        getElements ({ commit, state }, profileId: string): Promise<boolean> {
+        [types.Fhir.GET_ELEMENTS] ({ commit, state }, profileId: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
                 state.sourceFhirService.search('StructureDefinition', {_id: profileId}, true)
                     .then(res => {
@@ -284,14 +291,14 @@ const fhirStore = {
                                     part = parts.shift()
                                 }
                             });
-                            commit('setElementList', list);
+                            commit(types.Fhir.SET_ELEMENT_LIST, list);
                         }
                         resolve(true)
                     })
                     .catch(err => reject(err) )
             })
         },
-        calculateRisks ({ state }, type) {
+        [types.Fhir.CALCULATE_RISKS] ({ state }, type) {
             const tempRisk = {profile: type.profile, lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0,
                 recordsAffectedByLowest: 0, recordsAffectedByHighest: 0};
             const equivalenceClasses = state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
@@ -318,13 +325,13 @@ const fhirStore = {
             })
             state.deidentificationResults[type.resource].informationLoss = eqClassSizesSum / Math.pow(totalNumberOfRecords, 2);
         },
-        validateEntries ({ state }, entries): Promise<any> {
+        [types.Fhir.VALIDATE_ENTRIES] ({ state }, entries): Promise<any> {
             return state.evaluationService.validateEntries(entries);
         },
-        saveEntries ({ state }, isSource): Promise<any> {
+        [types.Fhir.SAVE_ENTRIES] ({ state }, isSource): Promise<any> {
             return state.evaluationService.saveEntries(state.deidentificationResults, state.selectedResources, isSource);
         },
-        verifyFhir ({ state }, isSource): Promise<any> {
+        [types.Fhir.VERIFY_FHIR] ({ state }, isSource): Promise<any> {
             return new Promise((resolve, reject) => {
                 const service = isSource ? state.sourceFhirService : state.targetFhirService;
                 service.search('metadata', {}, true)
@@ -343,7 +350,7 @@ const fhirStore = {
                     .catch(err => reject(i18n.t('ERROR.FHIR_URL_NOT_VERIFIED')))
             })
         },
-        currentState ({ state }) {
+        [types.Fhir.CURRENT_STATE] ({ state }) {
             return new Promise((resolve, reject) => {
                 const exportableState = {};
                 for (const key of Object.keys(state)) {
@@ -354,7 +361,7 @@ const fhirStore = {
                 resolve(exportableState);
             })
         },
-        importState ( { state }, newState ) {
+        [types.Fhir.IMPORT_STATE] ( { state }, newState ) {
             return new Promise((resolve, reject) => {
                 for (const key of Object.keys(newState)) {
                     if (environment.exportableAttributes.includes(key)) {

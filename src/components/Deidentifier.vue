@@ -211,7 +211,7 @@
 			</q-card>
 
 			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
 			</div>
 		</div>
 
@@ -246,7 +246,7 @@
 				</q-card-section>
 				<q-card-actions v-if="saving && !loading" align="around">
 					<q-space />
-					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="$store.commit('resetStep') + $router.push('/')" no-caps />
+					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="$store.commit(types.RESET_STEP) + $router.push('/')" no-caps />
 				</q-card-actions>
 				<q-card-actions v-if="!saving" align="around">
 					<q-btn class="q-ma-md" unelevated :label="$t('LABELS.OVERWRITE_EXISTING_DATA')" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
@@ -333,6 +333,7 @@ import {ipcRenderer} from 'electron';
 import Loading from '@/components/Loading.vue';
 import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
 @Component({
     components: {
@@ -374,29 +375,30 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private maxPage: number = 1;
     private isRestricted: boolean = true;
 
-    get attributeMappings (): any { return this.$store.getters['fhir/attributeMappings'] }
-    set attributeMappings (value) { this.$store.commit('fhir/setAttributeMappings', value) }
+    get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
+    set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
 
-    get parameterMappings (): any { return this.$store.getters['fhir/parameterMappings'] }
-    set parameterMappings (value) { this.$store.commit('fhir/setParameterMappings', value) }
+    get parameterMappings (): any { return this.$store.getters[types.Fhir.PARAMETER_MAPPINGS] }
+    set parameterMappings (value) { this.$store.commit(types.Fhir.SET_PARAMETER_MAPPINGS, value) }
 
-    get typeMappings (): any { return this.$store.getters['fhir/typeMappings'] }
-    get rareValueMappings (): any { return this.$store.getters['fhir/rareValueMappings'] }
-    get requiredElements (): any { return this.$store.getters['fhir/requiredElements'] }
+    get typeMappings (): any { return this.$store.getters[types.Fhir.TYPE_MAPPINGS] }
+    get rareValueMappings (): any { return this.$store.getters[types.Fhir.RARE_VALUE_MAPPINGS] }
+    get requiredElements (): any { return this.$store.getters[types.Fhir.REQUIRED_ELEMENTS] }
 
-    get kAnonymityValidMappings (): any { return this.$store.getters['fhir/kAnonymityValidMappings'] }
-    set kAnonymityValidMappings (value) { this.$store.commit('fhir/setKAnonymityValidMappings', value) }
-    get kValueMappings (): any { return this.$store.getters['fhir/kValueMappings'] }
-    set kValueMappings (value) { this.$store.commit('fhir/setKValueMappings', value) }
+    get kAnonymityValidMappings (): any { return this.$store.getters[types.Fhir.K_ANONYMITY_VALID_MAPPINGS] }
+    set kAnonymityValidMappings (value) { this.$store.commit(types.Fhir.SET_K_ANONYMITY_VALID_MAPPINGS, value) }
 
-    get deidentificationResults (): any { return this.$store.getters['fhir/deidentificationResults'] }
-    set deidentificationResults (value) { this.$store.commit('fhir/setDeidentificationResults', value) }
+    get kValueMappings (): any { return this.$store.getters[types.Fhir.K_VALUE_MAPPINGS] }
+    set kValueMappings (value) { this.$store.commit(types.Fhir.SET_K_VALUE_MAPPINGS, value) }
 
-    get profileUrlMappings (): any { return this.$store.getters['fhir/profileUrlMappings'] }
-    set profileUrlMappings (value) { this.$store.commit('fhir/setProfileUrlMappings', value) }
+    get deidentificationResults (): any { return this.$store.getters[types.Fhir.DEIDENTIFICATION_RESULTS] }
+    set deidentificationResults (value) { this.$store.commit(types.Fhir.SET_DEIDENTIFICATION_RESULTS, value) }
 
-    get selectedResources (): any[] { return this.$store.getters['fhir/selectedResources'] }
-    set selectedResources (value) { this.$store.commit('fhir/setSelectedResources', value) }
+    get profileUrlMappings (): any { return this.$store.getters[types.Fhir.PROFILE_URL_MAPPINGS] }
+    set profileUrlMappings (value) { this.$store.commit(types.Fhir.SET_PROFILE_URL_MAPPINGS, value) }
+
+    get selectedResources (): any[] { return this.$store.getters[types.Fhir.SELECTED_RESOURCES] }
+    set selectedResources (value) { this.$store.commit(types.Fhir.SET_SELECTED_RESOURCES, value) }
 
     created () {
         Object.keys(this.attributeMappings).forEach(key => {
@@ -512,7 +514,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 if (!type.isBaseResource) {
                     this.deidentificationResults[type.resource].entries.push(...type.entries);
                     this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
-                    this.$store.dispatch('fhir/calculateRisks', type);
+                    this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
                 }
                 const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
                 if (baseResource && !baseResources.includes(baseResource)) {
@@ -533,7 +535,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                     baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
                     this.deidentificationResults[type.resource].entries = type.entries;
                     this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
-                    this.$store.dispatch('fhir/calculateRisks', type);
+                    this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
                     this.validateEntries(type.resource);
                 });
             });
@@ -550,7 +552,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
             this.getResultsAsMapping();
         } else {
-            this.$store.dispatch('fhir/validateEntries', entries).then(response => {
+            this.$store.dispatch(types.Fhir.VALIDATE_ENTRIES, entries).then(response => {
                 response.forEach(bulk => {
                     bulk.data.entry.map(item => {
                         if (!item.resource) {
@@ -592,7 +594,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     }
 
     openOutcomeDetailCard (outcomeDetails: OutcomeDetail[]) {
-        this.$store.commit('fhir/setOutcomeDetails', outcomeDetails)
+        this.$store.commit(types.Fhir.SET_OUTCOME_DETAILS, outcomeDetails)
         this.$q.dialog({
             component: OutcomeCard,
             parent: this
@@ -619,7 +621,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     saveToRepository (isSource: boolean) {
         this.saving = true;
         this.loading = true;
-        this.$store.dispatch('fhir/saveEntries', isSource)
+        this.$store.dispatch(types.Fhir.SAVE_ENTRIES, isSource)
             .then(response => {
                 this.savedResourceNumber = response;
                 this.loading = false;
@@ -671,7 +673,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
 
     exportConfigurations () {
         this.$q.loading.show({spinner: undefined})
-        this.$store.dispatch('fhir/currentState').then(state => {
+        this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
             ipcRenderer.send('export-file', JSON.stringify(state))
             ipcRenderer.on('export-done', (event, result) => {
                 if (result) {
@@ -694,7 +696,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             cancel: true,
             persistent: true
         }).onOk(configName => {
-            this.$store.dispatch('fhir/currentState').then(state => {
+            this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
                 let fileStore: any = localStorage.getItem('store-exportableState')
                 if (fileStore) {
                     fileStore = JSON.parse(fileStore) as any[]

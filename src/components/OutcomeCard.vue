@@ -96,6 +96,7 @@
 
 <script lang="ts">
 import { Component, Mixins } from 'vue-property-decorator'
+import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 import { QDialog } from 'quasar'
 import StatusMixin from '@/common/mixins/statusMixin'
 
@@ -114,9 +115,9 @@ export default class OutcomeCard extends Mixins(StatusMixin) {
     private selectedResources: string[] = [];
     private fullscreen: boolean = false;
 
-    get outcomeDetails (): OutcomeDetail[] { return this.$store.getters['fhir/outcomeDetails'] }
+    get outcomeDetails (): OutcomeDetail[] { return this.$store.getters[types.Fhir.OUTCOME_DETAILS] }
     get filteredOutcomeDetails (): OutcomeDetail[] {
-        const details: OutcomeDetail[] = this.$store.getters['fhir/outcomeDetails'];
+        const details: OutcomeDetail[] = this.$store.getters[types.Fhir.OUTCOME_DETAILS]
         return details.filter(_ => {
             return ((this.successDetails ? this.isSuccess(_.status) : 0) || (this.errorDetails ? this.isError(_.status) : 0))
                 && this.selectedResources.includes(_.resourceType)
@@ -137,7 +138,6 @@ export default class OutcomeCard extends Mixins(StatusMixin) {
 
     hide () {
         (this.$refs.dialog as QDialog).hide();
-        this.$store.commit('fhir/setOutcomeDetails', [])
     }
 
     onDialogHide () {
@@ -147,6 +147,11 @@ export default class OutcomeCard extends Mixins(StatusMixin) {
     onCloseClick () {
         this.hide()
     }
+
+    beforeDestroy () {
+        this.$store.commit(types.Fhir.SET_OUTCOME_DETAILS, [])
+    }
+
 }
 </script>
 

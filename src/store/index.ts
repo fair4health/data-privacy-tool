@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
 import fhir from './fhirStore'
+import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 
 Vue.use(Vuex);
 
@@ -9,36 +9,31 @@ export default new Vuex.Store({
     state: {
         drawerOpen: true,
         drawerMiniState: true,
-        privacyStep: 1,
-        log: '',
+        privacyStep: 1
     },
     getters: {
-        drawerOpen: state => state.drawerOpen,
-        drawerMiniState: state => state.drawerMiniState,
-        privacyStep: state => state.privacyStep,
-        log: state => state.log,
+        [types.DRAWER_OPEN]: state => state.drawerOpen,
+        [types.DRAWER_MINI_STATE]: state => state.drawerMiniState,
+        [types.PRIVACY_STEP]: state => state.privacyStep
     },
     mutations: {
-        setDrawerOpen (state, value: boolean) {
+        [types.SET_DRAWER_OPEN] (state, value: boolean) {
             state.drawerOpen = value
         },
-        setDrawerMiniState (state, value: boolean) {
+        [types.SET_DRAWER_MINI_STATE] (state, value: boolean) {
             state.drawerMiniState = value
         },
-        incrementStep (state) {
+        [types.INCREMENT_STEP] (state) {
             state.privacyStep += 1
         },
-        decrementStep (state) {
+        [types.DECREMENT_STEP] (state) {
             state.privacyStep -= 1
         },
-        resetStep (state) {
+        [types.RESET_STEP] (state) {
             state.privacyStep = 1
         },
-        setStep (state, value) {
+        [types.SET_STEP] (state, value) {
             state.privacyStep = value;
-        },
-        updateLog (state, message) {
-            state.log += message + '<br/>'
         }
     },
     actions: {},

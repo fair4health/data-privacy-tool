@@ -89,6 +89,7 @@
     import { Component, Vue, Watch } from 'vue-property-decorator'
     import {remote, shell} from 'electron'
     import {environment} from '@/common/environment';
+    import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 
     @Component
     export default class TitleBar extends Vue {
@@ -99,11 +100,11 @@
         get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
         get isDarwin (): boolean { return remote.process.platform === 'darwin' }
 
-        get drawerOpen (): boolean { return this.$store.getters.drawerOpen }
-        set drawerOpen (value) { this.$store.commit('setDrawerOpen', value) }
+        get drawerOpen (): boolean { return this.$store.getters[types.DRAWER_OPEN] }
+        set drawerOpen (value) { this.$store.commit(types.SET_DRAWER_OPEN, value) }
 
-        get drawerMiniState (): boolean { return this.$store.getters.drawerMiniState }
-        set drawerMiniState (value) { this.$store.commit('setDrawerMiniState', value) }
+        get drawerMiniState (): boolean { return this.$store.getters[types.DRAWER_MINI_STATE] }
+        set drawerMiniState (value) { this.$store.commit(types.SET_DRAWER_MINI_STATE, value) }
 
         @Watch('$q.screen.height')
         onHeightChange () {

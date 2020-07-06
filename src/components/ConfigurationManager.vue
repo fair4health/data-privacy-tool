@@ -70,9 +70,9 @@
                 </q-card-section>
             </q-card>
             <div class="row q-ma-md">
-                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit('decrementStep')" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
                 <q-space />
-                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit('incrementStep')" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit(types.INCREMENT_STEP)" no-caps />
             </div>
         </div>
     </div>
@@ -81,6 +81,7 @@
 <script lang="ts">
 import {Component, Vue, Watch} from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
 @Component({
     components: {
@@ -101,16 +102,16 @@ export default class ConfigurationManager extends Vue {
     private fhirResourceOptions: string[] = [];
     private tab: string = 'quasi';
 
-    get fhirResourceList (): string[] { return this.$store.getters['fhir/resourceList'] }
+    get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
 
-    get currentFHIRRes (): string { return this.$store.getters['fhir/currentResource'] }
-    set currentFHIRRes (value) { this.$store.commit('fhir/setCurrentResource', value) }
+    get currentFHIRRes (): string { return this.$store.getters[types.Fhir.CURRENT_RESOURCE] }
+    set currentFHIRRes (value) { this.$store.commit(types.Fhir.SET_CURRENT_RESOURCE, value) }
 
-    get currentFHIRProf (): string { return this.$store.getters['fhir/currentProfile'] }
-    set currentFHIRProf (value) { this.$store.commit('fhir/setCurrentProfile', value) }
+    get currentFHIRProf (): string { return this.$store.getters[types.Fhir.CURRENT_PROFILE] }
+    set currentFHIRProf (value) { this.$store.commit(types.Fhir.SET_CURRENT_PROFILE, value) }
 
-    get resourceProfileMappings (): any { return this.$store.getters['fhir/resourceProfileMappings'] }
-    set resourceProfileMappings (value) { this.$store.commit('fhir/setResourceProfileMappings', value) }
+    get resourceProfileMappings (): any { return this.$store.getters[types.Fhir.RESOURCE_PROFILE_MAPPINGS] }
+    set resourceProfileMappings (value) { this.$store.commit(types.Fhir.SET_RESOURCE_PROFILE_MAPPINGS, value) }
 
     created () {
         this.getElements();
@@ -130,7 +131,7 @@ export default class ConfigurationManager extends Vue {
     }
 
     getElements () {
-        this.$store.dispatch('fhir/getElements', !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
             .then(() => {
                 this.loadingFhir = false;
                 this.$forceUpdate();
