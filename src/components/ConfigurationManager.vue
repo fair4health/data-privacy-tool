@@ -70,9 +70,9 @@
                 </q-card-section>
             </q-card>
             <div class="row q-ma-md">
-                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
                 <q-space />
-                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit(types.INCREMENT_STEP)" no-caps />
+                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
             </div>
         </div>
     </div>
@@ -144,6 +144,14 @@ export default class ConfigurationManager extends Vue {
             return
         }
         update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().includes(val.toLowerCase())))
+    }
+
+    nextStep () {
+        this.$store.commit(types.INCREMENT_STEP)
+    }
+
+    previousStep () {
+        this.$store.commit(types.DECREMENT_STEP)
     }
 
 }

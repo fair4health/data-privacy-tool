@@ -211,7 +211,7 @@
 			</q-card>
 
 			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
 			</div>
 		</div>
 
@@ -246,7 +246,7 @@
 				</q-card-section>
 				<q-card-actions v-if="saving && !loading" align="around">
 					<q-space />
-					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="$store.commit(types.RESET_STEP) + $router.push('/')" no-caps />
+					<q-btn flat :label="$t('LABELS.RETURN_HOME')" icon-right="home" color="primary" @click="resetStep() + $router.push('/')" no-caps />
 				</q-card-actions>
 				<q-card-actions v-if="!saving" align="around">
 					<q-btn class="q-ma-md" unelevated :label="$t('LABELS.OVERWRITE_EXISTING_DATA')" color="primary" icon-right="swap_horiz" @click="overwriteExistingData()" no-caps />
@@ -765,6 +765,14 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             }
         }
         return false;
+    }
+
+    previousStep () {
+        this.$store.commit(types.DECREMENT_STEP)
+    }
+
+    resetStep () {
+        this.$store.commit(types.RESET_STEP)
     }
 
 }

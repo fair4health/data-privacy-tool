@@ -45,7 +45,7 @@
 					</span>
 				</q-btn>
 				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" :disable="!isSuccess(fhirSourceVerificationStatus)"
-				       @click="$store.commit(types.INCREMENT_STEP)" no-caps />
+				       @click="nextStep" no-caps />
 			</div>
 		</q-card-section>
 		<q-card-section v-else class="row">
@@ -73,65 +73,69 @@ import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 
 @Component
-    export default class OnFHIRConfig extends Mixins(StatusMixin) {
-        @Prop() readonly saveToRepositoryParentFunction;
+export default class OnFHIRConfig extends Mixins(StatusMixin) {
+    @Prop() readonly saveToRepositoryParentFunction;
 
-        private Status = Status;
-        private onfhirUrl: string | null = '';
-        private isSource: boolean = true;
+    private Status = Status;
+    private onfhirUrl: string | null = '';
+    private isSource: boolean = true;
 
-        get fhirSourceVerificationStatus (): status { return this.$store.getters[types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS] }
-        set fhirSourceVerificationStatus (value) { this.$store.commit(types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS, value) }
+    get fhirSourceVerificationStatus (): status { return this.$store.getters[types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS] }
+    set fhirSourceVerificationStatus (value) { this.$store.commit(types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS, value) }
 
-        get fhirTargetVerificationStatus (): status { return this.$store.getters[types.Fhir.FHIR_TARGET_VERIFICATION_STATUS] }
-        set fhirTargetVerificationStatus (value) { this.$store.commit(types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS, value) }
+    get fhirTargetVerificationStatus (): status { return this.$store.getters[types.Fhir.FHIR_TARGET_VERIFICATION_STATUS] }
+    set fhirTargetVerificationStatus (value) { this.$store.commit(types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS, value) }
 
-	    get fhirSourceVerificationStatusDetail (): string { return this.$store.getters[types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS_DETAIL] }
-	    set fhirSourceVerificationStatusDetail (value) { this.$store.commit(types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS_DETAIL, value) }
+    get fhirSourceVerificationStatusDetail (): string { return this.$store.getters[types.Fhir.FHIR_SOURCE_VERIFICATION_STATUS_DETAIL] }
+    set fhirSourceVerificationStatusDetail (value) { this.$store.commit(types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS_DETAIL, value) }
 
-	    get fhirTargetVerificationStatusDetail (): string { return this.$store.getters[types.Fhir.FHIR_TARGET_VERIFICATION_STATUS_DETAIL] }
-	    set fhirTargetVerificationStatusDetail (value) { this.$store.commit(types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS_DETAIL, value) }
+    get fhirTargetVerificationStatusDetail (): string { return this.$store.getters[types.Fhir.FHIR_TARGET_VERIFICATION_STATUS_DETAIL] }
+    set fhirTargetVerificationStatusDetail (value) { this.$store.commit(types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS_DETAIL, value) }
 
-        mounted () {
-            this.isSource = this.$parent.$options['_componentTag'] === 'OnFHIRVerifier';
-            this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
-        }
-
-        verifyFhir () {
-            if (this.onfhirUrl) {
-                this.changeVerificationStatus(Status.IN_PROGRESS);
-                if (this.isSource) {
-                    this.$store.commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, this.onfhirUrl);
-                } else {
-                    this.$store.commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, this.onfhirUrl);
-                }
-                this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
-                    .then(() => {
-                        this.changeVerificationStatus(Status.SUCCESS);
-                    })
-                    .catch(err => {
-                        this.changeVerificationStatus(Status.ERROR, err);
-                    })
-            }
-        }
-
-        changeVerificationStatus (status: status, error?) {
-            if (this.isSource) {
-                this.fhirSourceVerificationStatus = status;
-                if (status === Status.SUCCESS) {
-                    this.fhirSourceVerificationStatusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'));
-                } else if (error) {
-                    this.fhirSourceVerificationStatusDetail = error;
-                }
-            } else {
-                this.fhirTargetVerificationStatus = status;
-                if (status === Status.SUCCESS) {
-                    this.fhirTargetVerificationStatusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'));
-                } else if (error) {
-                    this.fhirTargetVerificationStatusDetail = error;
-                }
-            }
-        }
-
+    mounted () {
+        this.isSource = this.$parent.$options['_componentTag'] === 'OnFHIRVerifier';
+        this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
     }
+
+    verifyFhir () {
+        if (this.onfhirUrl) {
+            this.changeVerificationStatus(Status.IN_PROGRESS);
+            if (this.isSource) {
+                this.$store.commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, this.onfhirUrl);
+            } else {
+                this.$store.commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, this.onfhirUrl);
+            }
+            this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
+                .then(() => {
+                    this.changeVerificationStatus(Status.SUCCESS);
+                })
+                .catch(err => {
+                    this.changeVerificationStatus(Status.ERROR, err);
+                })
+        }
+    }
+
+    changeVerificationStatus (status: status, error?) {
+        if (this.isSource) {
+            this.fhirSourceVerificationStatus = status;
+            if (status === Status.SUCCESS) {
+                this.fhirSourceVerificationStatusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'));
+            } else if (error) {
+                this.fhirSourceVerificationStatusDetail = error;
+            }
+        } else {
+            this.fhirTargetVerificationStatus = status;
+            if (status === Status.SUCCESS) {
+                this.fhirTargetVerificationStatusDetail = String(this.$t('SUCCESS.FHIR_URL_VERIFIED'));
+            } else if (error) {
+                this.fhirTargetVerificationStatusDetail = error;
+            }
+        }
+    }
+
+    nextStep () {
+        this.$store.commit(types.INCREMENT_STEP)
+    }
+
+}
 </script>

@@ -7,7 +7,7 @@
 					{{ $t('LABELS.WELCOME_TO') }} <span class="text-primary text-weight-bold">{{ $t('COMMON.APP_NAME') }}</span>
 				</q-toolbar-title>
 				<q-space />
-				<q-btn unelevated rounded to="/deidentification" @click="$store.commit(types.RESET_STEP)" color="primary" :label="$t('BUTTONS.QUICK_START')" icon-right="fas fa-angle-right" />
+				<q-btn unelevated rounded to="/deidentification" @click="resetStep" color="primary" :label="$t('BUTTONS.QUICK_START')" icon-right="fas fa-angle-right" />
 			</q-toolbar>
 			<q-separator />
 		</div>
@@ -108,10 +108,16 @@
 
 <script lang="ts">
 import {Component, Vue} from 'vue-property-decorator'
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
 @Component
 export default class Home extends Vue {
     private step: number = 0;
+
+    resetStep () {
+        this.$store.commit(types.RESET_STEP)
+    }
+
 }
 
 </script>

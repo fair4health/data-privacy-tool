@@ -13,9 +13,9 @@
 		<div class="q-ma-sm">
 			<FhirAttributeTable :key="fhirAttributeTableKey" />
 			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="$store.commit(types.DECREMENT_STEP)" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
 				<q-space />
-				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="$store.commit(types.INCREMENT_STEP)" no-caps />
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
 			</div>
 		</div>
 
@@ -134,6 +134,14 @@ export default class MetadataAnalyzer extends Vue {
             localStorage.setItem('store-exportableState', JSON.stringify(this.savedConfigs))
             this.$notify.info(String(this.$t('INFO.CONFIG_DELETED', {configName})))
         })
+    }
+
+    nextStep () {
+        this.$store.commit(types.INCREMENT_STEP)
+    }
+
+    previousStep () {
+        this.$store.commit(types.DECREMENT_STEP)
     }
 
 }
