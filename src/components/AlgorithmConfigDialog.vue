@@ -143,7 +143,7 @@
 		</q-card-section>
 
 		<!--  GENERALIZATION FOR NUMBERS  -->
-		<q-card-section v-if="getAlgorithmName() === envAlgorithms.GENERALIZATION.name && !isDateType() && isInteger()" class="q-pt-none">
+		<q-card-section v-if="getAlgorithmName() === envAlgorithms.GENERALIZATION.name && !isDateType()" class="q-pt-none">
 			<div class="row">
 				<div class="col-4">
 					<q-field borderless :label="isInteger() ? $t('LABELS.LAST_DIGITS_TO_BE_ROUNDED') : $t('LABELS.ROUNDING_PRECISION')" readonly dense label-color="black" />
