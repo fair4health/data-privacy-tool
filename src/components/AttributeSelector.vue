@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.METADATA_ANALYZER') }} </q-toolbar-title>
+			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.ATTRIBUTE_SELECTOR') }} </q-toolbar-title>
 			<q-btn unelevated :label="$t('BUTTONS.SELECT')" color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps class="q-mr-sm" >
 				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SELECT_SAVED_CONFIGURATION') }} </q-tooltip>
 			</q-btn>
@@ -80,7 +80,7 @@ import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
         })
     } as any
 })
-export default class MetadataAnalyzer extends Vue {
+export default class AttributeSelector extends Vue {
     private fhirAttributeTableKey: number = 0;
     private selectDialog: boolean = false;
     private savedConfigs: any = [];

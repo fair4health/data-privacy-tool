@@ -6,9 +6,9 @@
 			<OnFHIRVerifier />
 		</template>
 
-		<!--The second step - Metadata Analyzing-->
+		<!--The second step - Selection of Attributes-->
 		<template v-if="step === 2">
-			<MetadataAnalyzer />
+			<AttributeSelector />
 		</template>
 
 		<!--The third step - Configuration of Parameters-->
@@ -36,8 +36,8 @@ import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
             loading: Loading,
             delay: 0
         }),
-        MetadataAnalyzer: () => ({
-            component: import('@/components/MetadataAnalyzer.vue'),
+        AttributeSelector: () => ({
+            component: import('@/components/AttributeSelector.vue'),
             loading: Loading,
             delay: 0
         }),

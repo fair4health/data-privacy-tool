@@ -18,7 +18,7 @@
 				<q-item-label class="text-h4 text-weight-bold">{{ $t('LABELS.OVERALL_STEPS') }}</q-item-label>
 				<q-stepper flat v-model="step" ref="stepper" alternative-labels color="primary" class="bg-grey-3">
 					<q-step :name="1" :title="$t('COMMON.ONFHIR_VERIFIER')" icon="fas fa-fire" color="secondary"></q-step>
-					<q-step :name="2" :title="$t('COMMON.METADATA_ANALYZER')" icon="fas fa-database" color="secondary"></q-step>
+					<q-step :name="2" :title="$t('COMMON.ATTRIBUTE_SELECTOR')" icon="fas fa-database" color="secondary"></q-step>
 					<q-step :name="3" :title="$t('COMMON.CONFIGURATION_MANAGER')" icon="fas fa-sliders-h" color="secondary"></q-step>
 					<q-step :name="4" :title="$t('COMMON.DEIDENTIFIER')" icon="fas fa-user-secret" color="secondary"></q-step>
 				</q-stepper>
@@ -43,17 +43,17 @@
 			</q-item-section>
 		</q-item>
 
-		<!--Metadata Analyzer-->
+		<!--Attribute Selector-->
 		<q-item class="q-pt-xl q-pl-xl q-pr-xl text-grey-8">
 			<q-item-section>
 				<q-item-label class="text-h7 text-weight-bold">
-					<q-icon class=" q-mr-xs" size="xs" name="fas fa-database" /> {{ $t('COMMON.METADATA_ANALYZER') }}
+					<q-icon class=" q-mr-xs" size="xs" name="fas fa-database" /> {{ $t('COMMON.ATTRIBUTE_SELECTOR') }}
 				</q-item-label>
 				<q-card flat class="q-ma-md">
 					<q-card-section>
 						<q-list dense class="rounded-borders">
 							<q-item>
-								<q-item-section> {{ $t('INFO.METADATA_ANALYZER_HOME_INFO') }} </q-item-section>
+								<q-item-section> {{ $t('INFO.ATTRIBUTE_SELECTOR_HOME_INFO') }} </q-item-section>
 							</q-item>
 						</q-list>
 					</q-card-section>
