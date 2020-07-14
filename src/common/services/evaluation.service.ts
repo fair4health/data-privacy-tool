@@ -59,22 +59,8 @@ export class EvaluationService {
         const selectedResourceNames = selectedResources.map(obj => obj.resource);
         Object.keys(deidentificationResults).forEach(resource => {
             if (selectedResourceNames.includes(resource)) {
-                deidentificationResults[resource].entries.forEach(entry => {
-                    entry.resource.meta.security = [{
-                        system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
-                        code : 'L',
-                        display : 'low'
-                    }];
-                    entries.push(entry);
-                });
-                deidentificationResults[resource].restrictedEntries.forEach(entry => {
-                    entry.resource.meta.security = [{
-                        system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
-                        code : 'R',
-                        display : 'restricted'
-                    }];
-                    entries.push(entry);
-                });
+                entries.push(...deidentificationResults[resource].entries);
+                entries.push(...deidentificationResults[resource].restrictedEntries);
             }
         });
 

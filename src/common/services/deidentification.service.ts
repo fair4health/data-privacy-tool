@@ -75,6 +75,20 @@ export class DeidentificationService {
             } else {
                 finalData = entries;
             }
+            finalData.forEach(entry => {
+                entry.resource.meta.security = [{
+                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                    code : 'L',
+                    display : 'low'
+                }];
+            });
+            restrictedEntries.forEach(entry => {
+                entry.resource.meta.security = [{
+                    system : 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+                    code : 'R',
+                    display : 'restricted'
+                }];
+            });
             resolve({resource, profile, entries: finalData, quasis, restrictedEntries});
         })
     }
