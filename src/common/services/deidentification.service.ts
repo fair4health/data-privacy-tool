@@ -316,8 +316,8 @@ export class DeidentificationService {
                 element2 = new Date(+tempYear2, tempMonth2 ? +tempMonth2 - 1 : 0, tempDay2 ? +tempDay2 : 1);
                 break;
             case 'time':
-                element1 = new Date(moment(element1, 'HH:mm:ss'));
-                element2 = new Date(moment(element2, 'HH:mm:ss'));
+                element1 = moment(element1, 'HH:mm:ss').toDate();
+                element2 = moment(element2, 'HH:mm:ss').toDate();
                 break;
         }
         if (element1 < element2) {
@@ -469,8 +469,8 @@ export class DeidentificationService {
                     const denary = Math.pow(10, parameters.roundDigits);
                     data = parameters.roundedToFloor ? Math.floor(data / denary) * denary : Math.ceil(data / denary) * denary;
                 } else if (primitiveType === 'time') { // HH:mm:ss ['Hours', 'Minutes', 'Seconds'] TO BE ROUNDED
-                    let tempDate = moment(data, 'HH:mm:ss');
-                    tempDate = this.roundTime(new Date(tempDate), parameters.dateUnit);
+                    let tempDate = moment(data, 'HH:mm:ss').toDate();
+                    tempDate = this.roundTime(tempDate, parameters.dateUnit);
                     data = moment(tempDate).format('HH:mm:ss');
                 } else if (primitiveType === 'instant') { // YYYY-MM-DDThh:mm:ss.sss+zz:zz ['Years', 'Months', 'Days', 'Hours', 'Minutes'] TO BE ROUNDED
                     const [dates, times] = data.split('T');
@@ -496,8 +496,8 @@ export class DeidentificationService {
                 break;
             case 'Date Shifting': // Date will be shifted randomly within a range that you provide
                 if (primitiveType === 'time') { // HH:mm:ss ['Hours', 'Minutes', 'Seconds']
-                    let tempDate = moment(data, 'HH:mm:ss');
-                    tempDate = this.getRandomDate(new Date(tempDate), parameters.dateUnit, parameters.range);
+                    let tempDate = moment(data, 'HH:mm:ss').toDate();
+                    tempDate = this.getRandomDate(tempDate, parameters.dateUnit, parameters.range);
                     data = moment(tempDate).format('HH:mm:ss');
                 } else if (primitiveType === 'instant') { // YYYY-MM-DDThh:mm:ss.sss+zz:zz ['Years', 'Months', 'Days', 'Hours', 'Minutes']
                     const [dates, times] = data.split('T');
