@@ -554,33 +554,31 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         } else {
             this.$store.dispatch(types.Fhir.VALIDATE_ENTRIES, entries).then(response => {
                 response.forEach(bulk => {
-                    bulk.data.entry.map(item => {
-                        if (!item.resource) {
-                            const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
-                            operationOutcome.issue.map(issue => {
-                                if (issue.severity === 'error') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                    this.deidentificationResults[resourceType].status = Status.ERROR;
-                                    this.deidentificationStatus = Status.ERROR;
-                                    this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
-                                } else if (issue.severity === 'information') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                                    if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                        this.deidentificationResults[resourceType].status = Status.DONE;
-                                    }
-                                } else if (issue.severity === 'warning') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                    if (!this.isError(this.deidentificationResults[resourceType].status)) {
-                                        this.deidentificationResults[resourceType].status = Status.WARNING;
-                                    }
-                                }
-                            })
+                    bulk.data.entry.map((entry: fhir.BundleEntry) => {
+                        let operationOutcome: fhir.OperationOutcome;
+                        if (!entry.resource) {
+                            operationOutcome = entry.response?.outcome as fhir.OperationOutcome
                         } else {
-                            this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                            if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                this.deidentificationResults[resourceType].status = Status.DONE;
-                            }
+                            operationOutcome = entry.resource as fhir.OperationOutcome;
                         }
+                        operationOutcome.issue.map(issue => {
+                            if (issue.severity === 'error' || issue.severity === 'fatal') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = Status.ERROR;
+                                this.deidentificationStatus = Status.ERROR;
+                                this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
+                            } else if (issue.severity === 'information') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${entry.response?.status}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.DONE;
+                                }
+                            } else if (issue.severity === 'warning') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.WARNING;
+                                }
+                            }
+                        })
                     });
                 });
                 if (!this.isError(this.deidentificationStatus)) {
