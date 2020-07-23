@@ -193,7 +193,7 @@
 						<q-btn v-if="isSuccess(deidentificationStatus) || isError(deidentificationStatus)"
 						       :disable="disableSave()" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
-							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_ANONYMIZED_DATA') }} </q-tooltip>
+							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_DEIDENTIFIED_DATA') }} </q-tooltip>
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="!isPending(deidentificationStatus) || !selectedResources.length
@@ -218,7 +218,7 @@
 		<q-dialog v-model="saveDialog">
 			<q-card>
 				<q-card-section class="row items-center q-pb-none text-primary">
-					<div class="text-h5"> {{ $t('TITLES.SAVE_ANONYMIZED') }} </div>
+					<div class="text-h5"> {{ $t('TITLES.SAVE_DEIDENTIFIED') }} </div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>

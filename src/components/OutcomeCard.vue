@@ -27,7 +27,7 @@
 						<q-tooltip content-class="bg-white text-primary">{{ $t(fullscreen ? 'BUTTONS.MINIMIZE' : 'BUTTONS.MAXIMIZE') }}</q-tooltip>
 					</q-btn>
 					<q-btn unelevated dense icon="close" color="grey-3" text-color="grey-10" @click="onCloseClick">
-						<q-tooltip content-class="bg-white text-primary"> :label="$t('BUTTONS.CLOSE')" </q-tooltip>
+						<q-tooltip content-class="bg-white text-primary">{{ $t('BUTTONS.CLOSE') }}</q-tooltip>
 					</q-btn>
 				</div>
 			</q-card-section>
