@@ -127,9 +127,16 @@
     "TABLE": {
         "ATTRIBUTE": "Attribute",
         "DEIDENTIFICATION_ALGORITHM": "De-identification Algorithm",
+        "DETAILS": "@:BUTTONS.DETAILS",
+        "FINAL_RESOURCE_COUNT": "Final Resource Count",
         "HAS_RARE_VALUES": "Has Rare Values?",
+        "INITIAL_RESOURCE_COUNT": "Initial Resource Count",
+        "K_ANONYMITY": "K-anonymity",
         "L_DIVERSITY": "L-diversity",
+        "RECORDS_PER_PAGE": "Records per page:",
         "RESOURCE_TYPE": "Resource Type",
+        "RESTRICTED_RESOURCE_COUNT": "Restricted Resource Count",
+        "STATUS": "@:COMMON.STATUS",
         "TYPE": "Type"
     },
     "TITLES": {

@@ -23,7 +23,7 @@
 						<template v-slot:header-cell="props">
 							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
 								<q-icon v-if="props.col.icon" :class="props.col.icon" />
-								<span class="vertical-middle q-ml-xs">{{ props.col.label }}</span>
+								<span class="vertical-middle q-ml-xs">{{ $t(props.col.label) }}</span>
 							</q-th>
 						</template>
 						<template v-slot:body="props">
@@ -334,6 +334,7 @@ import Loading from '@/components/Loading.vue';
 import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import { deidentificationStepTable } from '@/common/model/data-table'
 
 @Component({
     components: {
@@ -360,14 +361,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private saving: boolean = false;
     private savedResourceNumber: number = 0;
     private restrictedResourceNumber: number = 0;
-    private columns = [
-        { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
-        { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
-        { name: 'k_anonymity', align: 'center', label: 'K-anonymity', field: 'k_anonymity', icon: 'mdi mdi-shield-check' },
-        { name: 'count', align: 'center', label: 'Initial Resource Count', field: 'count' },
-        { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
-        { name: 'restricted', align: 'center', label: 'Restricted Resource Count', field: 'restricted' }
-    ];
+    private columns = deidentificationStepTable.columns;
     private deidentificationStatus: status = Status.LOADING;
     private mappingList: any[] = [];
     private selectedResource: string = '';
