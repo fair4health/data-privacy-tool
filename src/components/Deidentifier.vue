@@ -23,7 +23,7 @@
 						<template v-slot:header-cell="props">
 							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
 								<q-icon v-if="props.col.icon" :class="props.col.icon" />
-								<span class="vertical-middle q-ml-xs">{{ props.col.label }}</span>
+								<span class="vertical-middle q-ml-xs">{{ $t(props.col.label) }}</span>
 							</q-th>
 						</template>
 						<template v-slot:body="props">
@@ -193,7 +193,7 @@
 						<q-btn v-if="isSuccess(deidentificationStatus) || isError(deidentificationStatus)"
 						       :disable="disableSave()" label="Save" color="secondary" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
-							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_ANONYMIZED_DATA') }} </q-tooltip>
+							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_DEIDENTIFIED_DATA') }} </q-tooltip>
 						</q-btn>
 						<q-btn outline color="primary" @click="deidentifyAll()" class="q-mt-lg"
 						       :disable="!isPending(deidentificationStatus) || !selectedResources.length
@@ -218,7 +218,7 @@
 		<q-dialog v-model="saveDialog">
 			<q-card>
 				<q-card-section class="row items-center q-pb-none text-primary">
-					<div class="text-h5"> {{ $t('TITLES.SAVE_ANONYMIZED') }} </div>
+					<div class="text-h5"> {{ $t('TITLES.SAVE_DEIDENTIFIED') }} </div>
 					<q-space />
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
@@ -334,6 +334,7 @@ import Loading from '@/components/Loading.vue';
 import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import { deidentificationStepTable } from '@/common/model/data-table'
 
 @Component({
     components: {
@@ -360,14 +361,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private saving: boolean = false;
     private savedResourceNumber: number = 0;
     private restrictedResourceNumber: number = 0;
-    private columns = [
-        { name: 'status', align: 'center', label: 'Status', field: 'status', icon: 'fas fa-info-circle', classes: 'bg-grey-2' },
-        { name: 'resource', align: 'left', label: 'Resource Type', field: 'resource', icon: 'fas fa-fire', sortable: true },
-        { name: 'k_anonymity', align: 'center', label: 'K-anonymity', field: 'k_anonymity', icon: 'mdi mdi-shield-check' },
-        { name: 'count', align: 'center', label: 'Initial Resource Count', field: 'count' },
-        { name: 'final', align: 'center', label: 'Final Resource Count', field: 'final' },
-        { name: 'restricted', align: 'center', label: 'Restricted Resource Count', field: 'restricted' }
-    ];
+    private columns = deidentificationStepTable.columns;
     private deidentificationStatus: status = Status.LOADING;
     private mappingList: any[] = [];
     private selectedResource: string = '';
@@ -554,33 +548,31 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         } else {
             this.$store.dispatch(types.Fhir.VALIDATE_ENTRIES, entries).then(response => {
                 response.forEach(bulk => {
-                    bulk.data.entry.map(item => {
-                        if (!item.resource) {
-                            const operationOutcome: fhir.OperationOutcome = item.response!.outcome as fhir.OperationOutcome;
-                            operationOutcome.issue.map(issue => {
-                                if (issue.severity === 'error') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                    this.deidentificationResults[resourceType].status = Status.ERROR;
-                                    this.deidentificationStatus = Status.ERROR;
-                                    this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
-                                } else if (issue.severity === 'information') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                                    if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                        this.deidentificationResults[resourceType].status = Status.DONE;
-                                    }
-                                } else if (issue.severity === 'warning') {
-                                    this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                    if (!this.isError(this.deidentificationResults[resourceType].status)) {
-                                        this.deidentificationResults[resourceType].status = Status.WARNING;
-                                    }
-                                }
-                            })
+                    bulk.data.entry.map((entry: fhir.BundleEntry) => {
+                        let operationOutcome: fhir.OperationOutcome;
+                        if (!entry.resource) {
+                            operationOutcome = entry.response?.outcome as fhir.OperationOutcome
                         } else {
-                            this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${item.response?.status}`} as OutcomeDetail);
-                            if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                this.deidentificationResults[resourceType].status = Status.DONE;
-                            }
+                            operationOutcome = entry.resource as fhir.OperationOutcome;
                         }
+                        operationOutcome.issue.map(issue => {
+                            if (issue.severity === 'error' || issue.severity === 'fatal') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                this.deidentificationResults[resourceType].status = Status.ERROR;
+                                this.deidentificationStatus = Status.ERROR;
+                                this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
+                            } else if (issue.severity === 'information') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${entry.response?.status}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.DONE;
+                                }
+                            } else if (issue.severity === 'warning') {
+                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
+                                if (!this.isError(this.deidentificationResults[resourceType].status)) {
+                                    this.deidentificationResults[resourceType].status = Status.WARNING;
+                                }
+                            }
+                        })
                     });
                 });
                 if (!this.isError(this.deidentificationStatus)) {
