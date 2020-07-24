@@ -12,7 +12,7 @@ describe('Test FHIR Search', () => {
             id: 'dd1199d8-11cf-4053-99f9-95ba5cdbe696',
             meta: {
                 profile: [
-                  'http://hl7.org/fhir/uv/ips/StructureDefinition/patient-uv-ips'
+                    'http://hl7.org/fhir/uv/ips/StructureDefinition/patient-uv-ips'
                 ]
             },
             active: true,
@@ -20,10 +20,10 @@ describe('Test FHIR Search', () => {
             birthDate: '1996',
             name: [
                 {
-                  text: 'Test Patient'
+                    text: 'Test Patient'
                 }
             ]
-        }
+        };
     });
 
     describe('SEARCH', () => {
@@ -37,7 +37,7 @@ describe('Test FHIR Search', () => {
                 }, err => {
                     expect(false).to.be.true;
                     done()
-                })
+                });
         });
         it('Get Resource by reference - StructureDefinition/Appointment', (done) => {
             fhirService.getResource('StructureDefinition/Appointment')
@@ -50,8 +50,8 @@ describe('Test FHIR Search', () => {
                 }, err => {
                     expect(false).to.be.true;
                     done()
-                })
-        })
+                });
+        });
     });
 
     describe('CREATE', () => {
@@ -70,8 +70,8 @@ describe('Test FHIR Search', () => {
                 }, err => {
                     expect(false).to.be.true;
                     done()
-                })
-        })
+                });
+        });
     });
 
     describe('UPDATE', () => {
@@ -91,22 +91,23 @@ describe('Test FHIR Search', () => {
 
                             // Delete Resource
                             fhirService.deleteResource(res.data as fhir.Patient)
-                            .then(delRes => {
-                                expect(delRes.status).to.equal(204);
-                                done()
-                            }, err => {
-                                expect(false).to.be.true;
-                                done()
-                            })
+                                .then(delRes => {
+                                    expect(delRes.status).to.equal(204);
+                                    done()
+                                }, err => {
+                                    expect(false).to.be.true;
+                                    done()
+                                })
+
                         }, err => {
                             expect(false).to.be.true;
                             done()
                         })
                 }, err => {
-                  expect(false).to.be.true;
-                  done()
-                })
-        })
-    })
+                    expect(false).to.be.true;
+                    done()
+                });
+        });
+    });
 
 });
