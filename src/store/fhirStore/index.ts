@@ -211,7 +211,7 @@ const fhirStore = {
                                 return new Promise<any>((resolve1, reject1) => {
                                     state.sourceFhirService.search(resourceType, null)
                                         .then(response => {
-                                            const count: number = response.data.entry.length;
+                                            const count: number = response.data.total;
                                             resolve1({resourceType, count});
                                         }).catch(err => reject1(err) );
                                 })
@@ -242,7 +242,7 @@ const fhirStore = {
                                 return new Promise<any>((resolve1, reject1) => {
                                     state.sourceFhirService.search(resourceType, {_profile: url})
                                         .then(response => {
-                                            const count: number = response.data.entry.length;
+                                            const count: number = response.data.total;
                                             resolve1({resourceType, profile, count, title, description});
                                         }).catch(err => {
                                             reject1(err)
