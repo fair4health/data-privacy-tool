@@ -89,7 +89,7 @@
 									        :selected.sync="selectedStr"
 									        :filter="filter"
 									        :filter-method="filterTree"
-									        :no-nodes-label="$t('LABELS.PLEASE_SELECT_A_RESOURCE')"
+									        :no-nodes-label="noNodesLabel"
 									        :no-results-label="$t('LABELS.NO_RESULT')"
 									        selected-color="primary"
 									        @update:selected="onSelected"
@@ -232,7 +232,13 @@ export default class FhirAttributeTable extends Vue {
     get resourceProfileMappings (): any { return this.$store.getters[types.Fhir.RESOURCE_PROFILE_MAPPINGS] }
     set resourceProfileMappings (value) { this.$store.commit(types.Fhir.SET_RESOURCE_PROFILE_MAPPINGS, value) }
 
+    get noNodesLabel (): string { return this.$store.getters[types.Fhir.NO_NODES_AVAILABLE_LABEL] }
+    set noNodesLabel (value) { this.$store.commit(types.Fhir.NO_NODES_AVAILABLE_LABEL, value) }
+
     created () {
+        if (!this.currentFHIRRes && !this.noNodesLabel) {
+            this.noNodesLabel = String(this.$t('LABELS.PLEASE_SELECT_A_RESOURCE'));
+        }
         this.$store.dispatch(types.Fhir.GET_RESOURCES).then(res => {
             for (const resource of this.fhirResourceList) {
                 this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resource).then(pro => {
@@ -259,10 +265,13 @@ export default class FhirAttributeTable extends Vue {
 
     getElements () {
         this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
-            .then(() => {
+            .then(response => {
                 this.loadingFhir = false;
                 this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
                 this.tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
+                if (!response) {
+                    this.noNodesLabel = String(this.$t('LABELS.NO_STRUCTURE_DEFINITION'))
+                }
             })
     }
 

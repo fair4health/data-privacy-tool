@@ -71,7 +71,8 @@ const fhirStore = {
         deidentificationResults: {},
         profileUrlMappings: {},
         outcomeDetails: [],
-        selectedResources: []
+        selectedResources: [],
+        noNodesAvailableLabel: ''
     },
     getters: {
         [types.Fhir.RESOURCE_LIST]: state => state.resourceList || [],
@@ -102,7 +103,8 @@ const fhirStore = {
         [types.Fhir.DEIDENTIFICATION_RESULTS]: state => state.deidentificationResults || {},
         [types.Fhir.PROFILE_URL_MAPPINGS]: state => state.profileUrlMappings || {},
         [types.Fhir.OUTCOME_DETAILS]: state => state.outcomeDetails || [],
-        [types.Fhir.SELECTED_RESOURCES]: state => state.selectedResources || []
+        [types.Fhir.SELECTED_RESOURCES]: state => state.selectedResources || [],
+        [types.Fhir.NO_NODES_AVAILABLE_LABEL]: state => state.noNodesAvailableLabel || ''
     },
     mutations: {
         [types.Fhir.SET_RESOURCE_LIST] (state, list) {
@@ -191,6 +193,9 @@ const fhirStore = {
         },
         [types.Fhir.SET_SELECTED_RESOURCES] (state, value) {
             state.selectedResources = value;
+        },
+        [types.Fhir.NO_NODES_AVAILABLE_LABEL] (state, value: string) {
+            state.noNodesAvailableLabel = value;
         }
     },
     actions: {
@@ -208,8 +213,7 @@ const fhirStore = {
                                         .then(response => {
                                             const count: number = response.data.entry.length;
                                             resolve1({resourceType, count});
-                                        })
-                                        .catch(err => reject(err) );
+                                        }).catch(err => reject1(err) );
                                 })
                             })).then(counts => {
                                 const availableResources: any[] = [];
@@ -222,8 +226,7 @@ const fhirStore = {
                                 resolve(true)
                             }).catch(err => reject(err));
                         }
-                    })
-                    .catch(err => reject(err) )
+                    }).catch(err => reject(err) )
             })
         },
         [types.Fhir.GET_PROFILES_BY_RES] ({ commit, state }, resource: string): Promise<boolean> {
@@ -231,32 +234,37 @@ const fhirStore = {
                 state.sourceFhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                     .then(res => {
-                        Promise.all(res.data.entry.map(item => {
-                            const [resourceType, profile, url, title, description] = [item.resource.type,
-                                item.resource.id, item.resource.url, item.resource.title, item.resource.description];
-                            state.profileUrlMappings[profile] = url;
-                            return new Promise<any>((resolve1, reject1) => {
-                                state.sourceFhirService.search(resourceType, {_profile: url})
-                                    .then(response => {
-                                        const count: number = response.data.entry.length;
-                                        resolve1({resourceType, profile, count, title, description});
-                                    })
-                                .catch(err => reject(err) );
-                            })
-                        })).then((counts: any) => {
-                            const availableProfiles: any[] = [];
-                            for (const counter of counts) {
-                                if (counter.count) { // take only profiles that has data on repository
-                                    availableProfiles.push(counter);
+                        if (res.data.total > 0) {
+                            Promise.all(res.data.entry.map(item => {
+                                const [resourceType, profile, url, title, description] = [item.resource.type,
+                                    item.resource.id, item.resource.url, item.resource.title, item.resource.description];
+                                state.profileUrlMappings[profile] = url;
+                                return new Promise<any>((resolve1, reject1) => {
+                                    state.sourceFhirService.search(resourceType, {_profile: url})
+                                        .then(response => {
+                                            const count: number = response.data.entry.length;
+                                            resolve1({resourceType, profile, count, title, description});
+                                        }).catch(err => {
+                                            reject1(err)
+                                        });
+                                })
+                            })).then((counts: any) => {
+                                const availableProfiles: any[] = [];
+                                for (const counter of counts) {
+                                    if (counter.count) { // take only profiles that has data on repository
+                                        availableProfiles.push(counter);
+                                    }
                                 }
-                            }
-                            commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
-                                return {id: e.profile, title: e.title, description: e.description}
-                            }) || []);
-                            resolve(true)
-                        }).catch(err => reject(err));
-                    })
-                    .catch(err => reject(err) )
+                                commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
+                                    return {id: e.profile, title: e.title, description: e.description}
+                                }) || []);
+                                resolve(true)
+                            }).catch(err => reject(err));
+                        } else {
+                            commit(types.Fhir.SET_PROFILE_LIST, [])
+                            resolve(true);
+                        }
+                    }).catch(err => reject(err));
             })
         },
         [types.Fhir.GET_ELEMENTS] ({ commit, state }, profileId: string): Promise<boolean> {
@@ -292,8 +300,10 @@ const fhirStore = {
                                 }
                             });
                             commit(types.Fhir.SET_ELEMENT_LIST, list);
+                            resolve(true)
+                        } else {
+                            resolve(false)
                         }
-                        resolve(true)
                     })
                     .catch(err => reject(err) )
             })

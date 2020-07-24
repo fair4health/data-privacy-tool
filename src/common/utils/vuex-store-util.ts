@@ -49,6 +49,7 @@ export class VuexStoreUtil {
     public static FHIR_TARGET_VERIFICATION_STATUS = 'fhirTargetVerificationStatus'
     public static FHIR_SOURCE_VERIFICATION_STATUS_DETAIL = 'fhirSourceVerificationStatusDetail'
     public static FHIR_TARGET_VERIFICATION_STATUS_DETAIL = 'fhirTargetVerificationStatusDetail'
+    public static NO_NODES_AVAILABLE_LABEL = 'noNodesAvailableLabel'
 
     // Mutations
     public static SET_ATTRIBUTE_MAPPINGS = 'setAttributeMappings'
