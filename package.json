@@ -7,6 +7,7 @@
     "description": "FAIR4Health | Data Privacy Tool",
     "license": "Apache 2.0",
     "homepage": "https://github.com/fair4health/data-privacy-tool",
+    "onfhirTestURL": null,
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
@@ -32,6 +33,8 @@
         "moment-timezone": "^0.5.31",
         "ng-fhir": "^2.3.0",
         "quasar": "^1.12.12",
+        "readline-sync": "^1.4.10",
+        "spectron": "^11.1.0",
         "randexp": "^0.5.3",
         "request": "2.79.0",
         "vue": "^2.6.11",
@@ -39,8 +42,7 @@
         "vue-json-tree-view": "^2.1.6",
         "vue-property-decorator": "^8.5.1",
         "vue-router": "^3.3.4",
-        "vuex": "^3.5.1",
-        "xlsx": "^0.15.6"
+        "vuex": "^3.5.1"
     },
     "devDependencies": {
         "@babel/plugin-proposal-optional-catch-binding": "^7.10.4",
@@ -59,7 +61,8 @@
         "babel-plugin-transform-imports": "^2.0.0",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
-        "electron": "^7.3.2",
+        "electron": "^9.1.2",
+        "electron-devtools-installer": "^3.1.1",
         "less": "^3.12.2",
         "less-loader": "^5.0.0",
         "sass": "^1.26.10",
@@ -67,7 +70,7 @@
         "stylus": "^0.54.8",
         "stylus-loader": "^3.0.2",
         "typescript": "^3.9.7",
-        "vue-cli-plugin-electron-builder": "^1.4.6",
+        "vue-cli-plugin-electron-builder": "~2.0.0-rc.4",
         "vue-cli-plugin-quasar": "^2.0.2",
         "vue-template-compiler": "^2.6.11"
     }

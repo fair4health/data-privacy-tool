@@ -51,9 +51,11 @@ export class FHIRUtils {
                     const fhirService: FhirService = new FhirService(true, fhirBase);
                     fhirService.search('StructureDefinition', {url: environment.extendibleDataTypes[node.type]}, true)
                         .then(res => {
-                            const elements = res.data.entry[0].resource.differential.element;
-                            localStorage.setItem(`${fhirBase}-StructureDefinition-${node.type}`, JSON.stringify(elements));
-                            this.parseElements(elements, node, state);
+                            if (res.data.total) {
+                                const elements = res.data.entry[0].resource.differential.element;
+                                localStorage.setItem(`${fhirBase}-StructureDefinition-${node.type}`, JSON.stringify(elements));
+                                this.parseElements(elements, node, state);
+                            }
                             resolve(node);
                         });
                 } else {

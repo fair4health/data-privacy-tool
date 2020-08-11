@@ -7,6 +7,7 @@ module.exports = {
             appId: 'fair4health-data-privacy-tool',
             customFileProtocol: 'fair4health://./',
             mainProcessFile: 'src/electron-main.ts',
+            nodeIntegration: true,
             builderOptions: {
                 productName: 'FAIR4Health Data Privacy Tool',
                 mac: {
