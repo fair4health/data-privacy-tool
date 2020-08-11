@@ -21,6 +21,15 @@ export class FhirService {
     }
 
     /**
+     * Set FHIR base url
+     * @param url
+     */
+    setUrl (url: string) {
+        this.config.baseUrl = url
+        this.client = new FhirClient(this.config)
+    }
+
+    /**
      * Returns resources searched by resourceType and query as Bundle
      * @param resourceType
      * @param query
