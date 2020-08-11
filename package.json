@@ -7,6 +7,7 @@
     "description": "FAIR4Health | Data Privacy Tool",
     "license": "Apache 2.0",
     "homepage": "https://github.com/fair4health/data-privacy-tool",
+    "onfhirTestURL": null,
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
@@ -32,6 +33,7 @@
         "moment-timezone": "^0.5.31",
         "ng-fhir": "^2.3.0",
         "quasar": "^1.12.12",
+        "readline-sync": "^1.4.10",
         "spectron": "^11.1.0",
         "randexp": "^0.5.3",
         "request": "2.79.0",
