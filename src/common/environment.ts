@@ -1,5 +1,5 @@
 // const onfhirBase = 'http://f4h.srdc.com.tr/fhir';
-const onfhirBase = 'http://localhost:8080/fhir';
+const onfhirBase = 'http://localhost:8282/fhir';
 const hl7Base = 'http://hl7.org/fhir';
 
 export const environment = {
