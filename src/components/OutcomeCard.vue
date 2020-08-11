@@ -14,9 +14,15 @@
 							{{ successTransformCount.toLocaleString() }}
 						</q-chip>
 					</div>
+                    <div>
+                        <q-chip square class="bg-grey-3">
+                            <q-avatar color="warning" text-color="white" icon="warning" />
+                            {{ warningTransformCount.toLocaleString() }}
+                        </q-chip>
+                    </div>
 					<div>
 						<q-chip square class="bg-grey-3">
-							<q-avatar color="negative" text-color="white" icon="warning" />
+							<q-avatar color="negative" text-color="white" icon="error" />
 							{{ errorTransformCount.toLocaleString() }}
 						</q-chip>
 					</div>
@@ -35,8 +41,9 @@
 					<div class="bg-grey-2 q-mb-sm col">
 						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">{{ $t('LABELS.STATUS') }}</div>
 						<q-separator />
-						<q-toggle v-model="successDetails" checked-icon="check" color="positive" :label="$t('COMMON.SUCCESS')" unchecked-icon="clear"/>
-						<q-toggle v-model="errorDetails" checked-icon="warning" color="negative" :label="$t('COMMON.ERROR')" unchecked-icon="clear"/>
+                        <q-toggle v-model="successDetails" checked-icon="check" color="positive" :label="$t('COMMON.SUCCESS')" unchecked-icon="clear"/>
+                        <q-toggle v-model="warningDetails" checked-icon="warning" color="warning" :label="$t('COMMON.WARNING')" unchecked-icon="clear"/>
+						<q-toggle v-model="errorDetails" checked-icon="error" color="negative" :label="$t('COMMON.ERROR')" unchecked-icon="clear"/>
 					</div>
 					<div class="bg-grey-2 q-mb-sm col">
 						<div class="text-subtitle1 text-weight-bold text-grey-7 q-pa-sm">{{ $t('LABELS.RESOURCES') }}</div>
@@ -68,8 +75,11 @@
 								<template v-if="isSuccess(props.row.status)">
 									<q-icon name="check" color="positive" size="xs" />
 								</template>
+                                <template v-else-if="isWarning(props.row.status)">
+                                    <q-icon name="warning" color="warning" size="xs" />
+                                </template>
 								<template v-else-if="isError(props.row.status)">
-									<q-icon name="warning" color="negative" size="xs" />
+									<q-icon name="error" color="negative" size="xs" />
 								</template>
 							</q-td>
 							<q-td key="resourceType" :props="props">
@@ -107,6 +117,7 @@
         private columns = outcomeDetailTable.columns
         private pagination = outcomeDetailTable.pagination
         private successDetails: boolean = true
+        private warningDetails: boolean = true
         private errorDetails: boolean = true
         private selectedResources: string[] = []
         private fullscreen: boolean = false
@@ -115,12 +126,13 @@
         get filteredOutcomeDetails (): OutcomeDetail[] {
             const details: OutcomeDetail[] = this.$store.getters[types.Fhir.OUTCOME_DETAILS]
             return details.filter(_ => {
-                return ((this.successDetails ? this.isSuccess(_.status) : 0) || (this.errorDetails ? this.isError(_.status) : 0))
-                    && this.selectedResources.includes(_.resourceType)
+                return ((this.successDetails ? this.isSuccess(_.status) : 0) || (this.errorDetails ? this.isError(_.status) : 0)
+                    || (this.warningDetails ? this.isWarning(_.status) : 0)) && this.selectedResources.includes(_.resourceType)
             })
         }
         get successTransformCount (): number { return this.outcomeDetails.filter(_ => this.isSuccess(_.status)).length }
         get errorTransformCount (): number { return this.outcomeDetails.filter(_ => this.isError(_.status)).length }
+        get warningTransformCount (): number { return this.outcomeDetails.filter(_ => this.isWarning(_.status)).length }
         get activeProfiles (): any[] {
             return this.selectedResources = Object.keys(this.outcomeDetails.reduce((acc, curr) => {
                 (acc[curr.resourceType] = acc[curr.resourceType] || []);
