@@ -1,11 +1,10 @@
 'use strict';
 
-import {app, protocol, BrowserWindow, dialog, webContents, ipcMain} from 'electron'
+import {app, protocol, BrowserWindow, dialog, webContents, ipcMain, MessageBoxReturnValue} from 'electron'
+import {createProtocol} from 'vue-cli-plugin-electron-builder/lib';
 import log from 'electron-log'
-import {createProtocol, installVueDevtools} from 'vue-cli-plugin-electron-builder/lib';
-import MessageBoxReturnValue = Electron.MessageBoxReturnValue;
-import './common/listeners'
 import { IpcChannelUtil as ipcChannels } from './common/utils/ipc-channel-util'
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -49,7 +48,10 @@ function createWindow () {
         frame: false,
         titleBarStyle: 'hidden',
         useContentSize: true,
-        webPreferences: { nodeIntegration: true }
+        webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true
+        }
     });
     // Make window fullscreen
     win.maximize();
@@ -75,11 +77,13 @@ function createWindow () {
             buttons: ['Reload', 'Close']
         };
         log.error('Renderer Process Crashed');
-        dialog.showMessageBox(options).then((response: MessageBoxReturnValue) => {
-                if (response.response === 0) win?.reload();
+        dialog.showMessageBox(options).then((messageBoxReturnValue: MessageBoxReturnValue) => {
+                if (messageBoxReturnValue.response === 0) win?.reload();
                 else win?.destroy()
-            }
-        );
+            }).catch(err => {
+                log.error(err)
+                win?.destroy()
+            })
     });
 
     win.on('closed', () => {
@@ -113,10 +117,12 @@ function createBgWindow (id: number): BrowserWindow {
         }
         log.error('Background Process Crashed')
 
-        dialog.showMessageBox(options).then((response: MessageBoxReturnValue) => {
-                if (response.response === 0) background?.destroy()
-            }
-        );
+        dialog.showMessageBox(options).then((messageBoxReturnValue: MessageBoxReturnValue) => {
+                if (messageBoxReturnValue.response === 0) background?.destroy()
+            }).catch(err => {
+                log.error(err)
+                background?.destroy()
+            })
     })
 
     background.webContents.on('did-finish-load', () => {
@@ -158,7 +164,7 @@ app.on('ready', async () => {
         // If you are not using Windows 10 dark mode, you may uncomment these lines
         // In addition, if the linked issue is closed, you can upgrade electron and uncomment these lines
         try {
-            await installVueDevtools()
+            await installExtension(VUEJS_DEVTOOLS)
         } catch (e) {
             console.error('Vue Devtools failed to install:', e.toString())
         }
