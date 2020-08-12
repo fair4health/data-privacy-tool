@@ -346,7 +346,6 @@ import { deidentificationStepTable } from '@/common/model/data-table'
     } as any
 })
 export default class Deidentifier extends Mixins(StatusMixin) {
-    private Status = Status;
     private saveDialog: boolean = false;
     private targetRepoDialog: boolean = false;
     private restrictionWarning: boolean = false;
@@ -606,6 +605,8 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         this.mappingList = mappings;
         if (!this.selectedResources.length) {
             this.selectedResources = this.mappingList.slice();
+        } else {
+            this.selectedResources = this.selectedResources.map(resource => this.mappingList.find(res => res.resource === resource.resource));
         }
         this.$forceUpdate();
     }
@@ -746,6 +747,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         return this.selectedResource + ' ' + Number((previosPages * environment.JSON_NUMBER_IN_A_PAGE) + index + 1);
     }
 
+    @Watch('selectedResources', { immediate: true, deep: true })
     disableSave () {
         if (!this.selectedResources.length) {
             return true;
