@@ -155,7 +155,7 @@
 															<q-item v-if="riskey !== 'profile'">
 																<div class="col-2">
 																	<q-item-label class="text-weight-bold text-primary q-mt-sm">
-																		{{riskLabel(riskey)}}
+																		{{getRiskDetail(riskey, true)}}
 																	</q-item-label>
 																</div>
 																<div class="col-3">
@@ -168,7 +168,7 @@
 																	</q-linear-progress>
 																</div>
 																<div class="col-6 text-grey-8 q-mt-xs q-ml-xl">
-																	{{getRiskInfo(riskey)}}
+																	{{getRiskDetail(riskey, false)}}
 																</div>
 															</q-item>
 														</template>
@@ -634,34 +634,26 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         return (progress * 100).toFixed(2);
     }
 
-    riskLabel (risk: string) {
+    getRiskDetail (risk: string, isLabel: boolean) {
+        let langString = isLabel ? 'LABELS.' : 'RISK_INFO.';
         switch (risk) {
             case 'lowestProsecutor':
-                return 'Lowest Prosecutor Risk';
+                langString += 'LOWEST_PROSECUTOR';
+                break;
             case 'highestProsecutor':
-                return 'Highest Prosecutor Risk';
+                langString += 'HIGHEST_PROSECUTOR';
+                break;
             case 'averageProsecutor':
-                return 'Average Prosecutor Risk';
+                langString += 'AVERAGE_PROSECUTOR';
+                break;
             case 'recordsAffectedByLowest':
-                return 'Records Affected By Lowest Risk';
+                langString += 'RECORDS_AFFECTED_BY_LOWEST';
+                break;
             case 'recordsAffectedByHighest':
-                return 'Records Affected By Highest Risk';
+                langString += 'RECORDS_AFFECTED_BY_HIGHEST';
+                break;
         }
-    }
-
-    getRiskInfo (risk: string) {
-        switch (risk) {
-            case 'lowestProsecutor':
-                return 'Lowest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
-            case 'highestProsecutor':
-                return 'Highest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
-            case 'averageProsecutor':
-                return 'Average risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.';
-            case 'recordsAffectedByLowest':
-                return 'Percentage of identities in the dataset that has re-identification risk more than lowest prosecutor risk.';
-            case 'recordsAffectedByHighest':
-                return 'Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.';
-        }
+        return String(this.$t(langString));
     }
 
     exportConfigurations () {

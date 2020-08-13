@@ -336,31 +336,31 @@ export default class AlgorithmConfigDialog extends Vue {
     getInfoText (): string {
         let info: string = '';
         if (this.getAlgorithmName() === environment.algorithms.PASS_THROUGH.name) {
-            info = 'The attribute will be saved with no change.';
+            info = String(this.$t('ALGORITHM_INFO.PASS_THROUGH'));
         } else if (this.getAlgorithmName() === environment.algorithms.REDACTION.name) {
-            info = 'The attribute will be completely removed.';
+            info = String(this.$t('ALGORITHM_INFO.REDACTION'));
         } else if (this.getAlgorithmName() === environment.algorithms.RECOVERABLE_SUBSTITUTION.name) {
-            info = 'New value will be generated automatically.';
+            info = String(this.$t('ALGORITHM_INFO.RECOVERABLE_SUBSTITUTION'));
         } else if (this.getAlgorithmName() === environment.algorithms.SUBSTITUTION.name && !this.hasRegex()) {
-            info = 'Attribute value will be replaced with the substitution character that you provide.';
+            info = String(this.$t('ALGORITHM_INFO.SUBSTITUTION'));
         } else if (this.getAlgorithmName() === environment.algorithms.SUBSTITUTION.name && this.hasRegex()) {
-            info = 'Attribute value will be replaced with a randomly generated value that fits attribute\'s regular expression.';
+            info = String(this.$t('ALGORITHM_INFO.SUBSTITUTION_REGEX'));
         } else if (this.getAlgorithmName() === environment.algorithms.FUZZING.name) {
-            info = 'A noise will be added to the attribute within the range of the percentage you provide.';
+            info = String(this.$t('ALGORITHM_INFO.FUZZING'));
         } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && !this.isDateType() && this.isInteger()) {
-            info = 'Last digits of the integer will be rounded by your choice.';
+            info = String(this.$t('ALGORITHM_INFO.GENERALIZATION_INTEGER'));
         } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && !this.isDateType() && !this.isInteger()) {
-            info = 'Decimal places of the floating number will be rounded by your choice. \'0\' means rounding to an integer.';
+            info = String(this.$t('ALGORITHM_INFO.GENERALIZATION_FLOAT'));
         } else if (this.getAlgorithmName() === environment.algorithms.GENERALIZATION.name && this.isDateType()) {
-            info = 'Only the information of the date unit that you provide will be kept.';
+            info = String(this.$t('ALGORITHM_INFO.GENERALIZATION_DATE'));
         } else if (this.getAlgorithmName() === environment.algorithms.DATE_SHIFTING.name) {
-            info = 'Date will be shifted randomly within a range that you provide.';
+            info = String(this.$t('ALGORITHM_INFO.DATE_SHIFTING'));
         }
         if (this.isSensitive()) {
             if (this.getAlgorithmName() === environment.algorithms.REPLACE.name) {
-                return 'You should provide the rare values and their new values for this attribute below.';
+                return String(this.$t('ALGORITHM_INFO.REPLACE'));
             }
-            return  'You should provide the rare values for this attribute below. ' + info;
+            return String(this.$t('ALGORITHM_INFO.RARE_VALUES')) + info;
         }
         return info;
     }
