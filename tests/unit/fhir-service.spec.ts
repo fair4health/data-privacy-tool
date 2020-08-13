@@ -3,7 +3,7 @@ import { FhirService } from '@/common/services/fhir.service'
 import 'isomorphic-fetch'
 import readlineSync from 'readline-sync'
 
-const onfhirURL = require('./../../package.json').onfhirTestURL || readlineSync.question('Enter the FHIR Repository URL: ')
+const onfhirURL = require('./../../package.json').onfhirTestURL || readlineSync.question('Enter the FHIR Repository URL for FHIR Service: ')
 
 describe('Test FHIR Repository: ' + onfhirURL, () => {
 
@@ -61,7 +61,7 @@ describe('Test FHIR Repository: ' + onfhirURL, () => {
                 fhirService.putResource(createdResource as fhir.Patient)
                     .then(res => {
                         const updatedResource: fhir.Patient = res.data;
-                        expect(res.status).to.equal(200);
+                        expect(res.status).to.equal(200 || 201);
                         expect(updatedResource.birthDate).to.equal('1982');
 
                         // Delete Resource

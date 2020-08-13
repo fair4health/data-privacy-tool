@@ -16,6 +16,14 @@ export class EvaluationService {
         this.riskyQuasis = [];
     }
 
+    setFhirURL (url: string, isSource: boolean) {
+        if (isSource) {
+            this.sourceFhirService.setUrl(url);
+        } else {
+            this.targetFhirService.setUrl(url);
+        }
+    }
+
     generateEquivalenceClasses (type, parameterMappings, typeMappings) {
         this.quasis = type.quasis;
         this.riskyQuasis = [];
