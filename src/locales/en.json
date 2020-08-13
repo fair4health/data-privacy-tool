@@ -1,4 +1,18 @@
 {
+    "ALGORITHM_INFO": {
+        "DATE_SHIFTING": "Date will be shifted randomly within a range that you provide.",
+        "FUZZING": "A noise will be added to the attribute within the range of the percentage you provide.",
+        "GENERALIZATION_DATE": "Only the information of the date unit that you provide will be kept.",
+        "GENERALIZATION_FLOAT": "Decimal places of the floating number will be rounded by your choice. '0' means rounding to an integer.",
+        "GENERALIZATION_INTEGER": "Last digits of the integer will be rounded by your choice.",
+        "PASS_THROUGH": "The attribute will be saved with no change.",
+        "RARE_VALUES": "You should provide the rare values for this attribute below. ",
+        "RECOVERABLE_SUBSTITUTION": "New value will be generated automatically.",
+        "REDACTION": "The attribute will be completely removed.",
+        "REPLACE": "You should provide the rare values and their new values for this attribute below.",
+        "SUBSTITUTION": "Attribute value will be replaced with the substitution character that you provide.",
+        "SUBSTITUTION_REGEX": "Attribute value will be replaced with a randomly generated value that fits attribute's regular expression."
+    },
     "BUTTONS": {
         "ADD": "Add",
         "BACK": "Back",
@@ -60,6 +74,7 @@
     },
     "LABELS": {
         "ADD_NOISE": "Add noise within:",
+        "AVERAGE_PROSECUTOR": "Average Prosecutor Risk",
         "COMMENTS": "Comments",
         "DEFINITION": "Definition",
         "ENTER_NEW_VALUE": "Enter the new value",
@@ -69,7 +84,9 @@
         "FHIR_RESOURCE": "FHIR Resource",
         "FILTER": "Filter",
         "FIXED_LENGTH": "Fixed Length",
+        "HIGHEST_PROSECUTOR": "Highest Prosecutor Risk",
         "LAST_DIGITS_TO_BE_ROUNDED": "Last digits to be rounded:",
+        "LOWEST_PROSECUTOR": "Lowest Prosecutor Risk",
         "INFORMATION_LOSS": "Information Loss",
         "NO_QUASI_IDENTIFIER": "No quasi-identifier was selected",
         "NO_RESULT": "No result found",
@@ -85,6 +102,8 @@
         "PROVIDE_FHIR_URL_TO_SAVE": "Provide FHIR Repository URL to save de-identified resources",
         "QUASI_IDENTIFIERS": "Quasi-identifiers",
         "RARE_VALUES": "Rare Values",
+        "RECORDS_AFFECTED_BY_HIGHEST": "Records Affected By Highest Risk",
+        "RECORDS_AFFECTED_BY_LOWEST": "Records Affected By Lowest Risk",
         "RESOURCES": "Resources",
         "RETURN_HOME": "Return Home",
         "ROUND_TO_CEILING": "Round to Ceiling",
@@ -115,6 +134,13 @@
         "TOOL": "Tool",
         "VIEW": "View",
         "VIEW_ON": "View on"
+    },
+    "RISK_INFO": {
+        "AVERAGE_PROSECUTOR": "Average risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.",
+        "HIGHEST_PROSECUTOR": "Highest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.",
+        "LOWEST_PROSECUTOR": "Lowest risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset.",
+        "RECORDS_AFFECTED_BY_HIGHEST": "Percentage of identities in the dataset that has re-identification risk more than highest prosecutor risk.",
+        "RECORDS_AFFECTED_BY_LOWEST": "Percentage of identities in the dataset that has re-identification risk more than lowest prosecutor risk."
     },
     "SUCCESS": {
         "CONFIGURATION_IS_LOADED": "Configuration is loaded successfully",

@@ -100,18 +100,44 @@ export default class OnFHIRConfig extends Mixins(StatusMixin) {
     verifyFhir () {
         if (this.onfhirUrl) {
             this.changeVerificationStatus(Status.IN_PROGRESS);
-            if (this.isSource) {
-                this.$store.commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, this.onfhirUrl);
-            } else {
-                this.$store.commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, this.onfhirUrl);
+            let cleanedUrl = this.onfhirUrl;
+            if (cleanedUrl.slice(-1) === '/') {
+                cleanedUrl = cleanedUrl.slice(0, -1)
             }
+            let httpPrepended = false;
+            if (cleanedUrl.substr(0, 4).toLowerCase() !== 'http') {
+                cleanedUrl = 'http://' + cleanedUrl;
+                httpPrepended = true;
+            }
+            this.updateFhirBaseProfile(cleanedUrl);
             this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
                 .then(() => {
                     this.changeVerificationStatus(Status.SUCCESS);
                 })
                 .catch(err => {
-                    this.changeVerificationStatus(Status.ERROR, err);
+                    if (httpPrepended) {
+                        // if 'http://' failed, try 'https://'
+                        cleanedUrl = 'https://' + cleanedUrl.substr(7);
+                        this.updateFhirBaseProfile(cleanedUrl);
+                        this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
+                            .then(() => {
+                                this.changeVerificationStatus(Status.SUCCESS);
+                            })
+                            .catch(err2 => {
+                                this.changeVerificationStatus(Status.ERROR, err2);
+                            })
+                    } else {
+                        this.changeVerificationStatus(Status.ERROR, err);
+                    }
                 })
+        }
+    }
+
+    updateFhirBaseProfile (url: string) {
+        if (this.isSource) {
+            this.$store.commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, url);
+        } else {
+            this.$store.commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, url);
         }
     }
 
