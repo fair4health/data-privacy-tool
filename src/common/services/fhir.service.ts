@@ -58,31 +58,6 @@ export class FhirService {
     }
 
     /**
-     * Returns the resource with given reference ("ResourceType/id")
-     * @param ref
-     * @param noCache
-     * @returns {Promise<any>}
-     */
-    getResource (ref: string, noCache?: boolean): Promise<any> {
-        if (noCache) {
-            return new Promise((resolve, reject) => {
-                const [resourceType, id] = ref.split('\/');
-                this.search(resourceType, {_id: id})
-                    .then(data => {
-                        try {
-                            data.data = data.data.entry[0].resource;
-                            resolve(data)
-                        } catch (err) {
-                            reject(err)
-                        }
-                    })
-                    .catch(err => reject(err))
-            })
-        }
-        return this.client.read({type: ref.split('/')[0], id: ref.split('/')[1]})
-    }
-
-    /**
      * Post resource with given reference ("Resource")
      * @param resource
      * @returns {Promise<any>}
@@ -163,15 +138,6 @@ export class FhirService {
             })
         }
         return axios.post(this.config.baseUrl, transactionResource, {headers: this.config.headers, httpAgent})
-    }
-
-    /**
-     * Just for DEV
-     * Delete all resources
-     * @param resourceType
-     */
-    deleteAll (resourceType: string) {
-        return axios.delete(this.config.baseUrl + '/' + resourceType)
     }
 
 }
