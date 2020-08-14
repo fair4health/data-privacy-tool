@@ -245,7 +245,7 @@ export default class FhirAttributeTable extends Vue {
                     this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
                 }).catch(err => {
-                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: resource})))
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource})))
                 });
             }
         }).catch(err => {

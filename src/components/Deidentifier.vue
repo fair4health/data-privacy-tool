@@ -336,6 +336,7 @@ import StatusMixin from '@/common/mixins/statusMixin';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 import { deidentificationStepTable } from '@/common/model/data-table'
 import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component({
     components: {
@@ -691,14 +692,14 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             persistent: true
         }).onOk(configName => {
             this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
-                let fileStore: any = localStorage.getItem('store-exportableState')
+                let fileStore: any = localStorage.getItem(localStorageKey.EXPORTABLE_STATE)
                 if (fileStore) {
                     fileStore = JSON.parse(fileStore) as any[]
                     fileStore.push({date: new Date(), name: configName, data: state})
                 } else {
                     fileStore = [{date: new Date(), name: configName, data: state}]
                 }
-                localStorage.setItem('store-exportableState', JSON.stringify(fileStore))
+                localStorage.setItem(localStorageKey.EXPORTABLE_STATE, JSON.stringify(fileStore))
                 this.$notify.success(String(this.$t('SUCCESS.SAVED')))
             }).catch(err => err);
         })

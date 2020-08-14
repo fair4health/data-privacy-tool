@@ -66,6 +66,7 @@ import Loading from '@/components/Loading.vue';
 import {ipcRenderer} from 'electron';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component({
     components: {
@@ -104,7 +105,7 @@ export default class AttributeSelector extends Vue {
     }
 
     selectSavedConfigurations (): void {
-        this.savedConfigs = localStorage.getItem('store-exportableState');
+        this.savedConfigs = localStorage.getItem(localStorageKey.EXPORTABLE_STATE);
         if (this.savedConfigs) {
             this.savedConfigs = JSON.parse(this.savedConfigs);
         }
@@ -136,7 +137,7 @@ export default class AttributeSelector extends Vue {
             html: true
         }).onOk(() => {
             this.savedConfigs.splice(index, 1);
-            localStorage.setItem('store-exportableState', JSON.stringify(this.savedConfigs))
+            localStorage.setItem(localStorageKey.EXPORTABLE_STATE, JSON.stringify(this.savedConfigs))
             this.$notify.info(String(this.$t('INFO.CONFIG_DELETED', {configName})))
         })
     }
