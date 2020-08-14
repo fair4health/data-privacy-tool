@@ -65,6 +65,8 @@ import { Component, Vue } from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {ipcRenderer} from 'electron';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component({
     components: {
@@ -87,21 +89,23 @@ export default class AttributeSelector extends Vue {
 
     importSavedConfigurations (): void {
         this.$q.loading.show({spinner: undefined})
-        ipcRenderer.send('browse-configurations')
-        ipcRenderer.on('selected-configurations', (event, data) => {
+        ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.File.BROWSE_CONFIGURATIONS)
+        ipcRenderer.on(ipcChannels.File.SELECTED_CONFIGURATION, (event, data) => {
             if (data) {
                 this.$store.dispatch(types.Fhir.IMPORT_STATE, data).then(() => {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_IMPORTED')))
                     this.fhirAttributeTableKey++; // in order to re-render attribute table
+                }).catch(err => {
+                    this.$notify.error(String(this.$t('ERROR.FILE_IS_NOT_IMPORTED')));
                 });
             }
             this.$q.loading.hide()
-            ipcRenderer.removeAllListeners('selected-configurations')
+            ipcRenderer.removeAllListeners(ipcChannels.File.SELECTED_CONFIGURATION)
         })
     }
 
     selectSavedConfigurations (): void {
-        this.savedConfigs = localStorage.getItem('store-exportableState');
+        this.savedConfigs = localStorage.getItem(localStorageKey.EXPORTABLE_STATE);
         if (this.savedConfigs) {
             this.savedConfigs = JSON.parse(this.savedConfigs);
         }
@@ -117,6 +121,8 @@ export default class AttributeSelector extends Vue {
         this.$store.dispatch(types.Fhir.IMPORT_STATE, config.data).then(() => {
             this.$notify.success(String(this.$t('SUCCESS.CONFIGURATION_IS_LOADED')))
             this.fhirAttributeTableKey++; // in order to re-render attribute table
+        }).catch(err => {
+            this.$notify.error(String(this.$t('ERROR.CONFIGURATION_NOT_LOADED')));
         });
     }
 
@@ -131,7 +137,7 @@ export default class AttributeSelector extends Vue {
             html: true
         }).onOk(() => {
             this.savedConfigs.splice(index, 1);
-            localStorage.setItem('store-exportableState', JSON.stringify(this.savedConfigs))
+            localStorage.setItem(localStorageKey.EXPORTABLE_STATE, JSON.stringify(this.savedConfigs))
             this.$notify.info(String(this.$t('INFO.CONFIG_DELETED', {configName})))
         })
     }

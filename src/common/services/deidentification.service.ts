@@ -46,7 +46,9 @@ export class DeidentificationService {
                         .then(response => {
                             resolve({resource, profile, entries: response.data.entry});
                         })
+                        .catch(err => reject(err))
                 })
+                .catch(err => reject(err))
         })
     }
 

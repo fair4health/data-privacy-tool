@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import { LoDashStatic } from 'lodash'
 
 interface Notifier {
     success (message: string): void
@@ -9,6 +10,7 @@ interface Notifier {
 
 declare module 'vue/types/vue' {
     interface Vue {
+        $_: LoDashStatic
         $notify: Notifier
     }
 }

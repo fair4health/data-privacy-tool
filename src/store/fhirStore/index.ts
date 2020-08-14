@@ -3,6 +3,7 @@ import { environment } from '@/common/environment'
 import { FHIRUtils } from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
 import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 import i18n from '@/i18n';
 
 const fhirStore = {
@@ -154,7 +155,7 @@ const fhirStore = {
         [types.Fhir.UPDATE_FHIR_SOURCE_BASE] (state, sourceRepoUrl: string) {
             state.fhirSourceBase = sourceRepoUrl;
             state.sourceFhirService = new FhirService(true, sourceRepoUrl);
-            localStorage.setItem('fhirSourceUrl', sourceRepoUrl);
+            localStorage.setItem(localStorageKey.FHIR_SOURCE_URL, sourceRepoUrl);
         },
         [types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS] (state, status: status) {
             state.fhirSourceVerificationStatus = status
@@ -165,7 +166,7 @@ const fhirStore = {
         [types.Fhir.UPDATE_FHIR_TARGET_BASE] (state, targetRepoUrl: string) {
             state.fhirTargetBase = targetRepoUrl;
             state.targetFhirService = new FhirService(false, targetRepoUrl);
-            localStorage.setItem('fhirTargetUrl', targetRepoUrl);
+            localStorage.setItem(localStorageKey.FHIR_TARGET_URL, targetRepoUrl);
         },
         [types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS] (state, status: status) {
             state.fhirTargetVerificationStatus = status
@@ -244,9 +245,7 @@ const fhirStore = {
                                         .then(response => {
                                             const count: number = response.data.total;
                                             resolve1({resourceType, profile, count, title, description});
-                                        }).catch(err => {
-                                            reject1(err)
-                                        });
+                                        }).catch(err => reject1(err));
                                 })
                             })).then((counts: any) => {
                                 const availableProfiles: any[] = [];

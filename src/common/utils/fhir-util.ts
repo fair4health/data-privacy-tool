@@ -2,6 +2,7 @@ import {environment} from '@/common/environment';
 import {FhirService} from '@/common/services/fhir.service';
 import {Utils} from '@/common/utils/util';
 import fhirStore from '@/store/fhirStore';
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 export class FHIRUtils {
 
@@ -39,9 +40,9 @@ export class FHIRUtils {
     }
 
     static parseElementDefinitions (node, state): Promise<any> {
-        return new Promise(resolve => {
-            const fhirBase = localStorage.getItem('fhirSourceUrl');
-            const cached = JSON.parse(localStorage.getItem(`${fhirBase}-StructureDefinition-${node.type}`) || '{}');
+        return new Promise((resolve, reject) => {
+            const fhirBase = localStorage.getItem(localStorageKey.FHIR_SOURCE_URL);
+            const cached = JSON.parse(localStorage.getItem(fhirBase + localStorageKey.STRUCTURE_DEFINITION + node.type) || '{}');
             if (cached && !Utils.isEmpty(cached)) {
                 this.parseElements(cached, node, state);
                 resolve(node);
@@ -53,11 +54,11 @@ export class FHIRUtils {
                         .then(res => {
                             if (res.data.total) {
                                 const elements = res.data.entry[0].resource.differential.element;
-                                localStorage.setItem(`${fhirBase}-StructureDefinition-${node.type}`, JSON.stringify(elements));
+                                localStorage.setItem(fhirBase + localStorageKey.STRUCTURE_DEFINITION + node.type, JSON.stringify(elements));
                                 this.parseElements(elements, node, state);
                             }
                             resolve(node);
-                        });
+                        }).catch(err => reject(err));
                 } else {
                     resolve(node);
                 }
@@ -77,7 +78,7 @@ export class FHIRUtils {
                     if (node.children && node.children.length) {
                         node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);
                     }
-                });
+                }).catch(err => err);
             }
             if (node.children && node.children.length) {
                 node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);

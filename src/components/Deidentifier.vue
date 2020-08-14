@@ -335,6 +335,8 @@ import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 import { deidentificationStepTable } from '@/common/model/data-table'
+import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component({
     components: {
@@ -409,7 +411,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             this.deidentificationResults = {};
             this.fetchAllData(groupedByResources).then(res => {
                 this.deidentificationStatus = Status.PENDING;
-            });
+            }).catch(err => err);
         } else {
             this.deidentificationStatus = Status.PENDING;
         }
@@ -431,7 +433,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                         this.deidentificationResults[resource].status = Status.PENDING;
                         this.getResultsAsMapping();
                         resolve();
-                    });
+                    }).catch(err => reject(err));
                 } else { // fetch profiles' data and put them in entries
                     const profilePromises = profileGroups.map(groups => {
                         const resource = groups[0].split('.')[0];
@@ -450,12 +452,12 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                             this.getResultsAsMapping();
                         });
                         resolve();
-                    });
+                    }).catch(err => reject(err));
                 }
             });
         });
         return new Promise((resolve, reject) => {
-            Promise.all(dataPromises).then(res => resolve());
+            Promise.all(dataPromises).then(res => resolve()).catch(err => reject(err));
         });
     }
 
@@ -530,9 +532,9 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                     this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
                     this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
                     this.validateEntries(type.resource);
-                });
+                }).catch(err => err);
             });
-        });
+        }).catch(err => err);
     }
 
     validateEntries (resourceType) {
@@ -580,7 +582,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 }
                 this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
                 this.getResultsAsMapping();
-            });
+            }).catch(err => err);
         }
     }
 
@@ -619,6 +621,10 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 this.savedResourceNumber = response;
                 this.loading = false;
                 this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_SAVED')))
+            }).catch(err => {
+                this.savedResourceNumber = 0;
+                this.loading = false;
+                this.$notify.error(String(this.$t('ERROR.RESOURCES_NOT_SAVED')))
             });
     }
 
@@ -659,14 +665,18 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     exportConfigurations () {
         this.$q.loading.show({spinner: undefined})
         this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
-            ipcRenderer.send('export-file', JSON.stringify(state))
-            ipcRenderer.on('export-done', (event, result) => {
+            ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.File.EXPORT_FILE, JSON.stringify(state))
+            ipcRenderer.on(ipcChannels.File.EXPORT_DONE, (event, result) => {
                 if (result) {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_EXPORTED')))
                 }
                 this.$q.loading.hide()
-                ipcRenderer.removeAllListeners('export-done')
+                ipcRenderer.removeAllListeners(ipcChannels.File.EXPORT_DONE)
             })
+        })
+        .catch(() => {
+            this.$q.loading.hide()
+            this.$notify.error(String(this.$t('ERROR.CANNOT_EXPORT_CONFIGS')))
         });
     }
 
@@ -682,16 +692,16 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             persistent: true
         }).onOk(configName => {
             this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
-                let fileStore: any = localStorage.getItem('store-exportableState')
+                let fileStore: any = localStorage.getItem(localStorageKey.EXPORTABLE_STATE)
                 if (fileStore) {
                     fileStore = JSON.parse(fileStore) as any[]
                     fileStore.push({date: new Date(), name: configName, data: state})
                 } else {
                     fileStore = [{date: new Date(), name: configName, data: state}]
                 }
-                localStorage.setItem('store-exportableState', JSON.stringify(fileStore))
+                localStorage.setItem(localStorageKey.EXPORTABLE_STATE, JSON.stringify(fileStore))
                 this.$notify.success(String(this.$t('SUCCESS.SAVED')))
-            });
+            }).catch(err => err);
         })
     }
 

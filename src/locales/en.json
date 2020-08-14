@@ -46,10 +46,17 @@
         "WARNING": "Warning"
     },
     "ERROR": {
+        "CANNOT_EXPORT_CONFIGS": "Cannot export configurations. Try again",
+        "CONFIGURATION_NOT_LOADED": "Configuration couldn't be loaded. Try again.",
         "FHIR_URL_NOT_VERIFIED": "Given FHIR Repository URL is not verified.",
         "FHIR_VERSION_COULDNT_DETECTED": "FHIR version couldn't be detected for given url.",
         "FHIR_VERSION_NOT_SUPPORTED": "FHIR version ({version}) is not supported. FHIR version must be R4.",
-        "VALIDATION_FAILED": "Validation is failed"
+        "FILE_IS_NOT_IMPORTED": "File couldn't be imported. Try again.",
+        "RESOURCES_NOT_SAVED": "Resources couldn't be saved. Try again.",
+        "ST_WRONG_FETCHING_X": "Something went wrong while fetching {name}",
+        "VALIDATION_FAILED": "Validation is failed",
+        "X_PROFILE_ELEMENTS_COULDNT_BE_LOADED": "{profile} Profile elements couldn't be loaded",
+        "X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED": "{resource} Resource elements couldn't be loaded"
     },
     "INFO": {
         "CONFIG_DELETED": "{configName} is deleted",

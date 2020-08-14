@@ -71,6 +71,7 @@ import {Component, Prop, Mixins} from 'vue-property-decorator'
 import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component
 export default class OnFHIRConfig extends Mixins(StatusMixin) {
@@ -94,7 +95,7 @@ export default class OnFHIRConfig extends Mixins(StatusMixin) {
 
     mounted () {
         this.isSource = this.$parent.$options['_componentTag'] === 'OnFHIRVerifier';
-        this.onfhirUrl = this.isSource ? localStorage.getItem('fhirSourceUrl') : localStorage.getItem('fhirTargetUrl');
+        this.onfhirUrl = this.isSource ? localStorage.getItem(localStorageKey.FHIR_SOURCE_URL) : localStorage.getItem(localStorageKey.FHIR_TARGET_URL);
     }
 
     verifyFhir () {
