@@ -50,7 +50,7 @@ export class EvaluationService {
             }
             Promise.all(promises).then(res => {
                 resolve(res);
-            });
+            }).catch(err => reject(err));
         });
     }
 
@@ -76,7 +76,7 @@ export class EvaluationService {
             }
             Promise.all(promises).then(res => {
                 resolve(this.savedResourceNumber);
-            });
+            }).catch(err => reject(err));
         });
     }
 

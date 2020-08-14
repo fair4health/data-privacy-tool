@@ -244,9 +244,7 @@ const fhirStore = {
                                         .then(response => {
                                             const count: number = response.data.total;
                                             resolve1({resourceType, profile, count, title, description});
-                                        }).catch(err => {
-                                            reject1(err)
-                                        });
+                                        }).catch(err => reject1(err));
                                 })
                             })).then((counts: any) => {
                                 const availableProfiles: any[] = [];

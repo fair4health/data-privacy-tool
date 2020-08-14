@@ -94,6 +94,8 @@ export default class AttributeSelector extends Vue {
                 this.$store.dispatch(types.Fhir.IMPORT_STATE, data).then(() => {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_IMPORTED')))
                     this.fhirAttributeTableKey++; // in order to re-render attribute table
+                }).catch(err => {
+                    this.$notify.error(String(this.$t('ERROR.FILE_IS_NOT_IMPORTED')));
                 });
             }
             this.$q.loading.hide()
@@ -118,6 +120,8 @@ export default class AttributeSelector extends Vue {
         this.$store.dispatch(types.Fhir.IMPORT_STATE, config.data).then(() => {
             this.$notify.success(String(this.$t('SUCCESS.CONFIGURATION_IS_LOADED')))
             this.fhirAttributeTableKey++; // in order to re-render attribute table
+        }).catch(err => {
+            this.$notify.error(String(this.$t('ERROR.CONFIGURATION_NOT_LOADED')));
         });
     }
 

@@ -39,7 +39,7 @@ export class FHIRUtils {
     }
 
     static parseElementDefinitions (node, state): Promise<any> {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             const fhirBase = localStorage.getItem('fhirSourceUrl');
             const cached = JSON.parse(localStorage.getItem(`${fhirBase}-StructureDefinition-${node.type}`) || '{}');
             if (cached && !Utils.isEmpty(cached)) {
@@ -57,7 +57,7 @@ export class FHIRUtils {
                                 this.parseElements(elements, node, state);
                             }
                             resolve(node);
-                        });
+                        }).catch(err => reject(err));
                 } else {
                     resolve(node);
                 }
@@ -77,7 +77,7 @@ export class FHIRUtils {
                     if (node.children && node.children.length) {
                         node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);
                     }
-                });
+                }).catch(err => err);
             }
             if (node.children && node.children.length) {
                 node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);

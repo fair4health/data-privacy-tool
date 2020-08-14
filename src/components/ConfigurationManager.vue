@@ -136,6 +136,14 @@ export default class ConfigurationManager extends Vue {
                 this.loadingFhir = false;
                 this.$forceUpdate();
             })
+            .catch(() => {
+                this.loadingFhir = false;
+                if (!this.currentFHIRProf) {
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})))
+                } else {
+                    this.$notify.error(String(this.$t('ERROR.X_PROFILE_ELEMENTS_COULDNT_BE_LOADED', {profile: this.currentFHIRProf})));
+                }
+            })
     }
 
     filterFn (val, update) {

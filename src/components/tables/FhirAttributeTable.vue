@@ -244,8 +244,12 @@ export default class FhirAttributeTable extends Vue {
                 this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resource).then(pro => {
                     this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
+                }).catch(err => {
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: resource})))
                 });
             }
+        }).catch(err => {
+            this.$notify.error(String(this.$t('ERROR.ST_WRONG_FETCHING_X', {name: 'resources'})))
         });
     }
 
@@ -271,6 +275,14 @@ export default class FhirAttributeTable extends Vue {
                 this.tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
                 if (!response) {
                     this.noNodesLabel = String(this.$t('LABELS.NO_STRUCTURE_DEFINITION'))
+                }
+            })
+            .catch(() => {
+                this.loadingFhir = false;
+                if (!this.currentFHIRProf) {
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})))
+                } else {
+                    this.$notify.error(String(this.$t('ERROR.X_PROFILE_ELEMENTS_COULDNT_BE_LOADED', {profile: this.currentFHIRProf})));
                 }
             })
     }

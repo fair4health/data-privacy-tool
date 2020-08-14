@@ -410,7 +410,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             this.deidentificationResults = {};
             this.fetchAllData(groupedByResources).then(res => {
                 this.deidentificationStatus = Status.PENDING;
-            });
+            }).catch(err => err);
         } else {
             this.deidentificationStatus = Status.PENDING;
         }
@@ -432,7 +432,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                         this.deidentificationResults[resource].status = Status.PENDING;
                         this.getResultsAsMapping();
                         resolve();
-                    });
+                    }).catch(err => reject(err));
                 } else { // fetch profiles' data and put them in entries
                     const profilePromises = profileGroups.map(groups => {
                         const resource = groups[0].split('.')[0];
@@ -451,12 +451,12 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                             this.getResultsAsMapping();
                         });
                         resolve();
-                    });
+                    }).catch(err => reject(err));
                 }
             });
         });
         return new Promise((resolve, reject) => {
-            Promise.all(dataPromises).then(res => resolve());
+            Promise.all(dataPromises).then(res => resolve()).catch(err => reject(err));
         });
     }
 
@@ -531,9 +531,9 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                     this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
                     this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
                     this.validateEntries(type.resource);
-                });
+                }).catch(err => err);
             });
-        });
+        }).catch(err => err);
     }
 
     validateEntries (resourceType) {
@@ -581,7 +581,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 }
                 this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
                 this.getResultsAsMapping();
-            });
+            }).catch(err => err);
         }
     }
 
@@ -620,6 +620,10 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 this.savedResourceNumber = response;
                 this.loading = false;
                 this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_SAVED')))
+            }).catch(err => {
+                this.savedResourceNumber = 0;
+                this.loading = false;
+                this.$notify.error(String(this.$t('ERROR.RESOURCES_NOT_SAVED')))
             });
     }
 
@@ -696,7 +700,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 }
                 localStorage.setItem('store-exportableState', JSON.stringify(fileStore))
                 this.$notify.success(String(this.$t('SUCCESS.SAVED')))
-            });
+            }).catch(err => err);
         })
     }
 
