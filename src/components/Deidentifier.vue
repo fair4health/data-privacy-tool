@@ -335,6 +335,7 @@ import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 import { deidentificationStepTable } from '@/common/model/data-table'
+import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
 
 @Component({
     components: {
@@ -659,14 +660,18 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     exportConfigurations () {
         this.$q.loading.show({spinner: undefined})
         this.$store.dispatch(types.Fhir.CURRENT_STATE).then(state => {
-            ipcRenderer.send('export-file', JSON.stringify(state))
-            ipcRenderer.on('export-done', (event, result) => {
+            ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.File.EXPORT_FILE, JSON.stringify(state))
+            ipcRenderer.on(ipcChannels.File.EXPORT_DONE, (event, result) => {
                 if (result) {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_EXPORTED')))
                 }
                 this.$q.loading.hide()
-                ipcRenderer.removeAllListeners('export-done')
+                ipcRenderer.removeAllListeners(ipcChannels.File.EXPORT_DONE)
             })
+        })
+        .catch(() => {
+            this.$q.loading.hide()
+            this.$notify.error(String(this.$t('ERROR.CANNOT_EXPORT_CONFIGS')))
         });
     }
 

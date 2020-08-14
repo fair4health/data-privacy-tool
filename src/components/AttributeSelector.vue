@@ -65,6 +65,7 @@ import { Component, Vue } from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {ipcRenderer} from 'electron';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
 
 @Component({
     components: {
@@ -87,8 +88,8 @@ export default class AttributeSelector extends Vue {
 
     importSavedConfigurations (): void {
         this.$q.loading.show({spinner: undefined})
-        ipcRenderer.send('browse-configurations')
-        ipcRenderer.on('selected-configurations', (event, data) => {
+        ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.File.BROWSE_CONFIGURATIONS)
+        ipcRenderer.on(ipcChannels.File.SELECTED_CONFIGURATION, (event, data) => {
             if (data) {
                 this.$store.dispatch(types.Fhir.IMPORT_STATE, data).then(() => {
                     this.$notify.success(String(this.$t('SUCCESS.FILE_IS_IMPORTED')))
@@ -96,7 +97,7 @@ export default class AttributeSelector extends Vue {
                 });
             }
             this.$q.loading.hide()
-            ipcRenderer.removeAllListeners('selected-configurations')
+            ipcRenderer.removeAllListeners(ipcChannels.File.SELECTED_CONFIGURATION)
         })
     }
 

@@ -6,4 +6,11 @@ export class IpcChannelUtil {
   public static TO_RENDERER = 'to-renderer'
   public static READY = 'ready'
 
+  public static File = class {
+    public static EXPORT_FILE = 'export-file'
+    public static EXPORT_DONE = 'export-done'
+    public static BROWSE_CONFIGURATIONS = 'browse-configurations'
+    public static SELECTED_CONFIGURATION = 'selected-configuration'
+  }
+
 }
