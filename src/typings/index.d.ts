@@ -4794,3 +4794,12 @@ declare interface OutcomeDetail {
     message: string
     outcomeDetails?: OutcomeDetail[]
 }
+
+declare interface MenuItem {
+    label: string
+    submenu?: MenuItem[]
+    separate?: boolean
+    icon?: string
+    afterIcon?: any
+    action? (): void
+}
