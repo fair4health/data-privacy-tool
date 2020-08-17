@@ -1,5 +1,5 @@
 <template>
-	<q-card style="width: 700px; max-width: 80vw;">
+	<q-card class="target-repo-card">
 		<q-card-section class="row items-center q-pb-none">
 			<div class="text-h6"> {{ $t('TITLES.ALGORITHM_CONFIGURATION') }} </div>
 			<q-space />
@@ -373,3 +373,10 @@ export default class AlgorithmConfigDialog extends Vue {
 
 }
 </script>
+
+<style lang="stylus">
+    .target-repo-card {
+        width: 700px
+        max-width: 80vw
+    }
+</style>

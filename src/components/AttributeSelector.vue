@@ -20,7 +20,7 @@
 		</div>
 
 		<q-dialog v-model="selectDialog">
-			<q-card style="width: 500px; max-width: 80vw;">
+			<q-card class="saved-configs-card">
 				<q-card-section class="row items-center q-pb-none text-primary">
 					<div class="text-h5"> {{ $t('TITLES.SAVED_CONFIGURATIONS') }} </div>
 					<q-space />
@@ -153,3 +153,9 @@ export default class AttributeSelector extends Vue {
 }
 </script>
 
+<style lang="stylus">
+    .saved-configs-card {
+        width: 500px
+        max-width: 80vw
+    }
+</style>

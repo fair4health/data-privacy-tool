@@ -1,101 +1,130 @@
 <template>
 	<div>
-		<q-bar class="bg-black text-weight-light text-white q-electron-drag q-pr-none">
-			<div :class="{'col flex flex-center': isDarwin}">
-				<div class="row items-center">
-					<q-btn v-if="!isDarwin" flat dense round icon="menu" @click="toggleSidebar" />
-					<div class="col-auto">
-						<img class="flex flex-center" src="../assets/FAIR4Health-logo.png" width="80px">
-					</div>
-					<div class="col text-weight-bold text-size-xl">{{ $t('COMMON.APP_NAME') }}</div>
-				</div>
-			</div>
-			<template v-if="!isDarwin">
-				<q-space />
-				<div class="q-mx-none q-px-none">
-					<q-btn flat square icon="remove" class="title-bar-btn" @click="minimizeApp" />
-					<q-btn flat :icon="isMaximized ? 'mdi-window-restore' : 'mdi-crop-square'" class="title-bar-btn" @click="toggleFullScreen" />
-					<q-btn flat icon="close" class="title-bar-btn btn-close" @click="closeApp" />
-				</div>
-			</template>
-		</q-bar>
-		<div class="bg-grey-10 q-pa-sm q-pl-md row items-center">
-			<div class="cursor-pointer non-selectable">
-				{{ $tc('MENU.FILE') }}
-				<q-menu>
-					<q-list dense>
-						<q-item clickable v-close-popup @click="closeApp">
-							<q-item-section>{{ $tc('MENU.EXIT') }}</q-item-section>
-						</q-item>
-					</q-list>
-				</q-menu>
-			</div>
-			<div class="q-ml-md cursor-pointer non-selectable">
-				{{ $tc('MENU.VIEW') }}
-				<q-menu auto-close>
-					<q-list dense style="min-width: 150px">
-						<q-item clickable @click="toggleFullScreen">
-							<q-item-section>{{ $tc('MENU.TOGGLE_FULL_SCREEN') }}</q-item-section>
-						</q-item>
-					</q-list>
-				</q-menu>
-			</div>
-			<div class="q-ml-md cursor-pointer non-selectable">
-				{{ $tc('MENU.TOOL') }}
-				<q-menu auto-close>
-					<q-list dense style="min-width: 150px">
-						<q-item clickable @click="toggleDevTools">
-							<q-item-section>{{ $tc('MENU.TOGGLE_DEVELOPER_TOOLS') }}</q-item-section>
-						</q-item>
-					</q-list>
-				</q-menu>
-			</div>
-			<div class="q-ml-md cursor-pointer non-selectable">
-				{{ $tc('MENU.HELP') }}
-				<q-menu auto-close>
-					<q-list dense>
-						<q-item clickable @click="openExternal(projectHomePage)">
-							<q-item-section>{{ $tc('MENU.HELP') }}</q-item-section>
-						</q-item>
-					</q-list>
-				</q-menu>
-			</div>
-			<q-space />
-			<q-btn-dropdown dense
-			                flat
-			                :label="$i18n.locale"
-			                :menu-offset="[0, 4]"
-			                size="9px"
-			                icon="language"
-			>
-				<q-list dense>
-					<q-item
-					        clickable
-					        v-close-popup
-					        v-for="lang in langs"
-					        :key="lang"
-					        class="flex flex-center"
-					        @click="$i18n.locale = lang"
-					>
-						<span class="text-size-xs text-uppercase">{{ lang }}</span>
-					</q-item>
-				</q-list>
-			</q-btn-dropdown>
-		</div>
+        <q-bar class="bg-black text-weight-light text-white q-electron-drag q-pr-none">
+            <div :class="{'col flex flex-center': isDarwin}">
+                <div class="row items-center">
+                    <q-btn v-if="!isDarwin" flat dense round icon="menu" @click="toggleSidebar" />
+                    <div class="col-auto">
+                        <img class="flex flex-center" src="../assets/FAIR4Health-logo.png" width="80px">
+                    </div>
+                    <div class="col text-weight-bold text-size-xl">{{ $t('COMMON.APP_NAME') }}</div>
+                </div>
+            </div>
+            <template v-if="!isDarwin">
+                <q-space />
+                <div class="q-mx-none q-px-none">
+                    <q-btn flat square icon="remove" class="title-bar-btn" @click="minimizeApp" />
+                    <q-btn flat :icon="isMaximized ? 'mdi-window-restore' : 'mdi-crop-square'" class="title-bar-btn" @click="toggleFullScreen" />
+                    <q-btn flat icon="close" class="title-bar-btn btn-close" @click="closeApp" />
+                </div>
+            </template>
+        </q-bar>
+        <div class="bg-grey-10 q-pa-sm q-pl-md row q-gutter-x-sm items-center">
+            <div v-for="menuItem in menu" class="q-px-xs cursor-pointer non-selectable">
+                {{ menuItem.label }}
+                <menu-tree :menu="menuItem.submenu" :offset="[0, 8]" />
+            </div>
+            <q-space />
+            <q-btn-dropdown dense
+                            flat
+                            :label="$i18n.locale"
+                            :menu-offset="[0, 4]"
+                            size="9px"
+                            icon="language"
+            >
+                <q-list padding>
+                    <q-item dense
+                            clickable
+                            v-close-popup
+                            v-for="lang in langs"
+                            :key="lang"
+                            class="flex flex-center"
+                            @click="$i18n.locale = lang"
+                    >
+                        <span class="text-size-xs text-uppercase">{{ lang }}</span>
+                    </q-item>
+                </q-list>
+            </q-btn-dropdown>
+        </div>
 	</div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator'
     import {remote, shell} from 'electron'
+    import MenuTree from '@/layouts/MenuTree.vue'
     import {environment} from '@/common/environment';
     import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 
-    @Component
+    @Component({
+        components: {
+            MenuTree
+        }
+    })
     export default class TitleBar extends Vue {
         private currentWindow = remote.getCurrentWindow()
         private isMaximized = this.currentWindow.isMaximized()
         private langs = environment.langs
+
+        get menu (): MenuItem[] {
+            return [
+                {
+                    label: this.$tc('MENU.FILE'),
+                    submenu: [
+                        {
+                            label: this.$tc('MENU.EXIT'),
+                            action: () => this.closeApp()
+                        }
+                    ]
+                },
+                {
+                    label: this.$tc('MENU.VIEW'),
+                    submenu: [
+                        {
+                            label: this.$tc('MENU.TOGGLE_FULL_SCREEN'),
+                            icon: 'zoom_out_map',
+                            action: () => this.toggleFullScreen(),
+                            separate: true
+                        },
+                        {
+                            label: this.$tc('MENU.TOGGLE_SIDEBAR'),
+                            action: () => this.toggleSidebar()
+                        }
+                    ]
+                },
+                {
+                    label: this.$tc('MENU.TOOLS'),
+                    submenu: [
+                        {
+                            label: this.$tc('MENU.LANGUAGE'),
+                            icon: 'language',
+                            separate: true,
+                            submenu: [
+                                {
+                                    label: 'English',
+                                    icon: this.isLang('en') ? 'check' : '',
+                                    action: () => this.updateLang('en')
+                                }
+                            ]
+                        },
+                        {
+                            label: this.$tc('MENU.TOGGLE_DEVELOPER_TOOLS'),
+                            action: () => this.toggleDevTools()
+                        }
+                    ]
+                },
+                {
+                    label: this.$tc('MENU.HELP'),
+                    submenu: [
+                        {
+                            label: this.$tc('MENU.HELP'),
+                            icon: 'fas fa-question',
+                            action: () => this.openExternal(this.projectHomePage)
+                        }
+                    ]
+                }
+            ]
+        }
 
         get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
         get isDarwin (): boolean { return remote.process.platform === 'darwin' }
@@ -122,13 +151,24 @@
         }
 
         minimizeApp () { this.currentWindow.minimize() }
-        closeApp () { this.currentWindow.close() }
+        closeApp () { this.currentWindow.destroy() }
         toggleDevTools () { remote.getCurrentWebContents().toggleDevTools() }
-        openExternal (url: string) { shell.openExternal(url) }
+        openExternal (url) { shell.openExternal(url) }
+
+        isLang (lang: string): boolean {
+            return this.$i18n.locale === lang
+        }
+
+        updateLang (lang: string) {
+            this.$i18n.locale = lang
+        }
     }
 
 </script>
 
-<style scoped>
-
+<style lang="stylus" scoped>
+.title-bar-btn
+    border-radius 0 0
+.btn-close:hover
+    background red
 </style>

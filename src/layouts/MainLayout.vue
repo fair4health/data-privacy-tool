@@ -14,20 +14,20 @@
 			:breakpoint="500"
 			:mini="$q.screen.lt.lg || drawerMiniState"
 		>
-			<q-list class="menu-list text-grey-8">
-				<q-item to="/" exact active-class="text-primary bg-grey-3 text-weight-bold">
-					<q-item-section avatar>
+            <q-list class="drawer-list text-grey-8">
+                <q-item to="/" exact active-class="text-primary bg-grey-3">
+                    <q-item-section avatar class="items-center">
 						<q-icon name="home" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.HOME') }}</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" class="text-size-xs">{{ $t('MENU.HOME') }}</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>{{ $t('MENU.HOME') }}</q-item-label>
 					</q-item-section>
 				</q-item>
-				<q-item to="/deidentification" exact active-class="text-primary bg-grey-3 text-weight-bold">
+				<q-item to="/deidentification" exact active-class="text-primary bg-grey-3">
 					<q-item-section avatar class="items-center">
 						<q-icon name="security" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.DEIDENTIFY') }}</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" class="text-size-xs">{{ $t('MENU.DEIDENTIFY') }}</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>{{ $t('MENU.DEIDENTIFICATION') }}</q-item-label>
@@ -36,7 +36,7 @@
 				<q-item v-if="$route.name==='deidentification'" animation>
 					<q-stepper flat vertical :contracted="isCollapsed" v-model="currentStep"
 					           ref="stepper" alternative-labels color="primary" class="bg-grey-3 no-padding"
-					           :style="isCollapsed ? 'width: 70px' : ''">
+                               v-bind:class="{'collapsed-stepper': isCollapsed}" >
 						<q-step v-for="step in steps" :key="step.stepId"
 						        :class="{'step-item cursor-pointer': currentStep > step.stepId}"
 						        @click="changeCurrentStep(step.stepId)"
@@ -54,7 +54,7 @@
 				<q-item to="/about" exact active-class="text-primary bg-grey-3">
 					<q-item-section avatar class="items-center">
 						<q-icon name="info" />
-						<span v-show="$q.screen.lt.lg || drawerMiniState" style="font-size: 10px">{{ $t('MENU.ABOUT') }}</span>
+						<span v-show="$q.screen.lt.lg || drawerMiniState" class="text-size-xs">{{ $t('MENU.ABOUT') }}</span>
 					</q-item-section>
 					<q-item-section>
 						<q-item-label>{{ $t('MENU.ABOUT') }}</q-item-label>
@@ -79,7 +79,7 @@
 		<!--Router view in page container-->
 		<q-page-container class="main-page">
 			<q-page class="full-height">
-				<div class="fill-window" style="overflow-y: auto">
+				<div class="fill-window overflow-auto">
 					<router-view />
 				</div>
 			</q-page>
@@ -129,21 +129,18 @@ export default class MainLayout extends Vue {
 }
 </script>
 
-<style lang="stylus">
-	.title-bar-btn
-		border-radius 0 0
-	.btn-close:hover
-		background red
-	.main-page
-		/*max-width 1400px*/
-		margin-left auto
-		margin-right auto
-	.menu-list .q-item.q-router-link--exact-active
-		border-left solid 4px #B26F95
-	.menu-list .q-item
-		border-radius 0 32px 32px 0
-	.step-item:hover
-		background #e5e5e5
-	.fill-window
-		height calc(100vh - 68.44px)
+<style lang="stylus" scoped>
+    .main-page
+        margin-left auto
+        margin-right auto
+    .drawer-list .q-item.q-router-link--exact-active
+        border-left solid 4px #526EB2
+    .drawer-list .q-item
+        border-radius 0 32px 32px 0
+    .step-item:hover
+        background #e5e5e5
+    .fill-window
+        height calc(100vh - 68.44px)
+    .collapsed-stepper
+        width 70px
 </style>

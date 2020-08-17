@@ -11,7 +11,7 @@
 		</q-input>
 	</q-item-section>
 		<q-separator />
-		<div style="overflow-y: auto">
+		<div class="splitter-div">
 			<q-splitter v-model="splitterModel">
 				<!--Fhir Element Tree Part-->
 				<template v-slot:before>
@@ -29,7 +29,7 @@
 							<span class="text-white"> {{ $t('TABLE.L_DIVERSITY') }} (l)</span>
 						</div>
 					</div>
-					<q-scroll-area style="height: 50vh">
+					<q-scroll-area>
 						<q-tree :nodes="sensitiveElementList"
 						        ref="sensTree"
 						        node-key="value"
@@ -90,7 +90,7 @@
 
 				<!--Elements Definition Part-->
 				<template v-slot:after>
-					<q-scroll-area style="height: 50vh" v-if="selectedElem">
+					<q-scroll-area v-if="selectedElem">
 						<div>
 							<q-toolbar class="bg-grey-2">
 								<q-item-label class="text-weight-bold text-grey-7">
@@ -234,3 +234,12 @@ export default class SensitiveAttributeTable extends Vue {
 
 }
 </script>
+
+<style lang="stylus">
+    .splitter-div {
+        overflow-y: auto
+    }
+    .q-scroll-area {
+        height: 50vh
+    }
+</style>
