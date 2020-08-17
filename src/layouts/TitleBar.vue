@@ -122,7 +122,7 @@
         }
 
         minimizeApp () { this.currentWindow.minimize() }
-        closeApp () { this.currentWindow.close() }
+        closeApp () { this.currentWindow.destroy() }
         toggleDevTools () { remote.getCurrentWebContents().toggleDevTools() }
         openExternal (url: string) { shell.openExternal(url) }
     }
