@@ -57,7 +57,7 @@
 						</q-input>
 					</q-item-section>
 					<q-separator />
-					<div style="overflow-y: auto">
+					<div class="splitter-div">
 						<q-splitter v-model="splitterModel">
 							<!--Fhir Element Tree Part-->
 							<template v-slot:before>
@@ -81,7 +81,7 @@
 										<span class="text-white">{{attributeTypes.INSENSITIVE}}</span>
 									</div>
 								</div>
-								<q-scroll-area style="height: 50vh">
+								<q-scroll-area>
 									<q-tree :nodes="fhirElementList"
 									        ref="fhirTree"
 									        node-key="value"
@@ -104,9 +104,9 @@
 													        class="q-mr-sm"
 													/>
 													<span>{{ prop.node.label }}
-														<span v-if="prop.node.required" class="text-red text-weight-bold" style="font-size: 16px">
+														<span v-if="prop.node.required" class="text-red text-weight-bold text-size-xxxl">
 															{{ prop.node.required ? '*' : '' }}
-															<q-tooltip v-if="prop.node.children.length" content-style="font-size: 12px" anchor="top right" self="top left">
+															<q-tooltip v-if="prop.node.children.length" content-class="text-size-md" anchor="top right" self="top left">
 																{{ $t('WARNING.MANDATORY_COMPLEX_TYPES') }}
 															</q-tooltip>
 														</span>
@@ -139,7 +139,7 @@
 
 							<!--Elements Definition Part-->
 							<template v-slot:after>
-								<q-scroll-area style="height: 50vh" v-if="selectedElem">
+								<q-scroll-area v-if="selectedElem">
 									<div>
 										<q-toolbar class="bg-grey-2">
 											<q-item-label class="text-weight-bold text-grey-7">
@@ -323,13 +323,11 @@ export default class FhirAttributeTable extends Vue {
 </script>
 
 <style lang="stylus">
-	.customDropdownText {
-		.q-field__native {
-			color: #10a1df // Cannot import primary color
-			font-size: smaller
-			align-items: center
-			justify-content: center
-		}
-	}
+    .splitter-div {
+        overflow-y: auto
+    }
+    .q-scroll-area {
+        height: 50vh
+    }
 </style>
 

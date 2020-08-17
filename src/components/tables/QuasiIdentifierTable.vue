@@ -16,7 +16,7 @@
 			</q-input>
 		</q-item-section>
 		<q-separator />
-		<div style="overflow-y: auto">
+		<div class="splitter-div">
 			<q-splitter v-model="splitterModel">
 				<!--Fhir Element Tree Part-->
 				<template v-slot:before>
@@ -31,7 +31,7 @@
 							<span class="text-white"> {{ $t('TABLE.DEIDENTIFICATION_ALGORITHM') }} </span>
 						</div>
 					</div>
-					<q-scroll-area style="height: 50vh">
+					<q-scroll-area>
 						<q-tree :nodes="quasiElementList"
 						        ref="quasiTree"
 						        node-key="value"
@@ -93,7 +93,7 @@
 
 				<!--Elements Definition Part-->
 				<template v-slot:after>
-					<q-scroll-area style="height: 50vh" v-if="selectedElem">
+					<q-scroll-area v-if="selectedElem">
 						<div>
 							<q-toolbar class="bg-grey-2">
 								<q-item-label class="text-weight-bold text-grey-7">
@@ -282,3 +282,11 @@ export default class QuasiIdentifierTable extends Vue {
 }
 </script>
 
+<style lang="stylus">
+    .splitter-div {
+        overflow-y: auto
+    }
+    .q-scroll-area {
+        height: 50vh
+    }
+</style>

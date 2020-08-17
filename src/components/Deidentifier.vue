@@ -18,10 +18,10 @@
 				<q-card-section>
 					<q-table flat binary-state-sort :title="$t('LABELS.RESOURCES')" :data="mappingList" :columns="columns" row-key="resource"
 					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table" selection="multiple"
-					         table-style="max-height: 60vh" :loading="loading" color="primary" :selected.sync="selectedResources"
+                             table-class="resources-table" :loading="loading" color="primary" :selected.sync="selectedResources"
 					>
 						<template v-slot:header-cell="props">
-							<q-th :props="props" class="bg-primary text-white" style="font-size: 15px">
+							<q-th :props="props" class="bg-primary text-white text-size-xxl">
 								<q-icon v-if="props.col.icon" :class="props.col.icon" />
 								<span class="vertical-middle q-ml-xs">{{ $t(props.col.label) }}</span>
 							</q-th>
@@ -228,7 +228,7 @@
 							<div class="spinner-comp flex flex-center"></div>
 						</div>
 						<div class="row justify-center">
-							<span class="text-grey-8" style="font-size: 14px"> {{ $t('COMMON.SAVING_RESOURCES') }} </span>
+							<span class="text-grey-8 text-size-xl"> {{ $t('COMMON.SAVING_RESOURCES') }} </span>
 						</div>
 					</div>
 					<div v-if="!loading" class="q-ma-sm">
@@ -238,7 +238,7 @@
 							</transition>
 						</div>
 						<div class="row justify-center">
-                            <span class="text-grey-8" style="font-size: 14px">
+                            <span class="text-grey-8 text-size-xl">
                                 {{savedResourceNumber}} {{ $t('INFO.RESOURCES_SAVED') }}
                             </span>
 						</div>
@@ -257,7 +257,7 @@
 		</q-dialog>
 
 		<q-dialog v-model="targetRepoDialog">
-			<q-card style="width: 700px; max-width: 80vw;">
+			<q-card class="target-repo-card">
 				<q-card-section class="row items-center text-negative">
 					<span class="text-h6"><q-icon class="material-icons md-24">save</q-icon> {{ $t('LABELS.SAVE_AS_NEW_DATA') }} </span>
 					<q-space />
@@ -288,7 +288,7 @@
 		</q-dialog>
 
 		<q-dialog v-model="jsonResources">
-			<q-card style="width: 900px; max-width: 100vw;">
+			<q-card class="json-resources-card">
 				<q-card-section class="row items-center text-primary">
 					<div v-if="isRestricted" class="text-h5"> {{ $t('TITLES.RESTRICTED_RESOURCES', {selectedResource}) }} </div>
 					<div v-else class="text-h5"> {{ $t('TITLES.DEIDENTIFIED_RESOURCES', {selectedResource}) }} </div>
@@ -296,7 +296,7 @@
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
 				<q-separator />
-				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" style="max-height: 70vh" class="scroll">
+				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" class="scroll json-resources-card-section">
 					<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
 						<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
 							<template v-if="isRestricted"> {{ $t('INFO.RESTRICTED_JSONS') }} </template>
@@ -787,7 +787,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
 		font-size: 15px !important;
 	}
 	.tree-view-item-key {
-		color: #B26F95;
+		color: #B26F95
 	}
 	.tree-view-item-value-string {
 		color: #00A54F
@@ -798,5 +798,18 @@ export default class Deidentifier extends Mixins(StatusMixin) {
 	.tree-view-item-value-number {
 		color: #00A7F7
 	}
-
+    .target-repo-card {
+        width: 700px
+        max-width: 80vw
+    }
+    .json-resources-card {
+        width: 900px
+        max-width: 100vw
+    }
+    .json-resources-card-section {
+        max-height: 70vh
+    }
+    .resources-table {
+        max-height: 60vh
+    }
 </style>
