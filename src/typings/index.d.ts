@@ -4780,26 +4780,6 @@ interface Date {
     toISODateString (): string;
 }
 
-interface String {
-    linkify (options?: any): string;
-}
-
-declare namespace ResourceGenerator {
-    interface Payload {
-        value: any,
-        sourceType: string | undefined, // 'Text' | 'Date' | 'Number' | 'Boolean'
-        targetField: string,
-        targetSubFields: string[],
-        fhirType?: string
-    }
-}
-
-declare interface StoreMappingObject {
-    date: Date
-    data: object
-    name: string
-}
-
 declare interface StepItem {
     title: string,
     icon: string,
