@@ -1,5 +1,6 @@
 import { FhirService } from '@/common/services/fhir.service'
 import { environment } from '@/common/environment'
+import { recommendation } from '@/common/recommendation'
 import { FHIRUtils } from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
 import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
@@ -32,7 +33,21 @@ const fhirStore = {
             state.typeMappings[tmpObj.value] = tmpObj.type;
         }
         if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
-            state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+            const resource = tmpObj.value.split('.')[0];
+            const key = tmpObj.value.split('.').slice(2).join('.');
+            if (recommendation.attributeMappings[resource][key]) {
+                if (!tmpObj.required || (tmpObj.required && recommendation.attributeMappings[resource][key] !== environment.attributeTypes.ID)) {
+                    // if no conflict with required value, assign recommendation
+                    state.attributeMappings[tmpObj.value] = recommendation.attributeMappings[resource][key];
+                } else {
+                    // if recommendation is ID but obj is required, assign QUASI instead
+                    state.attributeMappings[tmpObj.value] = environment.attributeTypes.QUASI;
+                }
+                state.recommendedAttributesMappings[resource] = true;
+            } else {
+                // if no recommendation exists for the current attribute, assign INSENSITIVE
+                state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+            }
         }
         if (tmpObj.value && tmpObj.required && !state.requiredElements.includes(tmpObj.value)) {
             state.requiredElements.push(tmpObj.value);
@@ -73,7 +88,8 @@ const fhirStore = {
         profileUrlMappings: {},
         outcomeDetails: [],
         selectedResources: [],
-        noNodesAvailableLabel: ''
+        noNodesAvailableLabel: '',
+        recommendedAttributesMappings: {}
     },
     getters: {
         [types.Fhir.RESOURCE_LIST]: state => state.resourceList || [],
@@ -105,7 +121,8 @@ const fhirStore = {
         [types.Fhir.PROFILE_URL_MAPPINGS]: state => state.profileUrlMappings || {},
         [types.Fhir.OUTCOME_DETAILS]: state => state.outcomeDetails || [],
         [types.Fhir.SELECTED_RESOURCES]: state => state.selectedResources || [],
-        [types.Fhir.NO_NODES_AVAILABLE_LABEL]: state => state.noNodesAvailableLabel || ''
+        [types.Fhir.NO_NODES_AVAILABLE_LABEL]: state => state.noNodesAvailableLabel || '',
+        [types.Fhir.RECOMMENDED_ATTRIBUTES_MAPPINGS]: state => state.recommendedAttributesMappings || {}
     },
     mutations: {
         [types.Fhir.SET_RESOURCE_LIST] (state, list) {
@@ -195,8 +212,11 @@ const fhirStore = {
         [types.Fhir.SET_SELECTED_RESOURCES] (state, value) {
             state.selectedResources = value;
         },
-        [types.Fhir.NO_NODES_AVAILABLE_LABEL] (state, value: string) {
+        [types.Fhir.SET_NO_NODES_AVAILABLE_LABEL] (state, value: string) {
             state.noNodesAvailableLabel = value;
+        },
+        [types.Fhir.SET_RECOMMENDED_ATTRIBUTES_MAPPINGS] (state, value) {
+            state.recommendedAttributesMappings = value
         }
     },
     actions: {
@@ -377,6 +397,18 @@ const fhirStore = {
                         state[key] = JSON.parse(JSON.stringify(newState[key]));
                     }
                 }
+                resolve();
+            })
+        },
+        [types.Fhir.RESET_RECOMMENDATIONS] ( { state }, resource ) {
+            return new Promise((resolve, reject) => {
+                Object.keys(state.attributeMappings).forEach(key => {
+                    const resourceOfKey = key.split('.')[0];
+                    if (resourceOfKey === resource) {
+                        state.attributeMappings[key] = environment.attributeTypes.INSENSITIVE;
+                    }
+                });
+                state.recommendedAttributesMappings[resource] = false;
                 resolve();
             })
         }

@@ -167,8 +167,8 @@
 </script>
 
 <style lang="stylus" scoped>
-.title-bar-btn
-    border-radius 0 0
-.btn-close:hover
-    background red
+    .title-bar-btn
+        border-radius 0 0
+    .btn-close:hover
+        background red
 </style>

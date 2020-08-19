@@ -286,7 +286,7 @@ export default class QuasiIdentifierTable extends Vue {
     .splitter-div {
         overflow-y: auto
     }
-    .q-scroll-area {
+    .q-scrollarea {
         height: 50vh
     }
 </style>

@@ -46,16 +46,23 @@
 			</q-card-section>
 			<q-card-section>
 				<div>
-					<q-item-section class="q-px-xs">
-						<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
-							<template v-slot:prepend>
-								<q-icon name="sort" />
-							</template>
-							<template v-slot:append>
-								<q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
-							</template>
-						</q-input>
-					</q-item-section>
+                    <q-item class="q-px-xs">
+                        <q-item-section>
+                            <q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
+                                <template v-slot:prepend>
+                                    <q-icon name="sort" />
+                                </template>
+                                <template v-slot:append>
+                                    <q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
+                                </template>
+                            </q-input>
+                        </q-item-section>
+                        <q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
+                            <q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
+                                <q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
+                            </q-btn>
+                        </q-item-section>
+                    </q-item>
 					<q-separator />
 					<div class="splitter-div">
 						<q-splitter v-model="splitterModel">
@@ -233,7 +240,10 @@ export default class FhirAttributeTable extends Vue {
     set resourceProfileMappings (value) { this.$store.commit(types.Fhir.SET_RESOURCE_PROFILE_MAPPINGS, value) }
 
     get noNodesLabel (): string { return this.$store.getters[types.Fhir.NO_NODES_AVAILABLE_LABEL] }
-    set noNodesLabel (value) { this.$store.commit(types.Fhir.NO_NODES_AVAILABLE_LABEL, value) }
+    set noNodesLabel (value) { this.$store.commit(types.Fhir.SET_NO_NODES_AVAILABLE_LABEL, value) }
+
+    get recommendedAttributesMappings (): any { return this.$store.getters[types.Fhir.RECOMMENDED_ATTRIBUTES_MAPPINGS] }
+    set recommendedAttributesMappings (value) { this.$store.commit(types.Fhir.SET_RECOMMENDED_ATTRIBUTES_MAPPINGS, value) }
 
     created () {
         if (!this.currentFHIRRes && !this.noNodesLabel) {
@@ -287,6 +297,15 @@ export default class FhirAttributeTable extends Vue {
             })
     }
 
+    resetRecommendations () {
+        this.$store.dispatch(types.Fhir.RESET_RECOMMENDATIONS, this.currentFHIRRes).then(() => {
+            this.$parent['fhirAttributeTableKey']++; // in order to re-render attribute table
+            this.$notify.success(String(this.$t('SUCCESS.RECOMMENDATIONS_RESETTED')))
+        }).catch(err => {
+            this.$notify.error(String(this.$t('ERROR.RECOMMENDATIONS_NOT_RESETTED')));
+        });
+    }
+
     filterFn (val, update) {
         if (val === '') {
             update(_ => this.fhirResourceOptions = this.fhirResourceList);
@@ -326,7 +345,7 @@ export default class FhirAttributeTable extends Vue {
     .splitter-div {
         overflow-y: auto
     }
-    .q-scroll-area {
+    .q-scrollarea {
         height: 50vh
     }
 </style>

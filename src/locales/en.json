@@ -52,6 +52,7 @@
         "FHIR_VERSION_COULDNT_DETECTED": "FHIR version couldn't be detected for given url.",
         "FHIR_VERSION_NOT_SUPPORTED": "FHIR version ({version}) is not supported. FHIR version must be R4.",
         "FILE_IS_NOT_IMPORTED": "File couldn't be imported. Try again.",
+        "RECOMMENDATIONS_NOT_RESETTED": "Recommendations couldn't be resetted. Try again.",
         "RESOURCES_NOT_SAVED": "Resources couldn't be saved. Try again.",
         "ST_WRONG_FETCHING_X": "Something went wrong while fetching {name}",
         "VALIDATION_FAILED": "Validation is failed",
@@ -153,6 +154,7 @@
     },
     "SUCCESS": {
         "CONFIGURATION_IS_LOADED": "Configuration is loaded successfully",
+        "RECOMMENDATIONS_RESETTED": "Recommendations are resetted successfully",
         "RESOURCES_ARE_DEIDENTIFIED": "Resources are de-identified successfully",
         "RESOURCES_ARE_SAVED": "Resources are saved successfully",
         "FHIR_URL_VERIFIED": "FHIR Repository URL is verified",
@@ -190,6 +192,7 @@
         "EXPORT_CONFIGURATION": "Export Configuration",
         "IMPORT_CONFIGURATION": "Import Configuration",
         "LOADING": "Loading...",
+        "RESET_RECOMMENDED_ATTRIBUTES": "Reset Recommended Attributes",
         "SAVE_DEIDENTIFIED_DATA": "Save De-identified Data to Repository",
         "SAVE_CONFIGURATION": "Save Configuration",
         "SELECT_SAVED_CONFIGURATION": "Select Saved Configuration"
