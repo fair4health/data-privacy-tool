@@ -239,7 +239,7 @@ export default class SensitiveAttributeTable extends Vue {
     .splitter-div {
         overflow-y: auto
     }
-    .q-scroll-area {
+    .q-scrollarea {
         height: 50vh
     }
 </style>

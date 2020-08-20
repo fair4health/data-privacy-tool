@@ -50,6 +50,7 @@ export class VuexStoreUtil {
     public static FHIR_SOURCE_VERIFICATION_STATUS_DETAIL = 'fhirSourceVerificationStatusDetail'
     public static FHIR_TARGET_VERIFICATION_STATUS_DETAIL = 'fhirTargetVerificationStatusDetail'
     public static NO_NODES_AVAILABLE_LABEL = 'noNodesAvailableLabel'
+    public static RECOMMENDED_ATTRIBUTES_MAPPINGS = 'recommendedAttributesMappings'
 
     // Mutations
     public static SET_ATTRIBUTE_MAPPINGS = 'setAttributeMappings'
@@ -78,6 +79,8 @@ export class VuexStoreUtil {
     public static SET_FHIR_TARGET_VERIFICATION_STATUS = 'setFhirTargetVerificationStatus'
     public static SET_FHIR_SOURCE_VERIFICATION_STATUS_DETAIL = 'setFhirSourceVerificationStatusDetail'
     public static SET_FHIR_TARGET_VERIFICATION_STATUS_DETAIL = 'setFhirTargetVerificationStatusDetail'
+    public static SET_NO_NODES_AVAILABLE_LABEL = 'setNoNodesAvailableLabel'
+    public static SET_RECOMMENDED_ATTRIBUTES_MAPPINGS = 'setRecommendedAttributesMappings'
 
     // Actions
     public static GET_RESOURCES = 'getResources'
@@ -89,6 +92,7 @@ export class VuexStoreUtil {
     public static SAVE_ENTRIES = 'saveEntries'
     public static CURRENT_STATE = 'currentState'
     public static IMPORT_STATE = 'importState'
+    public static RESET_RECOMMENDATIONS = 'resetRecommendations'
 
   }
 

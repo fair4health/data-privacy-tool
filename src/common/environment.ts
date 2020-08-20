@@ -33,6 +33,7 @@ export const environment = {
         BackboneElement: ['id', 'extension', 'modifierExtension']
     },
     extendibleDataTypes: {
+        Address: `${hl7Base}/StructureDefinition/Address`,
         CodeableConcept: `${hl7Base}/StructureDefinition/CodeableConcept`,
         Coding: `${hl7Base}/StructureDefinition/Coding`,
         ContactPoint: `${hl7Base}/StructureDefinition/ContactPoint`,
