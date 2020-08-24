@@ -164,8 +164,8 @@ export class DeidentificationService {
             while (i < paths.length) {
                 key += '.' + paths[i++];
             }
-            if (this.parameterMappings[key].name === 'Pass Through' || this.parameterMappings[key].name === 'Generalization' ||
-                (this.parameterMappings[key].name === 'Substitution' && !environment.primitiveTypes[this.typeMappings[key]].regex
+            if (this.parameterMappings[key].name === environment.algorithms.PASS_THROUGH.name || this.parameterMappings[key].name === environment.algorithms.GENERALIZATION.name ||
+                (this.parameterMappings[key].name === environment.algorithms.SUBSTITUTION.name && !environment.primitiveTypes[this.typeMappings[key]].regex
                     && this.parameterMappings[key].lengthPreserved)) {
                 keys.push(key);
             }
@@ -192,13 +192,13 @@ export class DeidentificationService {
         const algorithm = this.parameterMappings[key];
         [this.quasis, this.sensitives, this.identifiers] = [[], [], []];
         switch (algorithm.name) {
-            case 'Pass Through':
+            case environment.algorithms.PASS_THROUGH.name:
                 if (primitiveType === 'boolean') {
                     if (!required) {
                         this.identifiers.push(key.split('.').slice(2));
                     }
                     this.canBeAnonymizedMore = false;
-                } else if (environment.primitiveTypes[primitiveType].supports.includes('Generalization')) {
+                } else if (environment.primitiveTypes[primitiveType].supports.includes(environment.algorithms.GENERALIZATION.name)) {
                     this.parameterMappings[key] = environment.algorithms.GENERALIZATION;
                     this.quasis.push(key.split('.').slice(2));
                 } else {
@@ -206,7 +206,7 @@ export class DeidentificationService {
                     this.quasis.push(key.split('.').slice(2));
                 }
                 break;
-            case 'Generalization':
+            case environment.algorithms.GENERALIZATION.name:
                 if (primitiveType === 'decimal') { // Decimal places of the floating number will be rounded
                     if (this.parameterMappings[key].roundDigits) {
                         this.parameterMappings[key].roundDigits--;
@@ -263,7 +263,7 @@ export class DeidentificationService {
                     }
                 }
                 break;
-            case 'Substitution': // data with regex is already filtered
+            case environment.algorithms.SUBSTITUTION.name: // data with regex is already filtered
                 if (algorithm.lengthPreserved) { // anonymize again with fixed length
                     this.parameterMappings[key] = environment.algorithms.SUBSTITUTION;
                     this.parameterMappings[key].lengthPreserved = false;
@@ -437,12 +437,12 @@ export class DeidentificationService {
     executeAlgorithm (key, parameters, data, primitiveType) {
         const regex = environment.primitiveTypes[primitiveType].regex;
         switch (parameters.name) {
-            case 'Pass Through':
+            case environment.algorithms.PASS_THROUGH.name:
                 break;
-            case 'Redaction':
+            case environment.algorithms.REDACTION.name:
                 this.identifiers.push(key.split('.').slice(2));
                 break;
-            case 'Substitution':
+            case environment.algorithms.SUBSTITUTION.name:
                 if (regex) {
                     data = new RandExp(regex).gen();
                 } else {
@@ -450,10 +450,10 @@ export class DeidentificationService {
                         .join( parameters.substitutionChar );
                 }
                 break;
-            case 'Recoverable Substitution':
+            case environment.algorithms.RECOVERABLE_SUBSTITUTION.name:
                 data = btoa(data); // recover function is atob(data)
                 break;
-            case 'Fuzzing':
+            case environment.algorithms.FUZZING.name:
                 data += this.getRandomFloat(-parameters.percentage, parameters.percentage);
                 if (primitiveType === 'integer') { // A signed integer in the range −2,147,483,648..2,147,483,647
                     data = Math.round(data);
@@ -463,7 +463,7 @@ export class DeidentificationService {
                     data = Math.round(Math.abs(data)) ? Math.round(Math.abs(data)) : 1;
                 }
                 break;
-            case 'Generalization':
+            case environment.algorithms.GENERALIZATION.name:
                 if (primitiveType === 'decimal') { // Decimal places of the floating number will be rounded
                     const denary = Math.pow(10, parameters.roundDigits);
                     data = parameters.roundedToFloor ? Math.floor(data * denary) / denary : Math.ceil(data * denary) / denary;
@@ -496,7 +496,7 @@ export class DeidentificationService {
                     }
                 }
                 break;
-            case 'Date Shifting': // Date will be shifted randomly within a range that you provide
+            case environment.algorithms.DATE_SHIFTING.name: // Date will be shifted randomly within a range that you provide
                 if (primitiveType === 'time') { // HH:mm:ss ['Hours', 'Minutes', 'Seconds']
                     let tempDate = moment(data, 'HH:mm:ss').toDate();
                     tempDate = this.getRandomDate(tempDate, parameters.dateUnit, parameters.range);

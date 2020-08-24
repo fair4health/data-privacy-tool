@@ -124,19 +124,19 @@
 												</div>
 												<div class="text-center col-1">
 													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.ID"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.ID)" :disable="prop.node.required" />
+													         @input="onAttributeTypeSelected(prop, attributeTypes.ID)" :disable="prop.node.required" />
 												</div>
 												<div class="text-center col-2">
 													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.QUASI"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.QUASI)" />
+													         @input="onAttributeTypeSelected(prop, attributeTypes.QUASI)" />
 												</div>
 												<div class="col-1">
 													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.SENSITIVE"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.SENSITIVE)" />
+													         @input="onAttributeTypeSelected(prop, attributeTypes.SENSITIVE)" />
 												</div>
 												<div class="col-1">
 													<q-radio v-if="willBeDeidentified(prop.node)" v-model="tempParameterMappings[prop.key]" :val="attributeTypes.INSENSITIVE"
-													         @input="onAttributeTypeSelected(prop.key, attributeTypes.INSENSITIVE)" />
+													         @input="onAttributeTypeSelected(prop, attributeTypes.INSENSITIVE)" />
 												</div>
 											</div>
 										</template>
@@ -314,12 +314,14 @@ export default class FhirAttributeTable extends Vue {
         update(_ => this.fhirResourceOptions = this.fhirResourceList.filter(v => v.toLowerCase().includes(val.toLowerCase())))
     }
 
-    onAttributeTypeSelected (prop: string, val: string) {
-        this.attributeMappings[prop] = val;
+    onAttributeTypeSelected (prop, val: string) {
+        const splitted = prop.key.split('.');
+        const word = splitted[splitted.length - 1];
+        this.attributeMappings[prop.key] = val;
         if (val === this.attributeTypes.SENSITIVE) {
-            this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.SENSITIVE));
+            this.parameterMappings[prop.key] = FHIRUtils.recommendedAlgorithm(word, prop.node.type, prop.node.required, false)
         } else if (val === this.attributeTypes.QUASI) {
-            this.parameterMappings[prop] = JSON.parse(JSON.stringify(environment.algorithms.PASS_THROUGH));
+            this.parameterMappings[prop.key] = FHIRUtils.recommendedAlgorithm(word, prop.node.type, prop.node.required, true)
         }
     }
 

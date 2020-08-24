@@ -24,7 +24,7 @@ export const recommendation = {
         }
     },
     parameterMappings: {
-        quasiRules: {
+        quasiRules: { // Redaction is always recommended with another algorithm, in case the attribute is required
             specificWords: {
                 display: ['Redaction', 'Recoverable Substitution'],
                 text: ['Redaction', 'Recoverable Substitution'],
