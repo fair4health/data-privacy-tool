@@ -105,6 +105,7 @@ export class DeidentificationService {
             while (this.canBeAnonymizedMore) {
                 let parametersChanged = false;
                 let eqClassesSmall = false;
+                let eqClassesEnough = false;
                 equivalenceClasses.forEach(eqClass => {
                     if (eqClass.length < kValue) { // k-anonymity
                         if (!parametersChanged) { // change de-identification parameters to anonymize records more
@@ -128,13 +129,18 @@ export class DeidentificationService {
                                 // anonymize records more which are not l-diverse
                                 eqClass = eqClass.map(entry => this.changeAttributes(resource + '.' + profile, entry.resource));
                                 eqClassesSmall = true;
+                            } else {
+                                eqClassesEnough = true;
                             }
                         });
+                    } else {
+                        eqClassesEnough = true;
                     }
                 });
                 equivalenceClasses = this.generateEquivalenceClasses(resource, quasiKey, anonymizedData);
                 anonymizedData = [].concat(...equivalenceClasses);
-                if (eqClassesSmall) {
+                if (eqClassesEnough && !eqClassesSmall) {
+                    // if all eq classes are large enough, exit loop
                     break;
                 }
             }
