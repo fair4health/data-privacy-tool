@@ -32,8 +32,8 @@ export class EvaluationService {
             while (i < paths.length) {
                 key += '.' + paths[i++];
             }
-            if (parameterMappings[key].name === 'Pass Through' || parameterMappings[key].name === 'Generalization' ||
-                (parameterMappings[key].name === 'Substitution' && !environment.primitiveTypes[typeMappings[key]].regex
+            if (parameterMappings[key].name === environment.algorithms.PASS_THROUGH.name || parameterMappings[key].name === environment.algorithms.GENERALIZATION.name ||
+                (parameterMappings[key].name === environment.algorithms.SUBSTITUTION.name && !environment.primitiveTypes[typeMappings[key]].regex
                     && parameterMappings[key].lengthPreserved)) {
                 this.riskyQuasis.push(key);
             }

@@ -1,10 +1,10 @@
-import { FhirService } from '@/common/services/fhir.service'
-import { environment } from '@/common/environment'
-import { recommendation } from '@/common/recommendation'
-import { FHIRUtils } from '@/common/utils/fhir-util'
+import {FhirService} from '@/common/services/fhir.service'
+import {environment} from '@/common/environment'
+import {recommendation} from '@/common/recommendation'
+import {FHIRUtils} from '@/common/utils/fhir-util'
 import {EvaluationService} from '@/common/services/evaluation.service';
-import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
-import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util'
+import {LocalStorageUtil as localStorageKey} from '@/common/utils/local-storage-util'
 import i18n from '@/i18n';
 
 const fhirStore = {
@@ -33,8 +33,10 @@ const fhirStore = {
             state.typeMappings[tmpObj.value] = tmpObj.type;
         }
         if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
-            const resource = tmpObj.value.split('.')[0];
-            const key = tmpObj.value.split('.').slice(2).join('.');
+            const splitted = tmpObj.value.split('.');
+            const resource = splitted[0];
+            const key = splitted.slice(2).join('.');
+            const word = splitted[splitted.length - 1];
             if (recommendation.attributeMappings[resource][key]) {
                 if (!tmpObj.required || (tmpObj.required && recommendation.attributeMappings[resource][key] !== environment.attributeTypes.ID)) {
                     // if no conflict with required value, assign recommendation
@@ -47,6 +49,11 @@ const fhirStore = {
             } else {
                 // if no recommendation exists for the current attribute, assign INSENSITIVE
                 state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+            }
+            if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.QUASI) {
+                state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, true);
+            } else if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.SENSITIVE) {
+                state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, false);
             }
         }
         if (tmpObj.value && tmpObj.required && !state.requiredElements.includes(tmpObj.value)) {
