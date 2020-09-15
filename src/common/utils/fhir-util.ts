@@ -1,4 +1,5 @@
 import {environment} from '@/common/environment';
+import { recommendation } from '@/common/recommendation'
 import {FhirService} from '@/common/services/fhir.service';
 import {Utils} from '@/common/utils/util';
 import fhirStore from '@/store/fhirStore';
@@ -117,6 +118,25 @@ export class FHIRUtils {
             }
         });
         return tree;
+    }
+
+    static recommendedAlgorithm (word: string, type: string, required: boolean, isQuasi: boolean) {
+        if (!isQuasi) {
+            // todo handle sensitive attribute algo recommendations
+            return environment.algorithms.SENSITIVE;
+        } else {
+            const algoOptions = recommendation.parameterMappings.quasiRules.specificWords[word] ?
+                recommendation.parameterMappings.quasiRules.specificWords[word] : recommendation.parameterMappings.quasiRules.primitiveTypes[type];
+            if (!algoOptions) {
+                return environment.algorithms.PASS_THROUGH;
+            } else if (required && algoOptions.length > 1) {
+                const algoKey = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === algoOptions[1]);
+                return environment.algorithms[algoKey ? algoKey : 'PASS_THROUGH'];
+            } else {
+                const algoKey = Object.keys(environment.algorithms).find(key => environment.algorithms[key].name === algoOptions[0]);
+                return environment.algorithms[algoKey ? algoKey : 'PASS_THROUGH'];
+            }
+        }
     }
 
 }

@@ -800,11 +800,11 @@ export default class Deidentifier extends Mixins(StatusMixin) {
 	}
     .target-repo-card {
         width: 700px
-        max-width: 80vw
+        max-width: 80vw !important
     }
     .json-resources-card {
         width: 900px
-        max-width: 100vw
+        max-width: 100vw !important
     }
     .json-resources-card-section {
         max-height: 70vh
