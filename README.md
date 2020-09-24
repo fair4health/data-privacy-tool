@@ -1,6 +1,13 @@
 # FAIR4Health Data Privacy Tool
 
-![alt text](src/assets/FAIR4Health-logo.png)
+<p align="center">
+  <a href="https://www.fair4health.eu" target="_blank"><img width="400" src="https://www.fair4health.eu/images/logo.png" alt="FAIR4Health logo"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/fair4health/data-privacy-tool"><img src="https://img.shields.io/github/license/fair4health/data-privacy-tool" alt="License"></a>
+  <a href="https://github.com/fair4health/data-privacy-tool/releases"><img src="https://img.shields.io/github/v/release/fair4health/data-privacy-tool" alt="Releases"></a>
+</p>
 
 ## About
 
@@ -60,3 +67,7 @@ The tool writes logs to the following locations:
 - on **Windows**: `%USERPROFILE%\AppData\Roaming\FAIR4Health Privacy Tool\logs\log.txt`
 - on **Linux**: `~/.config/FAIR4Health Privacy Tool/logs/log.txt`
 
+### Acknowledgement
+
+This research has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 824666,
+[FAIR4Health Project](https://www.fair4health.eu/) (Improving Health Research in EU through FAIR Data).
