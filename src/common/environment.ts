@@ -37,7 +37,8 @@ export const environment = {
         CodeableConcept: `${hl7Base}/StructureDefinition/CodeableConcept`,
         Coding: `${hl7Base}/StructureDefinition/Coding`,
         ContactPoint: `${hl7Base}/StructureDefinition/ContactPoint`,
-        HumanName: `${hl7Base}/StructureDefinition/HumanName`
+        HumanName: `${hl7Base}/StructureDefinition/HumanName`,
+        Identifier: `${hl7Base}/StructureDefinition/Identifier`
     },
     kAnonymityBlockSize: 100000, // Row Blocking F. Prasser, et al. in https://doi.org/10.1016/j.ijmedinf.2019.03.006
     attributeTypes: {
