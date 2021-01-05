@@ -24,7 +24,7 @@
     "dependencies": {
         "@quasar/extras": "^1.8.2",
         "@types/lodash": "^4.14.157",
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "core-js": "^3.6.5",
         "electron-log": "^4.2.2",
         "es6-promise": "^4.2.8",
