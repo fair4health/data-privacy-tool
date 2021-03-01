@@ -34,14 +34,16 @@
                             <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
                         </q-item-label>
                         <q-separator spaced />
-                        <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+                        <q-select clearable outlined dense options-dense v-model="currentFHIRProf" :options="sortProfiles(resourceProfileMappings[currentFHIRRes])"
+                                  :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length"
+                                  :option-label="item => item.split('/').pop()" :label="$t('LABELS.PROFILES')">
                             <template v-slot:option="scope">
                                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                                     <q-item-section avatar>
                                         <q-icon name="fas fa-file-alt" size="xs" />
                                     </q-item-section>
                                     <q-item-section>
-                                        <q-item-label v-html="scope.opt" />
+                                        <q-item-label v-html="scope.opt.split('/').pop()" />
                                     </q-item-section>
                                 </q-item>
                             </template>
@@ -82,6 +84,7 @@
 import {Component, Vue, Watch} from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import {FHIRUtils} from '@/common/utils/fhir-util'
 
 @Component({
     components: {
@@ -131,7 +134,15 @@ export default class ConfigurationManager extends Vue {
     }
 
     getElements () {
-        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+        const params = {parameterName: '', profile: ''}
+        if (this.currentFHIRProf) {
+            params.parameterName = 'url'
+            params.profile = this.currentFHIRProf
+        } else {
+            params.parameterName = '_id'
+            params.profile = this.currentFHIRRes
+        }
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, params)
             .then(() => {
                 this.loadingFhir = false;
                 this.$forceUpdate();
@@ -160,6 +171,10 @@ export default class ConfigurationManager extends Vue {
 
     previousStep () {
         this.$store.commit(types.DECREMENT_STEP)
+    }
+
+    sortProfiles (profiles: string[]) {
+        return FHIRUtils.sortProfiles(profiles)
     }
 
 }

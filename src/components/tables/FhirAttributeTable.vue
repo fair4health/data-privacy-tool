@@ -30,14 +30,16 @@
 						<span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+					<q-select clearable outlined dense options-dense v-model="currentFHIRProf" :options="sortProfiles(resourceProfileMappings[currentFHIRRes])"
+										:disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length"
+										:option-label="item => item.split('/').pop()" :label="$t('LABELS.PROFILES')">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
 								<q-item-section avatar>
 									<q-icon name="fas fa-file-alt" size="xs" />
 								</q-item-section>
 								<q-item-section>
-									<q-item-label v-html="scope.opt" />
+									<q-item-label v-html="scope.opt.split('/').pop()" />
 								</q-item-section>
 							</q-item>
 						</template>
@@ -46,23 +48,23 @@
 			</q-card-section>
 			<q-card-section>
 				<div>
-                    <q-item class="q-px-xs">
-                        <q-item-section>
-                            <q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
-                                <template v-slot:prepend>
-                                    <q-icon name="sort" />
-                                </template>
-                                <template v-slot:append>
-                                    <q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
-                                </template>
-                            </q-input>
-                        </q-item-section>
-                        <q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
-                            <q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
-                                <q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
-                            </q-btn>
-                        </q-item-section>
-                    </q-item>
+					<q-item class="q-px-xs">
+							<q-item-section>
+									<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
+											<template v-slot:prepend>
+													<q-icon name="sort" />
+											</template>
+											<template v-slot:append>
+													<q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
+											</template>
+									</q-input>
+							</q-item-section>
+							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
+									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
+											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
+									</q-btn>
+							</q-item-section>
+					</q-item>
 					<q-separator />
 					<div class="splitter-div">
 						<q-splitter v-model="splitterModel">
@@ -214,7 +216,7 @@ export default class FhirAttributeTable extends Vue {
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
-    get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.id) }
+    get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.url) }
 
     get currentFHIRRes (): string { return this.$store.getters[types.Fhir.CURRENT_RESOURCE] }
     set currentFHIRRes (value) { this.$store.commit(types.Fhir.SET_CURRENT_RESOURCE, value) }
@@ -250,12 +252,12 @@ export default class FhirAttributeTable extends Vue {
             this.noNodesLabel = String(this.$t('LABELS.PLEASE_SELECT_A_RESOURCE'));
         }
         this.$store.dispatch(types.Fhir.GET_RESOURCES).then(res => {
-            for (const resource of this.fhirResourceList) {
-                this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resource).then(pro => {
-                    this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
+            for (const resourceType of this.fhirResourceList) {
+                this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resourceType).then(pro => {
+                    this.resourceProfileMappings[resourceType] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
                 }).catch(err => {
-                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource})))
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: resourceType})))
                 });
             }
         }).catch(err => {
@@ -278,7 +280,15 @@ export default class FhirAttributeTable extends Vue {
     }
 
     getElements () {
-        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+				const params = {parameterName: '', profile: ''};
+				if (this.currentFHIRProf) {
+						params.parameterName = 'url';
+						params.profile = this.currentFHIRProf;
+				} else {
+						params.parameterName = '_id';
+						params.profile = this.currentFHIRRes;
+				}
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, params)
             .then(response => {
                 this.loadingFhir = false;
                 this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
@@ -338,6 +348,10 @@ export default class FhirAttributeTable extends Vue {
         const filt = filter.toLowerCase();
         return (node.label && node.label.toLowerCase().includes(filt)) ||
             (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
+    }
+
+		sortProfiles (profiles: string[]) {
+    	  return FHIRUtils.sortProfiles(profiles)
     }
 
   }

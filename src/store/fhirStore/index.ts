@@ -37,7 +37,7 @@ const fhirStore = {
             const resource = splitted[0];
             const key = splitted.slice(2).join('.');
             const word = splitted[splitted.length - 1];
-            if (recommendation.attributeMappings[resource][key]) {
+            if (recommendation.attributeMappings[resource] && recommendation.attributeMappings[resource][key]) {
                 if (!tmpObj.required || (tmpObj.required && recommendation.attributeMappings[resource][key] !== environment.attributeTypes.ID)) {
                     // if no conflict with required value, assign recommendation
                     state.attributeMappings[tmpObj.value] = recommendation.attributeMappings[resource][key];
@@ -271,7 +271,7 @@ const fhirStore = {
                                     state.sourceFhirService.search(resourceType, {_profile: url})
                                         .then(response => {
                                             const count: number = response.data.total;
-                                            resolve1({resourceType, profile, count, title, description});
+                                            resolve1({resourceType, profile, count, url, title, description});
                                         }).catch(err => reject1(err));
                                 })
                             })).then((counts: any) => {
@@ -282,7 +282,7 @@ const fhirStore = {
                                     }
                                 }
                                 commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
-                                    return {id: e.profile, title: e.title, description: e.description}
+                                    return {id: e.profile, title: e.title, url: e.url, description: e.description} as fhir.StructureDefinition
                                 }) || []);
                                 resolve(true)
                             }).catch(err => reject(err));
@@ -293,9 +293,11 @@ const fhirStore = {
                     }).catch(err => reject(err));
             })
         },
-        [types.Fhir.GET_ELEMENTS] ({ commit, state }, profileId: string): Promise<boolean> {
+        [types.Fhir.GET_ELEMENTS] ({ commit, state }, { parameterName, profile }): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.sourceFhirService.search('StructureDefinition', {_id: profileId}, true)
+                const query = {}
+                query[parameterName] = profile
+                state.sourceFhirService.search('StructureDefinition', query, true)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         if (bundle.entry?.length) {
@@ -303,7 +305,7 @@ const fhirStore = {
                             const list: fhir.ElementTree[] = [];
                             resource?.snapshot?.element.forEach((element) => {
                                 const parts = element?.id?.split('.') || [];
-                                parts.splice(1, 0, profileId);
+                                parts.splice(1, 0, profile.split('/').pop());
                                 const newId = parts.join('.');
                                 let tmpList = list;
                                 let part = parts.shift();

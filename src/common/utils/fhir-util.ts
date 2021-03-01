@@ -139,4 +139,12 @@ export class FHIRUtils {
         }
     }
 
+    static sortProfiles (profiles: string[]) {
+        return profiles?.sort((p1, p2) => {
+            const p1Name = p1.split('/').pop()!.toLowerCase()
+            const p2Name = p2.split('/').pop()!.toLowerCase()
+            return (p1Name > p2Name) ? 1 : ((p2Name > p1Name) ? -1 : 0)
+        }) || []
+    }
+
 }
