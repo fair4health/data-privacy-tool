@@ -114,7 +114,7 @@ export default class MainLayout extends Vue {
     set currentStep (value) { this.$store.commit(types.SET_STEP, value) }
 
     get isCollapsed () { return (this.$q.screen.gt.xs && (this.$q.screen.lt.lg || this.drawerMiniState)) }
-    get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
+    get projectHomePage () { return window.process.env.APP_HOMEPAGE }
 
     changeCurrentStep (stepId: number) {
         if (this.currentStep > stepId) {
