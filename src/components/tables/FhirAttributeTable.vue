@@ -1,7 +1,13 @@
 <template>
 	<div>
-		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.FHIR_ATTRIBUTE_TABLE') }} </span>
+		<q-item-label class="text-weight-bold q-my-lg">
+			<q-banner inline-actions rounded v-show="showBanner" class="bg-primary text-white">
+				<q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+				{{ $t('INFO.FHIR_ATTRIBUTE_TABLE') }}
+				<template v-slot:action>
+					<q-btn flat color="white" :label="$t('BUTTONS.OK')" @click="setShowBanner(false)" />
+				</template>
+			</q-banner>
 		</q-item-label>
 
 		<q-card flat class="bg-white">
@@ -90,7 +96,7 @@
 										<span class="text-white">{{attributeTypes.INSENSITIVE}}</span>
 									</div>
 								</div>
-								<q-scroll-area>
+								<q-scroll-area class="overflow-hidden">
 									<q-tree :nodes="fhirElementList"
 									        ref="fhirTree"
 									        node-key="value"
@@ -148,43 +154,41 @@
 
 							<!--Elements Definition Part-->
 							<template v-slot:after>
-								<q-scroll-area v-if="selectedElem">
-									<div>
-										<q-toolbar class="bg-grey-2">
-											<q-item-label class="text-weight-bold text-grey-7">
+								<q-toolbar v-if="selectedElem" class="bg-grey-2">
+									<q-item-label class="text-weight-bold text-grey-7">
 												<span class="text-weight-regular text-primary">
 							                        [{{ selectedElem.min }}..{{ selectedElem.max }}]
 							                    </span>
-												<u>
-													{{ selectedElem.value }}
-													<q-tooltip>{{ selectedElem.value }}</q-tooltip>
-												</u>
-												<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
-											</q-item-label>
-										</q-toolbar>
-										<div class="q-ma-sm q-gutter-sm">
-											<q-card flat bordered v-if="selectedElem.short">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.short }}</div>
-												</q-card-section>
-											</q-card>
-											<q-card flat bordered v-if="selectedElem.definition">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.definition }}</div>
-												</q-card-section>
-											</q-card>
-											<q-card flat bordered v-if="selectedElem.comment">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.comment }}</div>
-												</q-card-section>
-											</q-card>
-										</div>
+										<u>
+											{{ selectedElem.value }}
+											<q-tooltip>{{ selectedElem.value }}</q-tooltip>
+										</u>
+										<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
+									</q-item-label>
+								</q-toolbar>
+								<q-scroll-area v-if="selectedElem" class="overflow-hidden">
+									<div class="q-ma-sm q-gutter-sm">
+										<q-card flat bordered v-if="selectedElem.short">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.short }}</div>
+											</q-card-section>
+										</q-card>
+										<q-card flat bordered v-if="selectedElem.definition">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.definition }}</div>
+											</q-card-section>
+										</q-card>
+										<q-card flat bordered v-if="selectedElem.comment">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.comment }}</div>
+											</q-card-section>
+										</q-card>
 									</div>
 								</q-scroll-area>
 							</template>
@@ -214,6 +218,7 @@ export default class FhirAttributeTable extends Vue {
     private fhirResourceOptions: string[] = [];
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
+    private showBanner: boolean = true;
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
     get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.url) }
@@ -263,6 +268,13 @@ export default class FhirAttributeTable extends Vue {
         }).catch(err => {
             this.$notify.error(String(this.$t('ERROR.ST_WRONG_FETCHING_X', {name: 'resources'})))
         });
+
+        // Set showBanner
+				if (sessionStorage.getItem('showBannerFhirAttribute')) {
+					this.showBanner = sessionStorage.getItem('showBannerFhirAttribute') === 'true'
+				} else {
+					this.showBanner = true;
+				}
     }
 
     @Watch('currentFHIRRes')
@@ -278,6 +290,11 @@ export default class FhirAttributeTable extends Vue {
         this.loadingFhir = true;
         this.getElements();
     }
+
+		setShowBanner (value: boolean) {
+				sessionStorage.setItem('showBannerFhirAttribute', String(value))
+				this.showBanner = value
+		}
 
     getElements () {
 				const params = {parameterName: '', profile: ''};

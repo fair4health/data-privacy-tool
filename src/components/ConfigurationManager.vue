@@ -5,8 +5,14 @@
         </q-toolbar>
 
         <div class="q-ma-sm">
-            <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.CONFIGURATION_MANAGER_INFO') }} </span>
+            <q-item-label class="text-weight-bold q-my-lg">
+                <q-banner inline-actions rounded v-show="showBanner" class="bg-primary text-white">
+                    <q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+                    {{ $t('INFO.CONFIGURATION_MANAGER_INFO') }}
+                    <template v-slot:action>
+                        <q-btn flat color="white" :label="$t('BUTTONS.OK')" @click="setShowBanner(false)" />
+                    </template>
+                </q-banner>
             </q-item-label>
             <q-card flat class="bg-white">
                 <q-card-section class="row q-col-gutter-sm">
@@ -104,6 +110,7 @@ export default class ConfigurationManager extends Vue {
     private loadingFhir: boolean = false;
     private fhirResourceOptions: string[] = [];
     private tab: string = 'quasi';
+    private showBanner: boolean = true;
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
 
@@ -118,6 +125,12 @@ export default class ConfigurationManager extends Vue {
 
     created () {
         this.getElements();
+        // Set showBanner
+        if (sessionStorage.getItem('showBannerConfigurationManager')) {
+            this.showBanner = sessionStorage.getItem('showBannerConfigurationManager') === 'true'
+        } else {
+            this.showBanner = true;
+        }
     }
 
     @Watch('currentFHIRRes')
@@ -131,6 +144,11 @@ export default class ConfigurationManager extends Vue {
     onFHIRProfileChanged (): void {
         this.loadingFhir = true;
         this.getElements();
+    }
+
+    setShowBanner (value: boolean) {
+        sessionStorage.setItem('showBannerConfigurationManager', String(value))
+        this.showBanner = value
     }
 
     getElements () {

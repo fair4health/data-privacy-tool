@@ -32,7 +32,7 @@
 				</template>
 			</q-select>
 			<q-item-label class="text-weight-bold q-mt-lg q-mb-xs">
-				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs q-mb-sm" /> {{getInfoText()}} </span>
+				<span class="text-primary"><q-icon name="fas fa-info" size="xs" class="q-mr-xs q-mb-sm" /> {{getInfoText()}} </span>
 			</q-item-label>
 		</q-card-section>
 		<q-card-section v-if="isSensitive() && getAlgorithmName() !== envAlgorithms.REPLACE.name" class="q-pt-none">

@@ -31,7 +31,7 @@
 							<span class="text-white"> {{ $t('TABLE.DEIDENTIFICATION_ALGORITHM') }} </span>
 						</div>
 					</div>
-					<q-scroll-area>
+					<q-scroll-area class="overflow-hidden">
 						<q-tree :nodes="quasiElementList"
 						        ref="quasiTree"
 						        node-key="value"
@@ -93,43 +93,41 @@
 
 				<!--Elements Definition Part-->
 				<template v-slot:after>
-					<q-scroll-area v-if="selectedElem">
-						<div>
-							<q-toolbar class="bg-grey-2">
-								<q-item-label class="text-weight-bold text-grey-7">
+					<q-toolbar v-if="selectedElem" class="bg-grey-2">
+						<q-item-label class="text-weight-bold text-grey-7">
 									<span class="text-weight-regular text-primary">
 			                            [{{ selectedElem.min }}..{{ selectedElem.max }}]
 									</span>
-									<u>
-										{{ selectedElem.value }}
-										<q-tooltip>{{ selectedElem.value }}</q-tooltip>
-									</u>
-									<span class="text-red">{{ selectedElem.min ? '*' : '' }}</span>
-								</q-item-label>
-							</q-toolbar>
-							<div class="q-ma-sm q-gutter-sm">
-								<q-card flat bordered v-if="selectedElem.short">
-									<q-card-section>
-										<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
-										<q-separator spaced />
-										<div class="text-grey-10">{{ selectedElem.short }}</div>
-									</q-card-section>
-								</q-card>
-								<q-card flat bordered v-if="selectedElem.definition">
-									<q-card-section>
-										<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
-										<q-separator spaced />
-										<div class="text-grey-10">{{ selectedElem.definition }}</div>
-									</q-card-section>
-								</q-card>
-								<q-card flat bordered v-if="selectedElem.comment">
-									<q-card-section>
-										<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
-										<q-separator spaced />
-										<div class="text-grey-10">{{ selectedElem.comment }}</div>
-									</q-card-section>
-								</q-card>
-							</div>
+							<u>
+								{{ selectedElem.value }}
+								<q-tooltip>{{ selectedElem.value }}</q-tooltip>
+							</u>
+							<span class="text-red">{{ selectedElem.min ? '*' : '' }}</span>
+						</q-item-label>
+					</q-toolbar>
+					<q-scroll-area v-if="selectedElem" class="overflow-hidden">
+						<div class="q-ma-sm q-gutter-sm">
+							<q-card flat bordered v-if="selectedElem.short">
+								<q-card-section>
+									<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
+									<q-separator spaced />
+									<div class="text-grey-10">{{ selectedElem.short }}</div>
+								</q-card-section>
+							</q-card>
+							<q-card flat bordered v-if="selectedElem.definition">
+								<q-card-section>
+									<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
+									<q-separator spaced />
+									<div class="text-grey-10">{{ selectedElem.definition }}</div>
+								</q-card-section>
+							</q-card>
+							<q-card flat bordered v-if="selectedElem.comment">
+								<q-card-section>
+									<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
+									<q-separator spaced />
+									<div class="text-grey-10">{{ selectedElem.comment }}</div>
+								</q-card-section>
+							</q-card>
 						</div>
 					</q-scroll-area>
 				</template>

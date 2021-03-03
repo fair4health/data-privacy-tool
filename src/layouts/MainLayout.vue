@@ -134,7 +134,7 @@ export default class MainLayout extends Vue {
         margin-left auto
         margin-right auto
     .drawer-list .q-item.q-router-link--exact-active
-        border-left solid 4px #526EB2
+        border-left solid 4px #8A5975
     .drawer-list .q-item
         border-radius 0 32px 32px 0
     .step-item:hover
