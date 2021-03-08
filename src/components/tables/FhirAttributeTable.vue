@@ -73,27 +73,33 @@
 					</q-item>
 					<q-separator />
 					<div class="splitter-div">
-						<q-splitter v-model="splitterModel">
+						<q-splitter v-model="splitterModel" :limits="[50, 100]">
 							<!--Fhir Element Tree Part-->
 							<template v-slot:before>
-								<div class="row items-center full-width bg-primary q-pa-xs">
+								<div class="row items-center full-width bg-primary q-pa-xs text-white">
 									<div class="text-center col">
-										<span class="text-white"> {{ $t('TABLE.ATTRIBUTE') }} </span>
+										{{ $t('TABLE.ATTRIBUTE') }}
+										<q-tooltip v-if="splitterModel<100">{{$t('TABLE.ATTRIBUTE')}}</q-tooltip>
 									</div>
 									<div class="text-center col-4">
-										<span class="text-white"> {{ $t('TABLE.TYPE') }} </span>
+										{{ $t('TABLE.TYPE') }}
+										<q-tooltip v-if="splitterModel<100">{{$t('TABLE.TYPE')}}</q-tooltip>
 									</div>
-									<div class="text-right col-1">
-										<span class="text-white">{{attributeTypes.ID}}</span>
+									<div class="text-right col-1 ellipsis">
+										{{attributeTypes.ID}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.ID}}</q-tooltip>
 									</div>
-									<div class="text-center col-2">
-										<span class="text-white">{{attributeTypes.QUASI}}</span>
+									<div class="text-center col-2 ellipsis">
+										{{attributeTypes.QUASI}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.QUASI}}</q-tooltip>
 									</div>
-									<div class="col-1">
-										<span class="text-white">{{attributeTypes.SENSITIVE}}</span>
+									<div class="col-1 ellipsis">
+										{{attributeTypes.SENSITIVE}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.SENSITIVE}}</q-tooltip>
 									</div>
-									<div class="col-1">
-										<span class="text-white">{{attributeTypes.INSENSITIVE}}</span>
+									<div class="col-1 ellipsis">
+										{{attributeTypes.INSENSITIVE}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.INSENSITIVE}}</q-tooltip>
 									</div>
 								</div>
 								<q-scroll-area class="overflow-hidden">
@@ -101,13 +107,11 @@
 									        ref="fhirTree"
 									        node-key="value"
 									        label-key="label"
-									        :selected.sync="selectedStr"
 									        :filter="filter"
 									        :filter-method="filterTree"
 									        :no-nodes-label="noNodesLabel"
 									        :no-results-label="$t('LABELS.NO_RESULT')"
 									        selected-color="primary"
-									        @update:selected="onSelected"
 									        default-expand-all
 									>
 										<template v-slot:default-header="prop">
@@ -118,7 +122,9 @@
 													        :size="prop.node.children && prop.node.children.length ? 'sm' : 'xs'"
 													        class="q-mr-sm"
 													/>
-													<span>{{ prop.node.label }}
+													<span class="fhir-element-text" v-bind:class="{'text-primary': selectedStr === prop.node.value}"
+																@click="onSelected(prop.node.value)">
+														{{ prop.node.label }}
 														<span v-if="prop.node.required" class="text-red text-weight-bold text-size-xxxl">
 															{{ prop.node.required ? '*' : '' }}
 															<q-tooltip v-if="prop.node.children.length" content-class="text-size-md" anchor="top right" self="top left">
@@ -156,15 +162,18 @@
 							<template v-slot:after>
 								<q-toolbar v-if="selectedElem" class="bg-grey-2">
 									<q-item-label class="text-weight-bold text-grey-7">
-												<span class="text-weight-regular text-primary">
-							                        [{{ selectedElem.min }}..{{ selectedElem.max }}]
-							                    </span>
+										<span class="text-weight-regular text-primary">
+												[{{ selectedElem.min }}..{{ selectedElem.max }}]
+										</span>
 										<u>
 											{{ selectedElem.value }}
 											<q-tooltip>{{ selectedElem.value }}</q-tooltip>
 										</u>
 										<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
 									</q-item-label>
+									<q-space />
+									<q-btn unelevated round dense size="sm" icon="close" color="white" text-color="grey-9"
+												 @click="selectedStr=null; selectedElem=null; splitterModel=100" />
 								</q-toolbar>
 								<q-scroll-area v-if="selectedElem" class="overflow-hidden">
 									<div class="q-ma-sm q-gutter-sm">
@@ -210,7 +219,7 @@ import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 @Component
 export default class FhirAttributeTable extends Vue {
     private attributeTypes = environment.attributeTypes;
-    private splitterModel = 70;
+    private splitterModel = 100;
     private loadingFhir: boolean = false;
     private selectedStr: string = '';
     private selectedElem: any = null;
@@ -353,6 +362,9 @@ export default class FhirAttributeTable extends Vue {
     }
 
     onSelected (target) {
+    		if (target) this.splitterModel = 50;
+    		else this.splitterModel = 100;
+    		this.selectedStr = target;
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
     }
@@ -377,6 +389,7 @@ export default class FhirAttributeTable extends Vue {
 <style lang="stylus">
     .splitter-div {
         overflow-y: auto
+				overflow-x: hidden
     }
     .q-scrollarea {
         height: 50vh

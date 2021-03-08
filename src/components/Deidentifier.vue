@@ -1,13 +1,19 @@
 <template>
 	<div>
-		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.DEIDENTIFIER') }} </q-toolbar-title>
-			<q-btn unelevated label="Save" color="primary" @click="saveConfigurations" icon="save" no-caps class="q-mr-sm" >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
-			<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="primary" @click="exportConfigurations" icon="publish" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
+		<q-toolbar class="bg-grey-4 top-fix-column">
+			<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
+			<q-toolbar-title class="text-grey-8" align="center">
+				<q-icon name="fas fa-user-secret" color="primary" class="q-px-md" />
+				{{ $t('COMMON.DEIDENTIFIER') }}
+			</q-toolbar-title>
+			<div class="q-gutter-md">
+				<q-btn unelevated :label="$t('BUTTONS.SAVE')" color="white" text-color="primary" @click="saveConfigurations" icon="save" no-caps >
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+				<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="white" text-color="primary" @click="exportConfigurations" icon="publish" no-caps >
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+			</div>
 		</q-toolbar>
 
 		<div class="q-ma-sm">
@@ -215,10 +221,6 @@
 
 				</q-card-section>
 			</q-card>
-
-			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
-			</div>
 		</div>
 
 		<q-dialog v-model="saveDialog">

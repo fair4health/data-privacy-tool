@@ -1,7 +1,12 @@
 <template>
     <div>
-        <q-toolbar class="bg-grey-4">
-            <q-toolbar-title class="text-grey-8"> {{ $t('COMMON.CONFIGURATION_MANAGER') }} </q-toolbar-title>
+        <q-toolbar class="bg-grey-4 top-fix-column">
+            <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
+            <q-toolbar-title class="text-grey-8" align="center">
+                <q-icon name="fas fa-sliders-h" color="primary" class="q-px-md" />
+                {{ $t('COMMON.CONFIGURATION_MANAGER') }}
+            </q-toolbar-title>
+            <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
         </q-toolbar>
 
         <div class="q-ma-sm">
@@ -77,11 +82,6 @@
                     </q-tab-panels>
                 </q-card-section>
             </q-card>
-            <div class="row q-ma-md">
-                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
-                <q-space />
-                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
-            </div>
         </div>
     </div>
 </template>
