@@ -1,7 +1,13 @@
 <template>
 	<div>
-		<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-			<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.FHIR_ATTRIBUTE_TABLE') }} </span>
+		<q-item-label class="text-weight-bold q-my-lg">
+			<q-banner inline-actions rounded v-show="showBanner" class="bg-primary text-white">
+				<q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+				{{ $t('INFO.FHIR_ATTRIBUTE_TABLE') }}
+				<template v-slot:action>
+					<q-btn flat color="white" :label="$t('BUTTONS.OK')" @click="setShowBanner(false)" />
+				</template>
+			</q-banner>
 		</q-item-label>
 
 		<q-card flat class="bg-white">
@@ -30,14 +36,16 @@
 						<span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+					<q-select clearable outlined dense options-dense v-model="currentFHIRProf" :options="sortProfiles(resourceProfileMappings[currentFHIRRes])"
+										:disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length"
+										:option-label="item => item.split('/').pop()" :label="$t('LABELS.PROFILES')">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
 								<q-item-section avatar>
 									<q-icon name="fas fa-file-alt" size="xs" />
 								</q-item-section>
 								<q-item-section>
-									<q-item-label v-html="scope.opt" />
+									<q-item-label v-html="scope.opt.split('/').pop()" />
 								</q-item-section>
 							</q-item>
 						</template>
@@ -46,60 +54,64 @@
 			</q-card-section>
 			<q-card-section>
 				<div>
-                    <q-item class="q-px-xs">
-                        <q-item-section>
-                            <q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
-                                <template v-slot:prepend>
-                                    <q-icon name="sort" />
-                                </template>
-                                <template v-slot:append>
-                                    <q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
-                                </template>
-                            </q-input>
-                        </q-item-section>
-                        <q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
-                            <q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
-                                <q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
-                            </q-btn>
-                        </q-item-section>
-                    </q-item>
+					<q-item class="q-px-xs">
+							<q-item-section>
+									<q-input borderless dense v-model="filter" :label="$t('LABELS.FILTER')">
+											<template v-slot:prepend>
+													<q-icon name="sort" />
+											</template>
+											<template v-slot:append>
+													<q-icon v-if="filter" name="clear" class="cursor-pointer" @click="filter=''" />
+											</template>
+									</q-input>
+							</q-item-section>
+							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
+									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
+											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
+									</q-btn>
+							</q-item-section>
+					</q-item>
 					<q-separator />
 					<div class="splitter-div">
-						<q-splitter v-model="splitterModel">
+						<q-splitter v-model="splitterModel" :limits="[50, 100]">
 							<!--Fhir Element Tree Part-->
 							<template v-slot:before>
-								<div class="row items-center full-width bg-primary q-pa-xs">
+								<div class="row items-center full-width bg-primary q-pa-xs text-white">
 									<div class="text-center col">
-										<span class="text-white"> {{ $t('TABLE.ATTRIBUTE') }} </span>
+										{{ $t('TABLE.ATTRIBUTE') }}
+										<q-tooltip v-if="splitterModel<100">{{$t('TABLE.ATTRIBUTE')}}</q-tooltip>
 									</div>
 									<div class="text-center col-4">
-										<span class="text-white"> {{ $t('TABLE.TYPE') }} </span>
+										{{ $t('TABLE.TYPE') }}
+										<q-tooltip v-if="splitterModel<100">{{$t('TABLE.TYPE')}}</q-tooltip>
 									</div>
-									<div class="text-right col-1">
-										<span class="text-white">{{attributeTypes.ID}}</span>
+									<div class="text-right col-1 ellipsis">
+										{{attributeTypes.ID}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.ID}}</q-tooltip>
 									</div>
-									<div class="text-center col-2">
-										<span class="text-white">{{attributeTypes.QUASI}}</span>
+									<div class="text-center col-2 ellipsis">
+										{{attributeTypes.QUASI}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.QUASI}}</q-tooltip>
 									</div>
-									<div class="col-1">
-										<span class="text-white">{{attributeTypes.SENSITIVE}}</span>
+									<div class="col-1 ellipsis">
+										{{attributeTypes.SENSITIVE}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.SENSITIVE}}</q-tooltip>
 									</div>
-									<div class="col-1">
-										<span class="text-white">{{attributeTypes.INSENSITIVE}}</span>
+									<div class="col-1 ellipsis">
+										{{attributeTypes.INSENSITIVE}}
+										<q-tooltip v-if="splitterModel<100">{{attributeTypes.INSENSITIVE}}</q-tooltip>
 									</div>
 								</div>
-								<q-scroll-area>
+								<q-scroll-area class="overflow-hidden">
 									<q-tree :nodes="fhirElementList"
 									        ref="fhirTree"
 									        node-key="value"
 									        label-key="label"
-									        :selected.sync="selectedStr"
 									        :filter="filter"
 									        :filter-method="filterTree"
 									        :no-nodes-label="noNodesLabel"
 									        :no-results-label="$t('LABELS.NO_RESULT')"
 									        selected-color="primary"
-									        @update:selected="onSelected"
 									        default-expand-all
 									>
 										<template v-slot:default-header="prop">
@@ -110,7 +122,9 @@
 													        :size="prop.node.children && prop.node.children.length ? 'sm' : 'xs'"
 													        class="q-mr-sm"
 													/>
-													<span>{{ prop.node.label }}
+													<span class="fhir-element-text" v-bind:class="{'text-primary': selectedStr === prop.node.value}"
+																@click="onSelected(prop.node.value)">
+														{{ prop.node.label }}
 														<span v-if="prop.node.required" class="text-red text-weight-bold text-size-xxxl">
 															{{ prop.node.required ? '*' : '' }}
 															<q-tooltip v-if="prop.node.children.length" content-class="text-size-md" anchor="top right" self="top left">
@@ -146,43 +160,44 @@
 
 							<!--Elements Definition Part-->
 							<template v-slot:after>
-								<q-scroll-area v-if="selectedElem">
-									<div>
-										<q-toolbar class="bg-grey-2">
-											<q-item-label class="text-weight-bold text-grey-7">
-												<span class="text-weight-regular text-primary">
-							                        [{{ selectedElem.min }}..{{ selectedElem.max }}]
-							                    </span>
-												<u>
-													{{ selectedElem.value }}
-													<q-tooltip>{{ selectedElem.value }}</q-tooltip>
-												</u>
-												<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
-											</q-item-label>
-										</q-toolbar>
-										<div class="q-ma-sm q-gutter-sm">
-											<q-card flat bordered v-if="selectedElem.short">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.short }}</div>
-												</q-card-section>
-											</q-card>
-											<q-card flat bordered v-if="selectedElem.definition">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.definition }}</div>
-												</q-card-section>
-											</q-card>
-											<q-card flat bordered v-if="selectedElem.comment">
-												<q-card-section>
-													<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
-													<q-separator spaced />
-													<div class="text-grey-10">{{ selectedElem.comment }}</div>
-												</q-card-section>
-											</q-card>
-										</div>
+								<q-toolbar v-if="selectedElem" class="bg-grey-2">
+									<q-item-label class="text-weight-bold text-grey-7">
+										<span class="text-weight-regular text-primary">
+												[{{ selectedElem.min }}..{{ selectedElem.max }}]
+										</span>
+										<u>
+											{{ selectedElem.value }}
+											<q-tooltip>{{ selectedElem.value }}</q-tooltip>
+										</u>
+										<span class="text-red">{{ selectedElem.required ? '*' : '' }}</span>
+									</q-item-label>
+									<q-space />
+									<q-btn unelevated round dense size="sm" icon="close" color="white" text-color="grey-9"
+												 @click="selectedStr=null; selectedElem=null; splitterModel=100" />
+								</q-toolbar>
+								<q-scroll-area v-if="selectedElem" class="overflow-hidden">
+									<div class="q-ma-sm q-gutter-sm">
+										<q-card flat bordered v-if="selectedElem.short">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.SHORT') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.short }}</div>
+											</q-card-section>
+										</q-card>
+										<q-card flat bordered v-if="selectedElem.definition">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.DEFINITION') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.definition }}</div>
+											</q-card-section>
+										</q-card>
+										<q-card flat bordered v-if="selectedElem.comment">
+											<q-card-section>
+												<div class="text-h6"> {{ $t('LABELS.COMMENTS') }} </div>
+												<q-separator spaced />
+												<div class="text-grey-10">{{ selectedElem.comment }}</div>
+											</q-card-section>
+										</q-card>
 									</div>
 								</q-scroll-area>
 							</template>
@@ -204,7 +219,7 @@ import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 @Component
 export default class FhirAttributeTable extends Vue {
     private attributeTypes = environment.attributeTypes;
-    private splitterModel = 70;
+    private splitterModel = 100;
     private loadingFhir: boolean = false;
     private selectedStr: string = '';
     private selectedElem: any = null;
@@ -212,9 +227,10 @@ export default class FhirAttributeTable extends Vue {
     private fhirResourceOptions: string[] = [];
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
+    private showBanner: boolean = true;
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
-    get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.id) }
+    get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.url) }
 
     get currentFHIRRes (): string { return this.$store.getters[types.Fhir.CURRENT_RESOURCE] }
     set currentFHIRRes (value) { this.$store.commit(types.Fhir.SET_CURRENT_RESOURCE, value) }
@@ -250,17 +266,24 @@ export default class FhirAttributeTable extends Vue {
             this.noNodesLabel = String(this.$t('LABELS.PLEASE_SELECT_A_RESOURCE'));
         }
         this.$store.dispatch(types.Fhir.GET_RESOURCES).then(res => {
-            for (const resource of this.fhirResourceList) {
-                this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resource).then(pro => {
-                    this.resourceProfileMappings[JSON.parse(JSON.stringify(resource))] = JSON.parse(JSON.stringify(this.fhirProfileList));
+            for (const resourceType of this.fhirResourceList) {
+                this.$store.dispatch(types.Fhir.GET_PROFILES_BY_RES, resourceType).then(pro => {
+                    this.resourceProfileMappings[resourceType] = JSON.parse(JSON.stringify(this.fhirProfileList));
                     this.$forceUpdate();
                 }).catch(err => {
-                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource})))
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: resourceType})))
                 });
             }
         }).catch(err => {
             this.$notify.error(String(this.$t('ERROR.ST_WRONG_FETCHING_X', {name: 'resources'})))
         });
+
+        // Set showBanner
+        if (sessionStorage.getItem('showBannerFhirAttribute')) {
+            this.showBanner = sessionStorage.getItem('showBannerFhirAttribute') === 'true';
+        } else {
+            this.showBanner = true;
+        }
     }
 
     @Watch('currentFHIRRes')
@@ -277,8 +300,21 @@ export default class FhirAttributeTable extends Vue {
         this.getElements();
     }
 
+    setShowBanner (value: boolean) {
+            sessionStorage.setItem('showBannerFhirAttribute', String(value))
+            this.showBanner = value
+    }
+
     getElements () {
-        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+        const params = {parameterName: '', profile: ''};
+        if (this.currentFHIRProf) {
+            params.parameterName = 'url';
+            params.profile = this.currentFHIRProf;
+        } else {
+            params.parameterName = '_id';
+            params.profile = this.currentFHIRRes;
+        }
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, params)
             .then(response => {
                 this.loadingFhir = false;
                 this.tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
@@ -290,7 +326,7 @@ export default class FhirAttributeTable extends Vue {
             .catch(() => {
                 this.loadingFhir = false;
                 if (!this.currentFHIRProf) {
-                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})))
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})));
                 } else {
                     this.$notify.error(String(this.$t('ERROR.X_PROFILE_ELEMENTS_COULDNT_BE_LOADED', {profile: this.currentFHIRProf})));
                 }
@@ -326,6 +362,9 @@ export default class FhirAttributeTable extends Vue {
     }
 
     onSelected (target) {
+        if (target) this.splitterModel = 50;
+        else this.splitterModel = 100;
+        this.selectedStr = target;
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
     }
@@ -340,12 +379,17 @@ export default class FhirAttributeTable extends Vue {
             (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
 
+    sortProfiles (profiles: string[]) {
+        return FHIRUtils.sortProfiles(profiles)
+    }
+
   }
 </script>
 
 <style lang="stylus">
     .splitter-div {
         overflow-y: auto
+				overflow-x: hidden
     }
     .q-scrollarea {
         height: 50vh

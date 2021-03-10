@@ -114,7 +114,7 @@ export default class MainLayout extends Vue {
     set currentStep (value) { this.$store.commit(types.SET_STEP, value) }
 
     get isCollapsed () { return (this.$q.screen.gt.xs && (this.$q.screen.lt.lg || this.drawerMiniState)) }
-    get projectHomePage () { return window.process.env.ELECTRON_WEBPACK_APP_F4H_HOMEPAGE }
+    get projectHomePage () { return window.process.env.APP_HOMEPAGE }
 
     changeCurrentStep (stepId: number) {
         if (this.currentStep > stepId) {
@@ -134,7 +134,7 @@ export default class MainLayout extends Vue {
         margin-left auto
         margin-right auto
     .drawer-list .q-item.q-router-link--exact-active
-        border-left solid 4px #526EB2
+        border-left solid 4px #8A5975
     .drawer-list .q-item
         border-radius 0 32px 32px 0
     .step-item:hover

@@ -70,7 +70,8 @@ import {
     QToggle,
     QField,
     QPagination,
-    QBtnDropdown
+    QBtnDropdown,
+    QBanner
 } from 'quasar'
 
 Vue.use(Quasar, {
@@ -148,7 +149,8 @@ Vue.use(Quasar, {
         QToggle,
         QField,
         QPagination,
-        QBtnDropdown
+        QBtnDropdown,
+        QBanner
     },
     directives: {
         ClosePopup

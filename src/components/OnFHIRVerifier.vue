@@ -1,9 +1,7 @@
 <template>
-	<div class="q-mt-xl">
-		<div class="q-py-xl">
-			<div class="row justify-center">
-				<OnFHIRConfig />
-			</div>
+	<div class="q-py-xl">
+		<div class="row justify-center q-mx-lg">
+			<OnFHIRConfig />
 		</div>
 	</div>
 </template>

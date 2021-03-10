@@ -1,23 +1,35 @@
 <template>
 	<div>
-		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.DEIDENTIFIER') }} </q-toolbar-title>
-			<q-btn unelevated label="Save" color="primary" @click="saveConfigurations" icon="save" no-caps class="q-mr-sm" >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
-			<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="primary" @click="exportConfigurations" icon="publish" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
+		<q-toolbar class="bg-grey-4 top-fix-column">
+			<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
+			<q-toolbar-title class="text-grey-8" align="center">
+				<q-icon name="fas fa-user-secret" color="primary" class="q-px-md" />
+				{{ $t('COMMON.DEIDENTIFIER') }}
+			</q-toolbar-title>
+			<div class="q-gutter-md">
+				<q-btn unelevated :label="$t('BUTTONS.SAVE')" color="white" text-color="primary" @click="saveConfigurations" icon="save" no-caps >
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+				<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="white" text-color="primary" @click="exportConfigurations" icon="publish" no-caps >
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+			</div>
 		</q-toolbar>
 
 		<div class="q-ma-sm">
-			<q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.DEIDENTIFIER_INFO') }} </span>
+			<q-item-label class="text-weight-bold q-my-lg">
+				<q-banner inline-actions rounded v-show="showBanner" class="bg-primary text-white">
+					<q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+					{{ $t('INFO.DEIDENTIFIER_INFO') }}
+					<template v-slot:action>
+						<q-btn flat color="white" :label="$t('BUTTONS.OK')" @click="setShowBanner(false)" />
+					</template>
+				</q-banner>
 			</q-item-label>
-			<q-card flat bordered class="q-ma-sm">
-				<q-card-section>
+			<q-card flat class="bg-white">
+				<q-card-section class="q-col-gutter-sm">
 					<q-table flat binary-state-sort :title="$t('LABELS.RESOURCES')" :data="mappingList" :columns="columns" row-key="resource"
-					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table" selection="multiple"
+					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table col-12" selection="multiple"
                              table-class="resources-table" :loading="loading" color="primary" :selected.sync="selectedResources"
 					>
 						<template v-slot:header-cell="props">
@@ -92,15 +104,15 @@
 									</q-chip>
 								</q-td>
 								<q-td key="final" :props="props">
-									<q-chip v-if="isInProgress(props.row.status)" square class="bg-secondary text-white">
+									<q-chip v-if="isInProgress(props.row.status)" square class="bg-positive text-white">
 										<q-spinner color="white" />
 									</q-chip>
 									<q-chip v-else-if="(isDone(props.row.status) || isError(props.row.status)
 											|| isWarning(props.row.status)) && props.row.entries.length"
-									        square class="bg-secondary text-white" clickable @click="showJSONResources(props.row.resource, false)">
+									        square class="bg-positive text-white" clickable @click="showJSONResources(props.row.resource, false)">
 										{{ props.row.entries.length }}
 									</q-chip>
-									<q-chip v-else square class="bg-secondary text-white"> - </q-chip>
+									<q-chip v-else square class="bg-positive text-white"> - </q-chip>
 								</q-td>
 								<q-td key="restricted" :props="props">
 									<q-chip v-if="isInProgress(props.row.status)" square class="bg-negative text-white">
@@ -134,14 +146,14 @@
 													<q-list>
 														<q-item>
 															<div class="col-2">
-																<q-item-label class="text-weight-bold text-secondary q-mt-sm">
+																<q-item-label class="text-weight-bold text-positive q-mt-sm">
 																	{{ $t('LABELS.INFORMATION_LOSS') }}
 																</q-item-label>
 															</div>
 															<div class="col-3">
-																<q-linear-progress rounded size="30px" :value="props.row.informationLoss" color="secondary">
+																<q-linear-progress rounded size="30px" :value="props.row.informationLoss" color="positive">
 																	<div class="absolute-full flex flex-center">
-																		<q-badge text-color="white" color="secondary">
+																		<q-badge text-color="white" color="positive">
 																			{{progressLabel(props.row.informationLoss)}} <q-icon size="10px" class="q-ml-xs" name="fas fa-percent" color="white" />
 																		</q-badge>
 																	</div>
@@ -191,7 +203,7 @@
 					<div class="row content-end q-gutter-sm">
 						<q-space />
 						<q-btn v-if="isSuccess(deidentificationStatus) || isError(deidentificationStatus)"
-						       :disable="disableSave()" label="Save" color="secondary" icon="save"
+						       :disable="disableSave()" label="Save" color="positive" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
 							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_DEIDENTIFIED_DATA') }} </q-tooltip>
 						</q-btn>
@@ -209,10 +221,6 @@
 
 				</q-card-section>
 			</q-card>
-
-			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
-			</div>
 		</div>
 
 		<q-dialog v-model="saveDialog">
@@ -298,7 +306,7 @@
 				<q-separator />
 				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" class="scroll json-resources-card-section">
 					<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
-						<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+						<span class="text-primary"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
 							<template v-if="isRestricted"> {{ $t('INFO.RESTRICTED_JSONS') }} </template>
 							<template v-else> {{ $t('INFO.DEIDENTIFIED_JSONS') }} </template>
 						</span>
@@ -369,6 +377,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private currentPage: number = 1;
     private maxPage: number = 1;
     private isRestricted: boolean = true;
+    private showBanner: boolean = true;
 
     get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
     set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
@@ -415,6 +424,18 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         } else {
             this.deidentificationStatus = Status.PENDING;
         }
+
+        // Set showBanner
+        if (sessionStorage.getItem('showBannerDeidentifier')) {
+            this.showBanner = sessionStorage.getItem('showBannerDeidentifier') === 'true';
+        } else {
+            this.showBanner = true;
+        }
+    }
+
+    setShowBanner (value: boolean) {
+        sessionStorage.setItem('showBannerDeidentifier', String(value));
+        this.showBanner = value;
     }
 
     fetchAllData (groupedByResources): Promise<any> {

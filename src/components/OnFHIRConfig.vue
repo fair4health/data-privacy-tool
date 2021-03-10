@@ -1,13 +1,13 @@
 <template>
-	<q-card flat class="col-6">
+	<q-card flat class="col-xs-12 col-sm-12 col-md-6">
 		<q-card-section>
-			<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
-				<span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+			<q-item-label class="text-weight-bold q-mb-lg">
+				<span class="text-primary"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
 					<template v-if="isSource"> {{ $t('LABELS.PROVIDE_FHIR_URL_TO_DEIDENTIFY') }} </template>
 					<template v-else> {{ $t('LABELS.PROVIDE_FHIR_URL_TO_SAVE') }} </template>
 				</span>
 			</q-item-label>
-			<q-input filled type="url" class="col-10" v-model="onfhirUrl" color="accent"
+			<q-input outlined square dense type="url" class="col-10" v-model="onfhirUrl" color="primary"
 			         @input="changeVerificationStatus(Status.PENDING)"
 			         :placeholder="$t('LABELS.FHIR_REPOSITORY_URL')"
 			         :disable="(isSource && isInProgress(fhirSourceVerificationStatus)) || (!isSource && isInProgress(fhirTargetVerificationStatus))"

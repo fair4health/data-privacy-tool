@@ -1,22 +1,24 @@
 <template>
 	<div>
-		<q-toolbar class="bg-grey-4">
-			<q-toolbar-title class="text-grey-8"> {{ $t('COMMON.ATTRIBUTE_SELECTOR') }} </q-toolbar-title>
-			<q-btn unelevated :label="$t('BUTTONS.SELECT')" color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps class="q-mr-sm" >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SELECT_SAVED_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
-			<q-btn unelevated :label="$t('BUTTONS.IMPORT')" color="primary" @click="importSavedConfigurations" icon="fas fa-file-import" no-caps >
-				<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.IMPORT_CONFIGURATION') }} </q-tooltip>
-			</q-btn>
+		<q-toolbar class="bg-grey-4 top-fix-column">
+			<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
+			<q-toolbar-title class="text-grey-8" align="center">
+				<q-icon name="fas fa-database" color="primary" class="q-px-md" />
+				{{ $t('COMMON.ATTRIBUTE_SELECTOR') }}
+			</q-toolbar-title>
+			<div class="q-gutter-md">
+				<q-btn unelevated :label="$t('BUTTONS.SELECT')" color="white" text-color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps>
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SELECT_SAVED_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+				<q-btn unelevated :label="$t('BUTTONS.IMPORT')" color="white" text-color="primary" @click="importSavedConfigurations" icon="fas fa-file-import" no-caps>
+					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.IMPORT_CONFIGURATION') }} </q-tooltip>
+				</q-btn>
+				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
+			</div>
 		</q-toolbar>
 
 		<div class="q-ma-sm">
 			<FhirAttributeTable :key="fhirAttributeTableKey" />
-			<div class="row q-ma-md">
-				<q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
-				<q-space />
-				<q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
-			</div>
 		</div>
 
 		<q-dialog v-model="selectDialog">
@@ -158,4 +160,8 @@ export default class AttributeSelector extends Vue {
         width: 500px
         max-width: 80vw
     }
+		.fhir-element-text:hover {
+				text-decoration: underline
+				cursor: pointer
+		}
 </style>

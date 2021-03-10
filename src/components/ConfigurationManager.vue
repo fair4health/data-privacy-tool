@@ -1,12 +1,23 @@
 <template>
     <div>
-        <q-toolbar class="bg-grey-4">
-            <q-toolbar-title class="text-grey-8"> {{ $t('COMMON.CONFIGURATION_MANAGER') }} </q-toolbar-title>
+        <q-toolbar class="bg-grey-4 top-fix-column">
+            <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
+            <q-toolbar-title class="text-grey-8" align="center">
+                <q-icon name="fas fa-sliders-h" color="primary" class="q-px-md" />
+                {{ $t('COMMON.CONFIGURATION_MANAGER') }}
+            </q-toolbar-title>
+            <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
         </q-toolbar>
 
         <div class="q-ma-sm">
-            <q-item-label class="text-weight-bold q-mt-lg q-mb-lg">
-                <span class="text-info"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" /> {{ $t('INFO.CONFIGURATION_MANAGER_INFO') }} </span>
+            <q-item-label class="text-weight-bold q-my-lg">
+                <q-banner inline-actions rounded v-show="showBanner" class="bg-primary text-white">
+                    <q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
+                    {{ $t('INFO.CONFIGURATION_MANAGER_INFO') }}
+                    <template v-slot:action>
+                        <q-btn flat color="white" :label="$t('BUTTONS.OK')" @click="setShowBanner(false)" />
+                    </template>
+                </q-banner>
             </q-item-label>
             <q-card flat class="bg-white">
                 <q-card-section class="row q-col-gutter-sm">
@@ -34,14 +45,16 @@
                             <span><q-icon name="far fa-file-alt" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.PROFILES') }} </span>
                         </q-item-label>
                         <q-separator spaced />
-                        <q-select clearable outlined dense v-model="currentFHIRProf" :options="resourceProfileMappings[currentFHIRRes]" :label="$t('LABELS.PROFILES')" :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length">
+                        <q-select clearable outlined dense options-dense v-model="currentFHIRProf" :options="sortProfiles(resourceProfileMappings[currentFHIRRes])"
+                                  :disable="!this.resourceProfileMappings[this.currentFHIRRes] || !resourceProfileMappings[currentFHIRRes].length"
+                                  :option-label="item => item.split('/').pop()" :label="$t('LABELS.PROFILES')">
                             <template v-slot:option="scope">
                                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                                     <q-item-section avatar>
                                         <q-icon name="fas fa-file-alt" size="xs" />
                                     </q-item-section>
                                     <q-item-section>
-                                        <q-item-label v-html="scope.opt" />
+                                        <q-item-label v-html="scope.opt.split('/').pop()" />
                                     </q-item-section>
                                 </q-item>
                             </template>
@@ -69,11 +82,6 @@
                     </q-tab-panels>
                 </q-card-section>
             </q-card>
-            <div class="row q-ma-md">
-                <q-btn unelevated :label="$t('BUTTONS.BACK')" color="primary" icon="chevron_left" @click="previousStep" no-caps />
-                <q-space />
-                <q-btn unelevated :label="$t('BUTTONS.NEXT')" icon-right="chevron_right" color="primary" @click="nextStep" no-caps />
-            </div>
         </div>
     </div>
 </template>
@@ -82,6 +90,7 @@
 import {Component, Vue, Watch} from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import {FHIRUtils} from '@/common/utils/fhir-util'
 
 @Component({
     components: {
@@ -101,6 +110,7 @@ export default class ConfigurationManager extends Vue {
     private loadingFhir: boolean = false;
     private fhirResourceOptions: string[] = [];
     private tab: string = 'quasi';
+    private showBanner: boolean = true;
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
 
@@ -115,6 +125,12 @@ export default class ConfigurationManager extends Vue {
 
     created () {
         this.getElements();
+        // Set showBanner
+        if (sessionStorage.getItem('showBannerConfigurationManager')) {
+            this.showBanner = sessionStorage.getItem('showBannerConfigurationManager') === 'true'
+        } else {
+            this.showBanner = true;
+        }
     }
 
     @Watch('currentFHIRRes')
@@ -130,8 +146,21 @@ export default class ConfigurationManager extends Vue {
         this.getElements();
     }
 
+    setShowBanner (value: boolean) {
+        sessionStorage.setItem('showBannerConfigurationManager', String(value))
+        this.showBanner = value
+    }
+
     getElements () {
-        this.$store.dispatch(types.Fhir.GET_ELEMENTS, !this.currentFHIRProf ? this.currentFHIRRes : this.currentFHIRProf)
+        const params = {parameterName: '', profile: ''}
+        if (this.currentFHIRProf) {
+            params.parameterName = 'url'
+            params.profile = this.currentFHIRProf
+        } else {
+            params.parameterName = '_id'
+            params.profile = this.currentFHIRRes
+        }
+        this.$store.dispatch(types.Fhir.GET_ELEMENTS, params)
             .then(() => {
                 this.loadingFhir = false;
                 this.$forceUpdate();
@@ -160,6 +189,10 @@ export default class ConfigurationManager extends Vue {
 
     previousStep () {
         this.$store.commit(types.DECREMENT_STEP)
+    }
+
+    sortProfiles (profiles: string[]) {
+        return FHIRUtils.sortProfiles(profiles)
     }
 
 }
