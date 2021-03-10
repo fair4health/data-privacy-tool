@@ -259,9 +259,9 @@ export default class QuasiIdentifierTable extends Vue {
     }
 
     onSelected (target) {
-				if (target) this.splitterModel = 50;
-				else this.splitterModel = 100;
-				this.selectedStr = target;
+        if (target) this.splitterModel = 50;
+        else this.splitterModel = 100;
+        this.selectedStr = target;
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
     }

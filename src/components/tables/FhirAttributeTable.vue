@@ -279,11 +279,11 @@ export default class FhirAttributeTable extends Vue {
         });
 
         // Set showBanner
-				if (sessionStorage.getItem('showBannerFhirAttribute')) {
-					this.showBanner = sessionStorage.getItem('showBannerFhirAttribute') === 'true'
-				} else {
-					this.showBanner = true;
-				}
+        if (sessionStorage.getItem('showBannerFhirAttribute')) {
+            this.showBanner = sessionStorage.getItem('showBannerFhirAttribute') === 'true';
+        } else {
+            this.showBanner = true;
+        }
     }
 
     @Watch('currentFHIRRes')
@@ -300,20 +300,20 @@ export default class FhirAttributeTable extends Vue {
         this.getElements();
     }
 
-		setShowBanner (value: boolean) {
-				sessionStorage.setItem('showBannerFhirAttribute', String(value))
-				this.showBanner = value
-		}
+    setShowBanner (value: boolean) {
+            sessionStorage.setItem('showBannerFhirAttribute', String(value))
+            this.showBanner = value
+    }
 
     getElements () {
-				const params = {parameterName: '', profile: ''};
-				if (this.currentFHIRProf) {
-						params.parameterName = 'url';
-						params.profile = this.currentFHIRProf;
-				} else {
-						params.parameterName = '_id';
-						params.profile = this.currentFHIRRes;
-				}
+        const params = {parameterName: '', profile: ''};
+        if (this.currentFHIRProf) {
+            params.parameterName = 'url';
+            params.profile = this.currentFHIRProf;
+        } else {
+            params.parameterName = '_id';
+            params.profile = this.currentFHIRRes;
+        }
         this.$store.dispatch(types.Fhir.GET_ELEMENTS, params)
             .then(response => {
                 this.loadingFhir = false;
@@ -326,7 +326,7 @@ export default class FhirAttributeTable extends Vue {
             .catch(() => {
                 this.loadingFhir = false;
                 if (!this.currentFHIRProf) {
-                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})))
+                    this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: this.currentFHIRRes})));
                 } else {
                     this.$notify.error(String(this.$t('ERROR.X_PROFILE_ELEMENTS_COULDNT_BE_LOADED', {profile: this.currentFHIRProf})));
                 }
@@ -362,9 +362,9 @@ export default class FhirAttributeTable extends Vue {
     }
 
     onSelected (target) {
-    		if (target) this.splitterModel = 50;
-    		else this.splitterModel = 100;
-    		this.selectedStr = target;
+        if (target) this.splitterModel = 50;
+        else this.splitterModel = 100;
+        this.selectedStr = target;
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
     }
@@ -379,8 +379,8 @@ export default class FhirAttributeTable extends Vue {
             (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
 
-		sortProfiles (profiles: string[]) {
-    	  return FHIRUtils.sortProfiles(profiles)
+    sortProfiles (profiles: string[]) {
+        return FHIRUtils.sortProfiles(profiles)
     }
 
   }

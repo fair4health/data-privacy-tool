@@ -144,11 +144,11 @@
 </template>
 
 <script lang="ts">
-    import {Component, Vue, Watch} from 'vue-property-decorator'
-    import Loading from '@/components/Loading.vue';
-    import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import {Component, Vue, Watch} from 'vue-property-decorator'
+import Loading from '@/components/Loading.vue';
+import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 
-    @Component({
+@Component({
     components: {
         AlgorithmConfigDialog: () => ({
             component: import('@/components/AlgorithmConfigDialog.vue'),
@@ -215,9 +215,9 @@ export default class SensitiveAttributeTable extends Vue {
     }
 
     onSelected (target) {
-				if (target) this.splitterModel = 50;
-				else this.splitterModel = 100;
-				this.selectedStr = target;
+        if (target) this.splitterModel = 50;
+        else this.splitterModel = 100;
+        this.selectedStr = target;
         const filtered = this.fhirElementListFlat.filter(item => item.value === target);
         this.selectedElem = filtered.length ? filtered[0] : null
     }

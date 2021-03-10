@@ -425,18 +425,18 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             this.deidentificationStatus = Status.PENDING;
         }
 
-				// Set showBanner
-				if (sessionStorage.getItem('showBannerDeidentifier')) {
-						this.showBanner = sessionStorage.getItem('showBannerDeidentifier') === 'true'
-				} else {
-						this.showBanner = true;
-				}
+        // Set showBanner
+        if (sessionStorage.getItem('showBannerDeidentifier')) {
+            this.showBanner = sessionStorage.getItem('showBannerDeidentifier') === 'true';
+        } else {
+            this.showBanner = true;
+        }
     }
 
-		setShowBanner (value: boolean) {
-				sessionStorage.setItem('showBannerDeidentifier', String(value))
-				this.showBanner = value
-		}
+    setShowBanner (value: boolean) {
+        sessionStorage.setItem('showBannerDeidentifier', String(value));
+        this.showBanner = value;
+    }
 
     fetchAllData (groupedByResources): Promise<any> {
         const dataPromises = groupedByResources.map(profileGroups => {
