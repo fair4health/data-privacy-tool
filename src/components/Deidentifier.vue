@@ -7,10 +7,10 @@
 				{{ $t('COMMON.DEIDENTIFIER') }}
 			</q-toolbar-title>
 			<div class="q-gutter-md">
-				<q-btn unelevated :label="$t('BUTTONS.SAVE')" color="white" text-color="primary" @click="saveConfigurations" icon="save" no-caps >
+				<q-btn unelevated :label="$t('BUTTONS.SAVE_CONFIGURATION')" color="white" text-color="primary" @click="saveConfigurations" icon="save" no-caps >
 					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_CONFIGURATION') }} </q-tooltip>
 				</q-btn>
-				<q-btn unelevated :label="$t('BUTTONS.EXPORT')" color="white" text-color="primary" @click="exportConfigurations" icon="publish" no-caps >
+				<q-btn unelevated :label="$t('BUTTONS.EXPORT_CONFIGURATION')" color="white" text-color="primary" @click="exportConfigurations" icon="publish" no-caps >
 					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.EXPORT_CONFIGURATION') }} </q-tooltip>
 				</q-btn>
 			</div>
@@ -203,7 +203,7 @@
 					<div class="row content-end q-gutter-sm">
 						<q-space />
 						<q-btn v-if="isSuccess(deidentificationStatus) || isError(deidentificationStatus)"
-						       :disable="disableSave()" label="Save" color="positive" icon="save"
+						       :disable="disableSave()" :label="$t('BUTTONS.SAVE_TO_REPOSITORY')" color="positive" icon="save"
 						       class="q-mt-lg" @click="saveDialog = true" no-caps>
 							<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SAVE_DEIDENTIFIED_DATA') }} </q-tooltip>
 						</q-btn>
