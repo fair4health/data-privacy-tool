@@ -133,6 +133,7 @@
     "MENU": {
         "ABOUT": "About",
         "ATTRIBUTE_SELECTOR": "@:COMMON.ATTRIBUTE_SELECTOR",
+        "COLLAPSE_SIDEBAR": "Collapse sidebar",
         "CONFIGURATION_MANAGER": "@:COMMON.CONFIGURATION_MANAGER",
         "DEIDENTIFICATION": "De-identification",
         "DEIDENTIFIER": "@:COMMON.DEIDENTIFIER",
