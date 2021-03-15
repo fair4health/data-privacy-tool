@@ -65,6 +65,10 @@
     },
     "INFO": {
         "ATTRIBUTE_SELECTOR_HOME_INFO": "Attributes of FHIR resources are categorized in a privacy point of view.",
+        "ATTR_TYPE_DESC_ID": "If an attribute is an identifier, it is removed directly from the resource.",
+        "ATTR_TYPE_DESC_INSENSITIVE": "If an attribute is insensitive, it remains the same.",
+        "ATTR_TYPE_DESC_QUASI": "A quasi identifier is a piece of information that does not itself identify an individual, but can do so when combined with other quasi-identifiers.",
+        "ATTR_TYPE_DESC_SENSITIVE": "A sensitive attribute is an attribute whose value may not be wanted to be disclosed. Some of the rare values, but not all, need to be anonymized, e.g. HIV in Condition.",
         "CONFIGURATION_MANAGER_HOME_INFO": "De-identification algorithms and their parameters are configured accordingly.",
         "CONFIGURATION_MANAGER_INFO": "Configure de-identification parameters.",
         "CONFIG_DELETED": "{configName} is deleted",
