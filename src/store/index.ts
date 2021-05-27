@@ -8,7 +8,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         drawerOpen: true,
-        drawerMiniState: true,
+        drawerMiniState: false,
         privacyStep: 1
     },
     getters: {

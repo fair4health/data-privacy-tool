@@ -7,7 +7,7 @@
 				{{ $t('COMMON.ATTRIBUTE_SELECTOR') }}
 			</q-toolbar-title>
 			<div class="q-gutter-md">
-				<q-btn unelevated :label="$t('BUTTONS.SELECT')" color="white" text-color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps>
+				<q-btn unelevated :label="$t('BUTTONS.SELECT_CONFIGURATION')" color="white" text-color="primary" @click="selectSavedConfigurations" icon="fas fa-archive" no-caps>
 					<q-tooltip anchor="bottom middle" self="top middle"> {{ $t('TOOLTIPS.SELECT_SAVED_CONFIGURATION') }} </q-tooltip>
 				</q-btn>
 				<q-btn unelevated :label="$t('BUTTONS.IMPORT')" color="white" text-color="primary" @click="importSavedConfigurations" icon="fas fa-file-import" no-caps>
@@ -30,7 +30,7 @@
 				</q-card-section>
 				<q-card-section v-if="savedConfigs && savedConfigs.length">
 					<q-list bordered class="rounded-borders">
-						<q-item v-for="(saved, index) of savedConfigs" class="q-ma-sm" >
+						<q-item v-for="(saved, index) of savedConfigs" :key="index" class="q-ma-sm" >
 							<q-item-section avatar top>
 								<q-icon name="save" color="black" size="26px" class="q-mt-xs" />
 							</q-item-section>

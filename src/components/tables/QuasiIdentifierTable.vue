@@ -70,6 +70,7 @@
 													</q-item-section>
 													<q-item-section>
 														<q-item-label v-html="scope.opt" />
+														<q-item-label caption lines="2">{{getDescriptionOfAlgorithm(scope.opt)}}</q-item-label>
 													</q-item-section>
 												</q-item>
 											</template>
@@ -283,6 +284,28 @@ export default class QuasiIdentifierTable extends Vue {
         return (node.label && node.label.toLowerCase().includes(filt)) ||
             (this.typeMappings[node.value] && this.typeMappings[node.value].toLowerCase().includes(filt));
     }
+
+    getDescriptionOfAlgorithm (name: string) {
+		if (name === environment.algorithms.PASS_THROUGH.name) {
+			return String(this.$t('ALGORITHM_INFO.PASS_THROUGH'));
+		} else if (name === environment.algorithms.REDACTION.name) {
+			return String(this.$t('ALGORITHM_INFO.REDACTION'));
+		} else if (name === environment.algorithms.RECOVERABLE_SUBSTITUTION.name) {
+			return String(this.$t('ALGORITHM_INFO.RECOVERABLE_SUBSTITUTION'));
+		} else if (name === environment.algorithms.SUBSTITUTION.name) {
+			return String(this.$t('ALGORITHM_INFO.SUBSTITUTION'));
+		} else if (name === environment.algorithms.FUZZING.name) {
+			return String(this.$t('ALGORITHM_INFO.FUZZING'));
+		} else if (name === environment.algorithms.GENERALIZATION.name) {
+			return String(this.$t('ALGORITHM_INFO.GENERALIZATION'));
+		} else if (name === environment.algorithms.DATE_SHIFTING.name) {
+			return String(this.$t('ALGORITHM_INFO.DATE_SHIFTING'));
+		} else if (name === environment.algorithms.REPLACE.name) {
+			return String(this.$t('ALGORITHM_INFO.REPLACE'));
+		} else {
+			return '';
+		}
+	}
 
 }
 </script>

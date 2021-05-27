@@ -86,20 +86,36 @@
 										<q-tooltip v-if="splitterModel<100">{{$t('TABLE.TYPE')}}</q-tooltip>
 									</div>
 									<div class="text-right col-1 ellipsis">
+										<q-icon name="help" color="white" class="cursor-pointer" size="xs">
+											<q-tooltip content-class="bg-primary text-white text-size-lg" :content-style="{ width: '200px' }">
+												{{ $t('INFO.ATTR_TYPE_DESC_ID') }}
+											</q-tooltip>
+										</q-icon>
 										{{attributeTypes.ID}}
-										<q-tooltip v-if="splitterModel<100">{{attributeTypes.ID}}</q-tooltip>
 									</div>
 									<div class="text-center col-2 ellipsis">
+										<q-icon name="help" color="white" class="cursor-pointer" size="xs">
+											<q-tooltip content-class="bg-primary text-white text-size-lg" :content-style="{ width: '200px' }">
+												{{ $t('INFO.ATTR_TYPE_DESC_QUASI') }}
+											</q-tooltip>
+										</q-icon>
 										{{attributeTypes.QUASI}}
-										<q-tooltip v-if="splitterModel<100">{{attributeTypes.QUASI}}</q-tooltip>
 									</div>
 									<div class="col-1 ellipsis">
+										<q-icon name="help" color="white" class="cursor-pointer" size="xs">
+											<q-tooltip content-class="bg-primary text-white text-size-lg" :content-style="{ width: '200px' }">
+												{{ $t('INFO.ATTR_TYPE_DESC_SENSITIVE') }}
+											</q-tooltip>
+										</q-icon>
 										{{attributeTypes.SENSITIVE}}
-										<q-tooltip v-if="splitterModel<100">{{attributeTypes.SENSITIVE}}</q-tooltip>
 									</div>
 									<div class="col-1 ellipsis">
+										<q-icon name="help" color="white" class="cursor-pointer" size="xs">
+											<q-tooltip content-class="bg-primary text-white text-size-lg" :content-style="{ width: '200px' }">
+												{{ $t('INFO.ATTR_TYPE_DESC_INSENSITIVE') }}
+											</q-tooltip>
+										</q-icon>
 										{{attributeTypes.INSENSITIVE}}
-										<q-tooltip v-if="splitterModel<100">{{attributeTypes.INSENSITIVE}}</q-tooltip>
 									</div>
 								</div>
 								<q-scroll-area class="overflow-hidden">
