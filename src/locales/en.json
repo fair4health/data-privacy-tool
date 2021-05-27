@@ -2,11 +2,12 @@
     "ALGORITHM_INFO": {
         "DATE_SHIFTING": "Date will be shifted randomly within a range that you provide.",
         "FUZZING": "A noise will be added to the attribute within the range of the percentage you provide.",
+        "GENERALIZATION": "The field will be generalized e.g. date unit as year, rounded floating numbers.",
         "GENERALIZATION_DATE": "Only the information of the date unit that you provide will be kept.",
         "GENERALIZATION_FLOAT": "Decimal places of the floating number will be rounded by your choice. '0' means rounding to an integer.",
         "GENERALIZATION_INTEGER": "Last digits of the integer will be rounded by your choice.",
         "PASS_THROUGH": "The attribute will be saved with no change.",
-        "RARE_VALUES": "You should provide the rare values for this attribute below. ",
+        "RARE_VALUES": "You should provide the rare values for this attribute below.",
         "RECOVERABLE_SUBSTITUTION": "New value will be generated automatically.",
         "REDACTION": "The attribute will be completely removed.",
         "REPLACE": "You should provide the rare values and their new values for this attribute below.",
