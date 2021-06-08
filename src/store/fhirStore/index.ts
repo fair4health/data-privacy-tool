@@ -33,28 +33,30 @@ const fhirStore = {
             state.typeMappings[tmpObj.value] = tmpObj.type;
         }
         if (tmpObj.value && FHIRUtils.isPrimitive(tmpObj, state.typeMappings) && !state.attributeMappings[tmpObj.value]) {
-            const splitted = tmpObj.value.split('.');
-            const resource = splitted[0];
-            const key = splitted.slice(2).join('.');
-            const word = splitted[splitted.length - 1];
-            if (recommendation.attributeMappings[resource] && recommendation.attributeMappings[resource][key]) {
-                if (!tmpObj.required || (tmpObj.required && recommendation.attributeMappings[resource][key] !== environment.attributeTypes.ID)) {
-                    // if no conflict with required value, assign recommendation
-                    state.attributeMappings[tmpObj.value] = recommendation.attributeMappings[resource][key];
-                } else {
-                    // if recommendation is ID but obj is required, assign QUASI instead
-                    state.attributeMappings[tmpObj.value] = environment.attributeTypes.QUASI;
-                }
-                state.recommendedAttributesMappings[resource] = true;
-            } else {
-                // if no recommendation exists for the current attribute, assign INSENSITIVE
-                state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
-            }
-            if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.QUASI) {
-                state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, true);
-            } else if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.SENSITIVE) {
-                state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, false);
-            }
+            state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+            // const splitted = tmpObj.value.split('.');
+            // const resource = splitted[0];
+            // const key = splitted.slice(2).join('.');
+            // const word = splitted[splitted.length - 1];
+            // Checks if there is a recommended type for the current attribute and puts the recommended type.
+            // if (recommendation.attributeMappings[resource] && recommendation.attributeMappings[resource][key]) {
+            //     if (!tmpObj.required || (tmpObj.required && recommendation.attributeMappings[resource][key] !== environment.attributeTypes.ID)) {
+            //         // if no conflict with required value, assign recommendation
+            //         state.attributeMappings[tmpObj.value] = recommendation.attributeMappings[resource][key];
+            //     } else {
+            //         // if recommendation is ID but obj is required, assign QUASI instead
+            //         state.attributeMappings[tmpObj.value] = environment.attributeTypes.QUASI;
+            //     }
+            //     state.recommendedAttributesMappings[resource] = true;
+            // } else {
+            //     // if no recommendation exists for the current attribute, assign INSENSITIVE
+            //     state.attributeMappings[tmpObj.value] = environment.attributeTypes.INSENSITIVE;
+            // }
+            // if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.QUASI) {
+            //     state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, true);
+            // } else if (state.attributeMappings[tmpObj.value] === environment.attributeTypes.SENSITIVE) {
+            //     state.parameterMappings[tmpObj.value] = FHIRUtils.recommendedAlgorithm(word, tmpObj.type, tmpObj.required, false);
+            // }
         }
         if (tmpObj.value && tmpObj.required && !state.requiredElements.includes(tmpObj.value)) {
             state.requiredElements.push(tmpObj.value);

@@ -65,11 +65,12 @@
 											</template>
 									</q-input>
 							</q-item-section>
-							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
-									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
-											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
-									</q-btn>
-							</q-item-section>
+							<!--Recommended attributes-->
+<!--							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">-->
+<!--									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >-->
+<!--											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>-->
+<!--									</q-btn>-->
+<!--							</q-item-section>-->
 					</q-item>
 					<q-separator />
 					<div class="splitter-div">
