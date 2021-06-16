@@ -83,11 +83,9 @@ const fhirStore = {
         fhirSourceBase: environment.server.config.source.baseUrl,
         fhirSourceVerificationStatus: '',
         fhirSourceVerificationStatusDetail: '',
-        sourceFhirService: new FhirService(true),
         fhirTargetBase: environment.server.config.target.baseUrl,
         fhirTargetVerificationStatus: '',
         fhirTargetVerificationStatusDetail: '',
-        targetFhirService: new FhirService(false),
         evaluationService: new EvaluationService(),
         typeMappings: {},
         rareValueMappings: {},
@@ -141,7 +139,7 @@ const fhirStore = {
             state.profileList = list
         },
         [types.Fhir.SET_ELEMENT_LIST] (state, list) {
-            state.elementList = list?.length ? FHIRUtils.filterDataTypes(list, state) : [];
+            state.elementList = list?.length ? FHIRUtils.filterDataTypes(this._vm.$sourceFhirService, list, state) : [];
             state.elementListFlat = list?.length ? FHIRUtils.flatten(list) : [];
             state.quasiElementList = list?.length ? FHIRUtils.filterByAttributeType(list, state.attributeMappings,
                                                         environment.attributeTypes.QUASI, state.typeMappings) : [];
@@ -180,7 +178,7 @@ const fhirStore = {
         },
         [types.Fhir.UPDATE_FHIR_SOURCE_BASE] (state, sourceRepoUrl: string) {
             state.fhirSourceBase = sourceRepoUrl;
-            state.sourceFhirService = new FhirService(true, sourceRepoUrl);
+            this._vm.$sourceFhirService.setUrl(sourceRepoUrl);
             localStorage.setItem(localStorageKey.FHIR_SOURCE_URL, sourceRepoUrl);
         },
         [types.Fhir.SET_FHIR_SOURCE_VERIFICATION_STATUS] (state, status: status) {
@@ -191,7 +189,7 @@ const fhirStore = {
         },
         [types.Fhir.UPDATE_FHIR_TARGET_BASE] (state, targetRepoUrl: string) {
             state.fhirTargetBase = targetRepoUrl;
-            state.targetFhirService = new FhirService(false, targetRepoUrl);
+            this._vm.$targetFhirService.setUrl(targetRepoUrl);
             localStorage.setItem(localStorageKey.FHIR_TARGET_URL, targetRepoUrl);
         },
         [types.Fhir.SET_FHIR_TARGET_VERIFICATION_STATUS] (state, status: status) {
@@ -231,7 +229,7 @@ const fhirStore = {
     actions: {
         [types.Fhir.GET_RESOURCES] ({ commit, state }): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.sourceFhirService.search('CapabilityStatement', null)
+                this._vm.$sourceFhirService.search('CapabilityStatement', null)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         const resource = bundle.entry?.length ? bundle.entry[0].resource as fhir.CapabilityStatement : null;
@@ -239,7 +237,7 @@ const fhirStore = {
                             Promise.all(resource.rest[0].resource.map(item => {
                                 const resourceType = item.type;
                                 return new Promise<any>((resolve1, reject1) => {
-                                    state.sourceFhirService.search(resourceType, null)
+                                    this._vm.$sourceFhirService.search(resourceType, null)
                                         .then(response => {
                                             const count: number = response.data.total;
                                             resolve1({resourceType, count});
@@ -261,7 +259,7 @@ const fhirStore = {
         },
         [types.Fhir.GET_PROFILES_BY_RES] ({ commit, state }, resource: string): Promise<boolean> {
             return new Promise((resolve, reject) => {
-                state.sourceFhirService.search('StructureDefinition',
+                this._vm.$sourceFhirService.search('StructureDefinition',
                     {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
                     .then(res => {
                         if (res.data.total > 0) {
@@ -270,7 +268,7 @@ const fhirStore = {
                                     item.resource.id, item.resource.url, item.resource.title, item.resource.description];
                                 state.profileUrlMappings[profile] = url;
                                 return new Promise<any>((resolve1, reject1) => {
-                                    state.sourceFhirService.search(resourceType, {_profile: url})
+                                    this._vm.$sourceFhirService.search(resourceType, {_profile: url})
                                         .then(response => {
                                             const count: number = response.data.total;
                                             resolve1({resourceType, profile, count, url, title, description});
@@ -283,11 +281,54 @@ const fhirStore = {
                                         availableProfiles.push(counter);
                                     }
                                 }
-                                commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
-                                    return {id: e.profile, title: e.title, url: e.url, description: e.description} as fhir.StructureDefinition
-                                }) || []);
-                                resolve(true)
+                                Promise.all(availableProfiles.map(profile => {
+                                    return new Promise((resolveSubProfile, rejectSubProfile) => {
+                                        this._vm.$sourceFhirService.search('StructureDefinition', {_summary: 'data', base: profile.url}, true)
+                                            .then(res => {
+                                                const bundle = res.data
+                                                if (bundle.total > 0) {
+                                                    Promise.all(bundle.entry.map(item => {
+                                                        const [resourceType, profile, url, title, description] = [item.resource.type,
+                                                            item.resource.id, item.resource.url, item.resource.title, item.resource.description];
+                                                        state.profileUrlMappings[profile] = url;
+                                                        return new Promise<any>((resolveProfile, reject1) => {
+                                                            this._vm.$sourceFhirService.search(resourceType, {_profile: url})
+                                                                .then(response => {
+                                                                    const count: number = response.data.total;
+                                                                    resolveProfile({resourceType, profile, count, url, title, description});
+                                                                }).catch(err => reject1(err));
+                                                        })
+                                                    })).then((counts: any) => {
+                                                        for (const counter of counts) {
+                                                            if (counter.count) { // take only profiles that has data on repository
+                                                                availableProfiles.push(counter);
+                                                            }
+                                                        }
+                                                        resolveSubProfile(true);
+                                                    })
+                                                } else {
+                                                    resolveSubProfile(true);
+                                                }
+                                            })
+                                            .catch(err => {
+                                                rejectSubProfile(err);
+                                            })
+                                    })
+                                }))
+                                .then(() => {
+                                    commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
+                                        return {id: e.profile, title: e.title, url: e.url, description: e.description} as fhir.StructureDefinition
+                                    }) || []);
+                                    resolve(true)
+                                })
+                                .catch(err => {
+                                    commit(types.Fhir.SET_PROFILE_LIST, availableProfiles.map(e => {
+                                        return {id: e.profile, title: e.title, url: e.url, description: e.description} as fhir.StructureDefinition
+                                    }) || []);
+                                    reject(err)
+                                });
                             }).catch(err => reject(err));
+
                         } else {
                             commit(types.Fhir.SET_PROFILE_LIST, [])
                             resolve(true);
@@ -299,7 +340,7 @@ const fhirStore = {
             return new Promise((resolve, reject) => {
                 const query = {}
                 query[parameterName] = profile
-                state.sourceFhirService.search('StructureDefinition', query, true)
+                this._vm.$sourceFhirService.search('StructureDefinition', query, true)
                     .then(res => {
                         const bundle = res.data as fhir.Bundle;
                         if (bundle.entry?.length) {
@@ -338,32 +379,35 @@ const fhirStore = {
                     .catch(err => reject(err) )
             })
         },
-        [types.Fhir.CALCULATE_RISKS] ({ state }, type) {
-            const tempRisk = {profile: type.profile, lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0,
-                recordsAffectedByLowest: 0, recordsAffectedByHighest: 0};
-            const equivalenceClasses = state.evaluationService.generateEquivalenceClasses(type, state.parameterMappings, state.typeMappings);
-            const totalNumberOfRecords = type.entries.length;
-            const numberOfEqClasses = equivalenceClasses.length;
-            const maxLengthOfEqClasses = Math.max.apply(Math, equivalenceClasses.map(a => a.length));
-            const minLengthOfEqClasses = Math.min.apply(Math, equivalenceClasses.map(a => a.length));
-            tempRisk.lowestProsecutor = 1 / maxLengthOfEqClasses;
-            tempRisk.highestProsecutor = 1 / minLengthOfEqClasses;
-            tempRisk.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
+        [types.Fhir.CALCULATE_RISKS] ({ state }, {type, parameterMappings, typeMappings}): Promise<any> {
+            return new Promise((resolve, reject) => {
+                const tempRisk = {profile: type.profile, lowestProsecutor: 0, highestProsecutor: 0, averageProsecutor: 0,
+                    recordsAffectedByLowest: 0, recordsAffectedByHighest: 0};
+                const equivalenceClasses = state.evaluationService.generateEquivalenceClasses(type, parameterMappings, typeMappings);
+                const totalNumberOfRecords = type.entries.length;
+                const numberOfEqClasses = equivalenceClasses.length;
+                const maxLengthOfEqClasses = Math.max.apply(Math, equivalenceClasses.map(a => a.length));
+                const minLengthOfEqClasses = Math.min.apply(Math, equivalenceClasses.map(a => a.length));
+                tempRisk.lowestProsecutor = 1 / maxLengthOfEqClasses;
+                tempRisk.highestProsecutor = 1 / minLengthOfEqClasses;
+                tempRisk.averageProsecutor = numberOfEqClasses / totalNumberOfRecords;
 
-            const numberOfRecsAffectedByLowest = equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
-            const numberOfRecsAffectedByHighest = equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
-            tempRisk.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
-            tempRisk.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
+                const numberOfRecsAffectedByLowest = equivalenceClasses.map(a => a.length).filter(a => a >= maxLengthOfEqClasses).length;
+                const numberOfRecsAffectedByHighest = equivalenceClasses.map(a => a.length).filter(a => a >= minLengthOfEqClasses).length;
+                tempRisk.recordsAffectedByLowest = numberOfRecsAffectedByLowest / totalNumberOfRecords;
+                tempRisk.recordsAffectedByHighest = numberOfRecsAffectedByHighest / totalNumberOfRecords;
 
-            state.deidentificationResults[type.resource].risks.push(tempRisk);
+                const risks = tempRisk;
 
-            // AECS F. Kohlmayer, et al. in https://doi.org/10.1016/j.jbi.2015.09.007
-            // https://books.google.com.tr/books?id=2R7XTlebSF8C&pg=PA215&lpg=PA215&dq=Average+Equivalence+Class+Size&source=bl&ots=WAbLwIhZiY&sig=ACfU3U1viElk7WQkkJIN9CxiWVkFHOfb0A&hl=tr&sa=X&ved=2ahUKEwj_wYqbn9npAhXQOcAKHaWeCDoQ6AEwCXoECAgQAg#v=onepage&q=Average%20Equivalence%20Class%20Size&f=false
-            let eqClassSizesSum = 0;
-            equivalenceClasses.forEach(eqClass => {
-                eqClassSizesSum += Math.pow(eqClass.length, 2);
+                // AECS F. Kohlmayer, et al. in https://doi.org/10.1016/j.jbi.2015.09.007
+                // https://books.google.com.tr/books?id=2R7XTlebSF8C&pg=PA215&lpg=PA215&dq=Average+Equivalence+Class+Size&source=bl&ots=WAbLwIhZiY&sig=ACfU3U1viElk7WQkkJIN9CxiWVkFHOfb0A&hl=tr&sa=X&ved=2ahUKEwj_wYqbn9npAhXQOcAKHaWeCDoQ6AEwCXoECAgQAg#v=onepage&q=Average%20Equivalence%20Class%20Size&f=false
+                let eqClassSizesSum = 0;
+                equivalenceClasses.forEach(eqClass => {
+                    eqClassSizesSum += Math.pow(eqClass.length, 2);
+                })
+                const informationLoss = eqClassSizesSum / Math.pow(totalNumberOfRecords, 2);
+                resolve({risks, informationLoss});
             })
-            state.deidentificationResults[type.resource].informationLoss = eqClassSizesSum / Math.pow(totalNumberOfRecords, 2);
         },
         [types.Fhir.VALIDATE_ENTRIES] ({ state }, entries): Promise<any> {
             return state.evaluationService.validateEntries(entries);
@@ -371,9 +415,15 @@ const fhirStore = {
         [types.Fhir.SAVE_ENTRIES] ({ state }, isSource): Promise<any> {
             return state.evaluationService.saveEntries(state.deidentificationResults, state.selectedResources, isSource);
         },
-        [types.Fhir.VERIFY_FHIR] ({ state }, isSource): Promise<any> {
+        [types.Fhir.VERIFY_FHIR] ({ state, commit }, {isSource, url}): Promise<any> {
+            if (isSource) {
+                commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, url);
+            } else {
+                commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, url);
+            }
+
             return new Promise((resolve, reject) => {
-                const service = isSource ? state.sourceFhirService : state.targetFhirService;
+                const service = isSource ? this._vm.$sourceFhirService : this._vm.$targetFhirService;
                 service.search('metadata', {}, true)
                     .then(res => {
                         const metadata: fhir.CapabilityStatement = res.data;

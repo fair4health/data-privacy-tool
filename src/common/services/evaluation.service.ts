@@ -1,27 +1,21 @@
-import {FhirService} from '@/common/services/fhir.service';
 import {Utils} from '@/common/utils/util';
 import {environment} from '@/common/environment';
+import Vue from 'vue'
+import {FhirService} from '@/common/services/fhir.service'
 
 export class EvaluationService {
-    sourceFhirService: FhirService;
-    targetFhirService: FhirService;
     quasis: string[][];
     riskyQuasis: string[];
     savedResourceNumber = 0;
 
     constructor () {
-        this.sourceFhirService = new FhirService(true);
-        this.targetFhirService = new FhirService(false);
         this.quasis = [];
         this.riskyQuasis = [];
     }
 
-    setFhirURL (url: string, isSource: boolean) {
-        if (isSource) {
-            this.sourceFhirService.setUrl(url);
-        } else {
-            this.targetFhirService.setUrl(url);
-        }
+    setFhirService (fhirService: FhirService) {
+        Vue.prototype.$sourceFhirService = fhirService;
+        Vue.prototype.$targetFhirService = fhirService;
     }
 
     generateEquivalenceClasses (type, parameterMappings, typeMappings) {
@@ -54,7 +48,7 @@ export class EvaluationService {
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             while (bulk.length) {
-                promises.push(this.sourceFhirService.validate(bulk.splice(0, 1000)));
+                promises.push(Vue.prototype.$sourceFhirService.validate(bulk.splice(0, 1000)));
             }
             Promise.all(promises).then(res => {
                 resolve(res);
@@ -75,7 +69,7 @@ export class EvaluationService {
         this.savedResourceNumber = 0;
         const promises: Array<Promise<any>> = [];
         const request = isSource ? 'PUT' : 'POST';
-        const service = isSource ? this.sourceFhirService : this.targetFhirService;
+        const service = isSource ? Vue.prototype.$sourceFhirService : Vue.prototype.$targetFhirService;
         return new Promise((resolve, reject) => {
             const bulk = JSON.parse(JSON.stringify(entries)).map(element => element.resource);
             this.savedResourceNumber += bulk.length;

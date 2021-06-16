@@ -30,8 +30,16 @@
 				<q-card-section class="q-col-gutter-sm">
 					<q-table flat binary-state-sort :title="$t('LABELS.RESOURCES')" :data="mappingList" :columns="columns" row-key="resource"
 					         :rows-per-page-options="[0]" :pagination.sync="pagination" class="sticky-header-table col-12" selection="multiple"
-                             table-class="resources-table" :loading="loading" color="primary" :selected.sync="selectedResources"
+                             table-class="resources-table" :loading="!mappingList.length && isLoading(deidentificationStatus)"
+							 color="primary" :selected.sync="selectedResources"
 					>
+						<template v-slot:no-data="{ icon, message, filter }">
+							<div class="full-width row flex-center text-grey-10 q-gutter-sm">
+								<span>
+									{{ message }}
+								</span>
+							</div>
+						</template>
 						<template v-slot:header-cell="props">
 							<q-th :props="props" class="bg-primary text-white text-size-xxl">
 								<q-icon v-if="props.col.icon" :class="props.col.icon" />
@@ -108,9 +116,9 @@
 										<q-spinner color="white" />
 									</q-chip>
 									<q-chip v-else-if="(isDone(props.row.status) || isError(props.row.status)
-											|| isWarning(props.row.status)) && props.row.entries.length"
+											|| isWarning(props.row.status)) && props.row.entries"
 									        square class="bg-positive text-white" clickable @click="showJSONResources(props.row.resource, false)">
-										{{ props.row.entries.length }}
+										{{ props.row.entries }}
 									</q-chip>
 									<q-chip v-else square class="bg-positive text-white"> - </q-chip>
 								</q-td>
@@ -119,9 +127,9 @@
 										<q-spinner color="white" />
 									</q-chip>
 									<q-chip v-else-if="(isDone(props.row.status) || isError(props.row.status)
-											|| isWarning(props.row.status)) && (props.row.count - props.row.entries.length)"
+											|| isWarning(props.row.status)) && (props.row.count - props.row.entries)"
 									        square class="bg-negative text-white" clickable @click="showJSONResources(props.row.resource, true)">
-										{{ props.row.count - props.row.entries.length }}
+										{{ props.row.count - props.row.entries }}
 									</q-chip>
 									<q-chip v-else square class="bg-negative text-white"> - </q-chip>
 								</q-td>
@@ -235,8 +243,17 @@
 						<div class="q-mt-xl q-mb-xl row justify-center">
 							<div class="spinner-comp flex flex-center"></div>
 						</div>
-						<div class="row justify-center">
+						<div class="row justify-center q-pb-md">
 							<span class="text-grey-8 text-size-xl"> {{ $t('COMMON.SAVING_RESOURCES') }} </span>
+						</div>
+						<div class="row justify-center" v-for="transformationResult in transformationResults" :key="transformationResult.resourceType">
+							<q-chip square class="q-pl-none">
+								<q-chip v-if="transformationResult.transformedCount === -1" square class="q-ml-none" color="grey-5" text-color="white">
+									<q-spinner></q-spinner>
+								</q-chip>
+								<q-chip v-else square class="q-ml-none q-mr-sm" color="positive" text-color="white">{{transformationResult.transformedCount}}</q-chip>
+								{{transformationResult.resourceType}}
+							</q-chip>
 						</div>
 					</div>
 					<div v-if="!loading" class="q-ma-sm">
@@ -245,10 +262,16 @@
 								<q-icon size="100px" class="mdi mdi-database-check" color="primary"></q-icon>
 							</transition>
 						</div>
-						<div class="row justify-center">
+						<div class="row justify-center q-pb-md">
                             <span class="text-grey-8 text-size-xl">
                                 {{savedResourceNumber}} {{ $t('INFO.RESOURCES_SAVED') }}
                             </span>
+						</div>
+						<div class="row justify-center" v-for="transformationResult in transformationResults" :key="transformationResult.resourceType">
+							<q-chip square class="q-pl-none">
+								<q-chip square class="q-ml-none q-mr-sm" color="positive" text-color="white">{{transformationResult.transformedCount}}</q-chip>
+								{{transformationResult.resourceType}}
+							</q-chip>
 						</div>
 					</div>
 				</q-card-section>
@@ -378,6 +401,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private maxPage: number = 1;
     private isRestricted: boolean = true;
     private showBanner: boolean = true;
+    private transformationResults: Array<{resourceType: string, transformedCount: number}> = [];
 
     get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
     set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
@@ -405,6 +429,14 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     set selectedResources (value) { this.$store.commit(types.Fhir.SET_SELECTED_RESOURCES, value) }
 
     created () {
+        ipcRenderer.send(ipcChannels.TO_ALL_BACKGROUND, ipcChannels.Deidentifier.SET_EVALUATION_SERVICE);
+        ipcRenderer.send(ipcChannels.TO_ALL_BACKGROUND, ipcChannels.Deidentifier.SET_DEIDENTIFICATION_SERVICE,
+            {
+                typeMappings: this.typeMappings,
+                parameterMappings: this.parameterMappings,
+                rareValueMappings: this.rareValueMappings,
+                requiredElements: this.requiredElements
+            });
         Object.keys(this.attributeMappings).forEach(key => {
             if (this.attributeMappings[key] !== environment.attributeTypes.INSENSITIVE) {
                 this.willBeAnonyed.push(key);
@@ -418,23 +450,29 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 return [attributes[0].split('.')[0]];
             });
             this.deidentificationResults = {};
-            this.fetchAllData(groupedByResources).then(res => {
-                this.deidentificationStatus = Status.PENDING;
-            }).catch(err => err);
+            this.$store.dispatch(types.IDB.CLEAR_ALL)
+                .then(() => {
+                    this.fetchAllData(groupedByResources).then(res => {
+                        this.deidentificationStatus = Status.PENDING;
+                    }).catch(err => err);
+                })
+                .catch(err => {
+                    console.log('Error while deleting resources in idb.', err);
+                })
         } else {
             this.deidentificationStatus = Status.PENDING;
         }
 
         // Set showBanner
-        if (sessionStorage.getItem('showBannerDeidentifier')) {
-            this.showBanner = sessionStorage.getItem('showBannerDeidentifier') === 'true';
+        if (localStorage.getItem(localStorageKey.SHOW_BANNER_DEIDENTIFIER)) {
+            this.showBanner = localStorage.getItem(localStorageKey.SHOW_BANNER_DEIDENTIFIER) === 'true';
         } else {
             this.showBanner = true;
         }
     }
 
     setShowBanner (value: boolean) {
-        sessionStorage.setItem('showBannerDeidentifier', String(value));
+        localStorage.setItem(localStorageKey.SHOW_BANNER_DEIDENTIFIER, String(value));
         this.showBanner = value;
     }
 
@@ -445,35 +483,49 @@ export default class Deidentifier extends Mixins(StatusMixin) {
                 if (baseResource) { // fetch all data of base resource
                     const resource = baseResource[0].split('.')[0];
                     if (!this.deidentificationResults[resource]) {
-                        this.deidentificationResults[resource] = {status: Status.LOADING, entries: [], count: 0, outcomeDetails: [],
-                            risks: [], restrictedEntries: [], informationLoss: 0};
+                        this.deidentificationResults[resource] = {status: Status.LOADING, count: 0, entries: 0,
+                            outcomeDetails: [], risks: [], restrictedEntries: [], informationLoss: 0};
                     }
-                    this.deidentificationService.getEntries(resource, resource).then(entries => {
-                        this.deidentificationResults[resource].entries = entries.entries;
-                        this.deidentificationResults[resource].count = entries.entries.length;
-                        this.deidentificationResults[resource].status = Status.PENDING;
+                    this.getResultsAsMapping();
+                    ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.Deidentifier.FETCH_ALL_DATA,
+                        {resourceType: resource});
+                    ipcRenderer.on(ipcChannels.Deidentifier.FETCH_ALL_DATA_RES_X(resource), (event, result) => {
+                        ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.FETCH_ALL_DATA_RES_X(resource));
+                        this.deidentificationResults[resource] = {...this.deidentificationResults[resource], ...result};
                         this.getResultsAsMapping();
                         resolve();
-                    }).catch(err => reject(err));
-                } else { // fetch profiles' data and put them in entries
-                    const profilePromises = profileGroups.map(groups => {
-                        const resource = groups[0].split('.')[0];
-                        const profile = groups[0].split('.')[1];
-                        if (!this.deidentificationResults[resource]) {
-                            this.deidentificationResults[resource] = {status: Status.LOADING, entries: [], count: 0, outcomeDetails: [],
-                                risks: [], restrictedEntries: [], informationLoss: 0};
-                        }
-                        return this.deidentificationService.getEntries(resource, profile)
                     });
-                    Promise.all(profilePromises).then(results => {
-                        results.forEach((result: any) => {
-                            this.deidentificationResults[result.resource].entries.push(...result.entries);
-                            this.deidentificationResults[result.resource].count += result.entries.length;
-                            this.deidentificationResults[result.resource].status = Status.PENDING;
+                } else { // fetch profiles' data and put them in entries
+                    const resourceType = profileGroups[0][0].split('.')[0];
+
+                    profileGroups.reduce((promise: Promise<any>, groups) => {
+                        return promise.then(() => {
+                            return new Promise((resolveProfile, rejectProfile) => {
+                                const resource = groups[0].split('.')[0];
+                                const profile = groups[0].split('.')[1];
+                                if (!this.deidentificationResults[resource]) {
+                                    this.deidentificationResults[resource] = {status: Status.LOADING, count: 0, entries: 0,
+                                        outcomeDetails: [], risks: [], restrictedEntries: [], informationLoss: 0};
+                                }
+                                this.getResultsAsMapping();
+                                const profileURL = this.profileUrlMappings[profile];
+                                ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.Deidentifier.FETCH_ALL_DATA,
+                                    {resourceType: resource, profile, profileURL});
+                                ipcRenderer.on(ipcChannels.Deidentifier.FETCH_ALL_DATA_RES_X(`${resource}-${profile}`), (event, result) => {
+                                    ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.FETCH_ALL_DATA_RES_X(`${resource}-${profile}`));
+                                    resolveProfile(result);
+                                });
+                            })
+                        })
+                    }, Promise.resolve())
+                        .then(result => {
+                            this.deidentificationResults[resourceType] = {...this.deidentificationResults[resourceType], ...result};
                             this.getResultsAsMapping();
+                            resolve();
+                        })
+                        .catch(err => {
+                            reject(err);
                         });
-                        resolve();
-                    }).catch(err => reject(err));
                 }
             });
         });
@@ -490,121 +542,90 @@ export default class Deidentifier extends Mixins(StatusMixin) {
         })
         this.restrictedResourceNumber = 0;
         this.deidentificationStatus = Status.IN_PROGRESS;
-        const promises = selectedGroups.map(attributes => {
-            const resource: string = attributes[0].split('.')[0];
-            this.deidentificationResults[resource].status = Status.IN_PROGRESS;
-            this.getResultsAsMapping();
 
-            const profile: string = attributes[0].split('.')[1];
-            const identifiers: string[][] = [];
-            const quasis: string[][] = [];
-            const sensitives: string[][] = [];
-            for (const key of attributes) {
-                if (this.attributeMappings[key] === environment.attributeTypes.ID) {
-                    identifiers.push(key.split('.').slice(2));
-                } else if (this.attributeMappings[key] === environment.attributeTypes.QUASI) {
-                    quasis.push(key.split('.').slice(2));
-                } else if (this.attributeMappings[key] === environment.attributeTypes.SENSITIVE) {
-                    sensitives.push(key.split('.').slice(2));
+        const promises = selectedGroups.map(attributes => {
+            return new Promise((resolve, reject) => {
+                const resource: string = attributes[0].split('.')[0];
+                this.deidentificationResults[resource].status = Status.IN_PROGRESS;
+                this.getResultsAsMapping();
+
+                const profile: string = attributes[0].split('.')[1];
+                const identifiers: string[][] = [];
+                const quasis: string[][] = [];
+                const sensitives: string[][] = [];
+                for (const key of attributes) {
+                    if (this.attributeMappings[key] === environment.attributeTypes.ID) {
+                        identifiers.push(key.split('.').slice(2));
+                    } else if (this.attributeMappings[key] === environment.attributeTypes.QUASI) {
+                        quasis.push(key.split('.').slice(2));
+                    } else if (this.attributeMappings[key] === environment.attributeTypes.SENSITIVE) {
+                        sensitives.push(key.split('.').slice(2));
+                    }
                 }
-            }
-            const resourceEntries = this.deidentificationResults[resource].entries;
-            let entries = JSON.parse(JSON.stringify(resourceEntries));
-            if (resource !== profile) { // not the base resource, needs to be filtered
-                [entries, this.deidentificationResults[resource].entries] = Utils.partition(resourceEntries,
-                    entry => entry.resource.meta.profile.includes(this.profileUrlMappings[profile]));
-                return this.deidentificationService.deidentify(resource, profile, identifiers, quasis, sensitives, entries,
-                    this.kAnonymityValidMappings[resource], this.kValueMappings[resource]);
-            } else { // base resource
-                return new Promise((resolve, reject) => {
-                    // base resources will be de-identified later in order to contain profiles as well
-                    resolve({isBaseResource: true, resource, identifiers, quasis, sensitives});
+                ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.Deidentifier.DEIDENTIFY,
+                    {
+                        resourceType: resource,
+                        profile,
+                        profileURL: this.profileUrlMappings[profile],
+                        identifierRelated: {
+                            identifiers,
+                            quasis,
+                            sensitives,
+                            kAnonymityValidMappings: this.kAnonymityValidMappings,
+                            kValueMappings: this.kValueMappings
+                        },
+                        parameterMappings: this.parameterMappings,
+                        typeMappings: this.typeMappings
+                    });
+
+                // Listener for the results of the identification process
+                ipcRenderer.on(ipcChannels.Deidentifier.DEIDENTIFY_RES_X(`${resource}-${profile}`), (event, result: {entryLength, restrictedEntries}) => {
+                    ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.DEIDENTIFY_RES_X(`${resource}-${profile}`));
+                    this.deidentificationResults[resource].entries += result.entryLength;
+                    for (const entry of result.restrictedEntries) {
+                        this.deidentificationResults[resource].restrictedEntries.push(entry);
+                    }
+                    this.showWarningForRestrictedResources(this.deidentificationResults[resource].restrictedEntries.length);
+                    this.getResultsAsMapping();
                 });
-            }
+
+                // Listener for calculated risks
+                ipcRenderer.on(ipcChannels.Deidentifier.DEIDENTIFY_RISKS_RES_X(`${resource}-${profile}`), (event, result: {risks, informationLoss}) => {
+                    ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.DEIDENTIFY_RISKS_RES_X(`${resource}-${profile}`));
+                    this.deidentificationResults[resource].risks.push(result.risks);
+                    this.deidentificationResults[resource].informationLoss = result.informationLoss;
+                    this.getResultsAsMapping();
+                });
+
+                // Listener for the validation results
+                ipcRenderer.on(ipcChannels.Deidentifier.VALIDATE_ENTRIES_RES_X(`${resource}-${profile}`), (event, result: OutcomeDetail) => {
+                    ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.VALIDATE_ENTRIES_RES_X(`${resource}-${profile}`));
+                    for (const outcomeDetail of result.outcomeDetails) {
+                        this.deidentificationResults[resource].outcomeDetails.push(outcomeDetail);
+                    }
+
+                    if (!this.isError(result.status)) {
+                        this.deidentificationResults[resource].status = Status.DONE;
+                    } else {
+                        this.deidentificationResults[resource].status = Status.ERROR;
+                    }
+                    this.getResultsAsMapping();
+                    resolve(result.status);
+                });
+            })
         });
 
-        Promise.all(promises).then(response => {
-            const baseResources: any[] = [];
-            const validatedResources: string[] = [];
-            response.forEach((type: any) => {
-                if (!type.isBaseResource) {
-                    this.deidentificationResults[type.resource].entries.push(...type.entries);
-                    this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
-                    this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
+        Promise.all(promises).then(results => {
+            results.forEach((resultStatus: Status) => {
+                if (this.isError(resultStatus)) {
+                    this.deidentificationStatus = Status.ERROR;
                 }
-                const baseResource = response.find(res => res.isBaseResource && res.resource === type.resource);
-                if (baseResource && !baseResources.includes(baseResource)) {
-                    baseResources.push(baseResource);
-                }
-            });
-            response.forEach((type: any) => {
-                const resource = baseResources.find(res => res.resource === type.resource);
-                if (!resource && !validatedResources.includes(type.resource)) {
-                    this.validateEntries(type.resource);
-                    validatedResources.push(type.resource);
-                }
-            });
-            baseResources.forEach(baseResource => {
-                const resource = baseResource.resource;
-                const entries = JSON.parse(JSON.stringify(this.deidentificationResults[resource].entries));
-                this.deidentificationService.deidentify(resource, resource, baseResource.identifiers, baseResource.quasis,
-                    baseResource.sensitives, entries, this.kAnonymityValidMappings[resource], this.kValueMappings[resource]).then(type => {
-                    this.deidentificationResults[type.resource].entries = type.entries;
-                    this.deidentificationResults[type.resource].restrictedEntries.push(...type.restrictedEntries);
-                    this.$store.dispatch(types.Fhir.CALCULATE_RISKS, type);
-                    this.validateEntries(type.resource);
-                }).catch(err => err);
-            });
-        }).catch(err => err);
-    }
-
-    validateEntries (resourceType) {
-        this.deidentificationResults[resourceType].outcomeDetails = [];
-        const entries = this.deidentificationResults[resourceType].entries;
-        if (!entries.length) {
-            this.deidentificationResults[resourceType].status = Status.DONE;
-            this.deidentificationStatus = Status.SUCCESS;
-            this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')));
-            this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
+            })
+            if (!this.isError(this.deidentificationStatus)) {
+                this.deidentificationStatus = Status.SUCCESS;
+            }
             this.getResultsAsMapping();
-        } else {
-            this.$store.dispatch(types.Fhir.VALIDATE_ENTRIES, entries).then(response => {
-                response.forEach(bulk => {
-                    bulk.data.entry.map((entry: fhir.BundleEntry) => {
-                        let operationOutcome: fhir.OperationOutcome;
-                        if (!entry.resource) {
-                            operationOutcome = entry.response?.outcome as fhir.OperationOutcome
-                        } else {
-                            operationOutcome = entry.resource as fhir.OperationOutcome;
-                        }
-                        operationOutcome.issue.map(issue => {
-                            if (issue.severity === 'error' || issue.severity === 'fatal') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.ERROR, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                this.deidentificationResults[resourceType].status = Status.ERROR;
-                                this.deidentificationStatus = Status.ERROR;
-                                this.$notify.error(String(this.$t('ERROR.VALIDATION_FAILED')))
-                            } else if (issue.severity === 'information') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.SUCCESS, resourceType, message: `Status: ${entry.response?.status}`} as OutcomeDetail);
-                                if (!this.isError(this.deidentificationResults[resourceType].status) && !this.isWarning(this.deidentificationResults[resourceType].status)) {
-                                    this.deidentificationResults[resourceType].status = Status.DONE;
-                                }
-                            } else if (issue.severity === 'warning') {
-                                this.deidentificationResults[resourceType].outcomeDetails.push({status: Status.WARNING, resourceType, message: `${issue.location} : ${issue.diagnostics}`} as OutcomeDetail);
-                                if (!this.isError(this.deidentificationResults[resourceType].status)) {
-                                    this.deidentificationResults[resourceType].status = Status.WARNING;
-                                }
-                            }
-                        })
-                    });
-                });
-                if (!this.isError(this.deidentificationStatus)) {
-                    this.deidentificationStatus = Status.SUCCESS;
-                    this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_DEIDENTIFIED')));
-                }
-                this.showWarningForRestrictedResources(this.deidentificationResults[resourceType].restrictedEntries.length);
-                this.getResultsAsMapping();
-            }).catch(err => err);
-        }
+        }).catch(err => err);
     }
 
     openOutcomeDetailCard (outcomeDetails: OutcomeDetail[]) {
@@ -626,26 +647,46 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             mappings.push(tempObj);
         }
         this.mappingList = mappings;
-        if (!this.selectedResources.length) {
-            this.selectedResources = this.mappingList.slice();
-        } else {
-            this.selectedResources = this.selectedResources.map(resource => this.mappingList.find(res => res.resource === resource.resource));
-        }
+        this.selectedResources = this.mappingList.slice();
         this.$forceUpdate();
     }
 
     saveToRepository (isSource: boolean) {
         this.saving = true;
         this.loading = true;
-        this.$store.dispatch(types.Fhir.SAVE_ENTRIES, isSource)
-            .then(response => {
-                this.savedResourceNumber = response;
+        const resourceTypes = Object.keys(this.deidentificationResults);
+        const transformationPromises = resourceTypes.map(resourceType => {
+            this.transformationResults.push({resourceType, transformedCount: -1})
+            return new Promise((resolve, reject) => {
+                ipcRenderer.send(ipcChannels.TO_BACKGROUND, ipcChannels.Deidentifier.SAVE_TO_REPO, resourceType);
+                ipcRenderer.on(ipcChannels.Deidentifier.SAVE_TO_REPO_RES_X(resourceType), (event, result: OutcomeDetail) => {
+                    ipcRenderer.removeAllListeners(ipcChannels.Deidentifier.SAVE_TO_REPO_RES_X(resourceType));
+                    const count = result.outcomeDetails.filter(_ => this.isSuccess(_.status)).length;
+                    // Save transformation results resource by resource
+                    this.transformationResults.find(_ => _.resourceType === resourceType).transformedCount = count || 0;
+                    this.savedResourceNumber += count;
+                    resolve(result.status);
+                });
+            });
+        });
+
+        Promise.all(transformationPromises)
+            .then(results => {
                 this.loading = false;
-                this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_SAVED')))
-            }).catch(err => {
-                this.savedResourceNumber = 0;
+                results.forEach((resultStatus: Status) => {
+                    if (this.isError(resultStatus)) {
+                        this.deidentificationStatus = Status.ERROR;
+                    }
+                })
+                if (!this.isError(this.deidentificationStatus)) {
+                    this.$notify.success(String(this.$t('SUCCESS.RESOURCES_ARE_SAVED')));
+                } else {
+                    this.$notify.error(String(this.$t('ERROR.RESOURCES_NOT_SAVED')));
+                }
+            })
+            .catch(err => {
                 this.loading = false;
-                this.$notify.error(String(this.$t('ERROR.RESOURCES_NOT_SAVED')))
+                console.log(err);
             });
     }
 
@@ -747,10 +788,11 @@ export default class Deidentifier extends Mixins(StatusMixin) {
 
     showJSONResources (resourceType: string, isRestricted: boolean) {
         this.currentPage = 1;
-        const length = isRestricted ? this.deidentificationResults[resourceType].restrictedEntries.length : this.deidentificationResults[resourceType].entries.length;
+        // const length = isRestricted ? this.deidentificationResults[resourceType].restrictedEntries.length : this.deidentificationResults[resourceType].entries;
+        const length = 10;
         this.maxPage = Math.ceil(length / environment.JSON_NUMBER_IN_A_PAGE);
-        this.selectedResource = resourceType;
         this.isRestricted = isRestricted;
+        this.selectedResource = resourceType;
         this.jsonResources = true;
     }
 
@@ -776,8 +818,8 @@ export default class Deidentifier extends Mixins(StatusMixin) {
             return true;
         }
         for (const resource of this.selectedResources) {
-            if (this.isError(resource.status) || this.isInProgress(resource.status) ||
-                this.isPending(resource.status) || this.isLoading(resource.status)) {
+            if (this.isError(resource?.status) || this.isInProgress(resource?.status) ||
+                this.isPending(resource?.status) || this.isLoading(resource?.status)) {
                 return true;
             }
         }
@@ -785,11 +827,12 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     }
 
     previousStep () {
-        this.$store.commit(types.DECREMENT_STEP)
+        this.deidentificationResults = {};
+        this.$store.commit(types.DECREMENT_STEP);
     }
 
     resetStep () {
-        this.$store.commit(types.RESET_STEP)
+        this.$store.commit(types.RESET_STEP);
     }
 
 }

@@ -17,7 +17,6 @@ export class FhirService {
             }
         }
         this.config = isSource ? environment.server.config.source : environment.server.config.target;
-        this.client = new FhirClient(this.config)
     }
 
     /**

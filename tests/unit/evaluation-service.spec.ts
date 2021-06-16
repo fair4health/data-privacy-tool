@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { EvaluationService } from '@/common/services/evaluation.service'
+import { FhirService } from '@/common/services/fhir.service'
 import 'isomorphic-fetch'
 import readlineSync from 'readline-sync'
 
@@ -9,7 +10,7 @@ describe('Test Evaluation Service', () => {
 
     // Init Evaluation Service
     const evaluationService: EvaluationService = new EvaluationService();
-    evaluationService.setFhirURL(onfhirURL, true);
+    evaluationService.setFhirService(new FhirService(true, onfhirURL));
 
     it('Should generate equivalence classes', (done) => {
         const type = {

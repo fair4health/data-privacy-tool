@@ -1,3 +1,4 @@
+import {ipcRenderer} from "electron"
 <template>
 	<q-card flat class="col-xs-12 col-sm-12 col-md-6">
 		<q-card-section>
@@ -72,6 +73,8 @@ import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 import Status from '@/common/Status'
 import StatusMixin from '@/common/mixins/statusMixin';
 import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
+import { IpcChannelUtil as ipcChannels } from '@/common/utils/ipc-channel-util'
+import {ipcRenderer} from 'electron'
 
 @Component
 export default class OnFHIRConfig extends Mixins(StatusMixin) {
@@ -110,19 +113,19 @@ export default class OnFHIRConfig extends Mixins(StatusMixin) {
                 cleanedUrl = 'http://' + cleanedUrl;
                 httpPrepended = true;
             }
-            this.updateFhirBaseProfile(cleanedUrl);
-            this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
+            this.$store.dispatch(types.Fhir.VERIFY_FHIR, {isSource: this.isSource, url: cleanedUrl})
                 .then(() => {
                     this.changeVerificationStatus(Status.SUCCESS);
+                    this.updateFhirBaseProfile(cleanedUrl);
                 })
                 .catch(err => {
                     if (httpPrepended) {
                         // if 'http://' failed, try 'https://'
                         cleanedUrl = 'https://' + cleanedUrl.substr(7);
-                        this.updateFhirBaseProfile(cleanedUrl);
-                        this.$store.dispatch(types.Fhir.VERIFY_FHIR, this.isSource)
+                        this.$store.dispatch(types.Fhir.VERIFY_FHIR, {isSource: this.isSource, url: cleanedUrl})
                             .then(() => {
                                 this.changeVerificationStatus(Status.SUCCESS);
+                                this.updateFhirBaseProfile(cleanedUrl);
                             })
                             .catch(err2 => {
                                 this.changeVerificationStatus(Status.ERROR, err2);
@@ -136,9 +139,9 @@ export default class OnFHIRConfig extends Mixins(StatusMixin) {
 
     updateFhirBaseProfile (url: string) {
         if (this.isSource) {
-            this.$store.commit(types.Fhir.UPDATE_FHIR_SOURCE_BASE, url);
+            ipcRenderer.send(ipcChannels.TO_ALL_BACKGROUND, ipcChannels.Fhir.SET_SOURCE_FHIR_BASE, url);
         } else {
-            this.$store.commit(types.Fhir.UPDATE_FHIR_TARGET_BASE, url);
+            ipcRenderer.send(ipcChannels.TO_ALL_BACKGROUND, ipcChannels.Fhir.SET_TARGET_FHIR_BASE, url);
         }
     }
 

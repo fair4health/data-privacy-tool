@@ -6,6 +6,7 @@ import { QVueGlobals } from 'quasar'
 import './quasar'
 import {webFrame} from 'electron';
 import notifier from './common/notifier'
+import { FhirService } from './common/services/fhir.service'
 import TreeView from 'vue-json-tree-view'
 import _ from 'lodash'
 import i18n from './i18n'
@@ -18,6 +19,9 @@ window.process.env.APP_HOMEPAGE = packageJson.homepage
 webFrame.setZoomFactor(0.9);
 
 Vue.config.productionTip = false;
+
+Vue.prototype.$sourceFhirService = new FhirService(true);
+Vue.prototype.$targetFhirService = new FhirService(false);
 Vue.prototype.$_ = _;
 
 Vue.use(notifier)

@@ -137,10 +137,10 @@ export default class MainLayout extends Vue {
         shell.openExternal(url);
     }
 
-	toggleSidebar () {
-		if (this.$q.screen.lt.lg || !this.drawerOpen) this.drawerOpen = !this.drawerOpen
-		else this.drawerMiniState = !this.drawerMiniState
-	}
+    toggleSidebar () {
+        if (this.$q.screen.lt.lg || !this.drawerOpen) this.drawerOpen = !this.drawerOpen
+        else this.drawerMiniState = !this.drawerMiniState
+    }
 
 }
 </script>
