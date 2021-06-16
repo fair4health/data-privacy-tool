@@ -1,7 +1,7 @@
 {
     "name": "fair4health-data-privacy-tool",
     "productName": "FAIR4Health Privacy Tool",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "private": true,
     "author": "SRDC Corporation <technical@srdc.com.tr>",
     "description": "FAIR4Health | Data Privacy Tool",
