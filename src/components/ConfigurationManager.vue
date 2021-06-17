@@ -26,7 +26,8 @@
                             <span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.FHIR_RESOURCE') }} </span>
                         </q-item-label>
                         <q-separator spaced />
-                        <q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
+                        <q-select outlined dense options-dense hide-selected fill-input v-model="currentFHIRRes"
+                                  :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
                                   @filter="filterFn" use-input input-debounce="0">
                             <template v-slot:option="scope">
                                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
@@ -91,6 +92,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import Loading from '@/components/Loading.vue';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
 import {FHIRUtils} from '@/common/utils/fhir-util'
+import { LocalStorageUtil as localStorageKey } from '@/common/utils/local-storage-util'
 
 @Component({
     components: {
@@ -126,8 +128,8 @@ export default class ConfigurationManager extends Vue {
     created () {
         this.getElements();
         // Set showBanner
-        if (sessionStorage.getItem('showBannerConfigurationManager')) {
-            this.showBanner = sessionStorage.getItem('showBannerConfigurationManager') === 'true'
+        if (localStorage.getItem(localStorageKey.SHOW_BANNER_CONF_MANAGER)) {
+            this.showBanner = localStorage.getItem(localStorageKey.SHOW_BANNER_CONF_MANAGER) === 'true'
         } else {
             this.showBanner = true;
         }
@@ -147,7 +149,7 @@ export default class ConfigurationManager extends Vue {
     }
 
     setShowBanner (value: boolean) {
-        sessionStorage.setItem('showBannerConfigurationManager', String(value))
+        localStorage.setItem(localStorageKey.SHOW_BANNER_CONF_MANAGER, String(value))
         this.showBanner = value
     }
 

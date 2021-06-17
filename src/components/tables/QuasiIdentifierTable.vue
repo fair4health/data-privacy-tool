@@ -286,26 +286,26 @@ export default class QuasiIdentifierTable extends Vue {
     }
 
     getDescriptionOfAlgorithm (name: string) {
-		if (name === environment.algorithms.PASS_THROUGH.name) {
-			return String(this.$t('ALGORITHM_INFO.PASS_THROUGH'));
-		} else if (name === environment.algorithms.REDACTION.name) {
-			return String(this.$t('ALGORITHM_INFO.REDACTION'));
-		} else if (name === environment.algorithms.RECOVERABLE_SUBSTITUTION.name) {
-			return String(this.$t('ALGORITHM_INFO.RECOVERABLE_SUBSTITUTION'));
-		} else if (name === environment.algorithms.SUBSTITUTION.name) {
-			return String(this.$t('ALGORITHM_INFO.SUBSTITUTION'));
-		} else if (name === environment.algorithms.FUZZING.name) {
-			return String(this.$t('ALGORITHM_INFO.FUZZING'));
-		} else if (name === environment.algorithms.GENERALIZATION.name) {
-			return String(this.$t('ALGORITHM_INFO.GENERALIZATION'));
-		} else if (name === environment.algorithms.DATE_SHIFTING.name) {
-			return String(this.$t('ALGORITHM_INFO.DATE_SHIFTING'));
-		} else if (name === environment.algorithms.REPLACE.name) {
-			return String(this.$t('ALGORITHM_INFO.REPLACE'));
-		} else {
-			return '';
-		}
-	}
+        if (name === environment.algorithms.PASS_THROUGH.name) {
+            return String(this.$t('ALGORITHM_INFO.PASS_THROUGH'));
+        } else if (name === environment.algorithms.REDACTION.name) {
+            return String(this.$t('ALGORITHM_INFO.REDACTION'));
+        } else if (name === environment.algorithms.RECOVERABLE_SUBSTITUTION.name) {
+            return String(this.$t('ALGORITHM_INFO.RECOVERABLE_SUBSTITUTION'));
+        } else if (name === environment.algorithms.SUBSTITUTION.name) {
+            return String(this.$t('ALGORITHM_INFO.SUBSTITUTION'));
+        } else if (name === environment.algorithms.FUZZING.name) {
+            return String(this.$t('ALGORITHM_INFO.FUZZING'));
+        } else if (name === environment.algorithms.GENERALIZATION.name) {
+            return String(this.$t('ALGORITHM_INFO.GENERALIZATION'));
+        } else if (name === environment.algorithms.DATE_SHIFTING.name) {
+            return String(this.$t('ALGORITHM_INFO.DATE_SHIFTING'));
+        } else if (name === environment.algorithms.REPLACE.name) {
+            return String(this.$t('ALGORITHM_INFO.REPLACE'));
+        } else {
+            return '';
+        }
+    }
 
 }
 </script>

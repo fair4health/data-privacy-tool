@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import { FhirService } from '@/common/services/fhir.service'
 import { LoDashStatic } from 'lodash'
 
 interface Notifier {
@@ -12,5 +13,7 @@ declare module 'vue/types/vue' {
     interface Vue {
         $_: LoDashStatic
         $notify: Notifier
+        $sourceFhirService: FhirService
+        $targetFhirService: FhirService
     }
 }

@@ -17,8 +17,9 @@
 						<span><q-icon name="fas fa-fire" size="xs" color="primary" class="q-mr-xs" /> {{ $t('LABELS.FHIR_RESOURCE') }} </span>
 					</q-item-label>
 					<q-separator spaced />
-					<q-select outlined dense v-model="currentFHIRRes" :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
-					          @filter="filterFn" use-input input-debounce="0">
+					<q-select outlined dense options-dense hide-selected fill-input v-model="currentFHIRRes"
+							  :options="fhirResourceOptions" :label="$t('LABELS.FHIR_RESOURCE')"
+					          @filter="filterFn" use-input input-debounce="0" :loading="loadingResources">
 						<template v-slot:option="scope">
 							<q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
 								<q-item-section avatar>
@@ -65,11 +66,12 @@
 											</template>
 									</q-input>
 							</q-item-section>
-							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">
-									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >
-											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>
-									</q-btn>
-							</q-item-section>
+							<!--Recommended attributes-->
+<!--							<q-item-section side v-if="fhirElementList.length && recommendedAttributesMappings[currentFHIRRes]">-->
+<!--									<q-btn unelevated dense round icon="restore" color="primary" @click="resetRecommendations()" >-->
+<!--											<q-tooltip anchor="center left" self="center right"> {{ $t('TOOLTIPS.RESET_RECOMMENDED_ATTRIBUTES') }} </q-tooltip>-->
+<!--									</q-btn>-->
+<!--							</q-item-section>-->
 					</q-item>
 					<q-separator />
 					<div class="splitter-div">
@@ -231,6 +233,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator'
 import {environment} from '@/common/environment'
 import {FHIRUtils} from '@/common/utils/fhir-util';
 import {VuexStoreUtil as types} from '@/common/utils/vuex-store-util';
+import {LocalStorageUtil as localStorageKey} from '@/common/utils/local-storage-util'
 
 @Component
 export default class FhirAttributeTable extends Vue {
@@ -244,6 +247,7 @@ export default class FhirAttributeTable extends Vue {
     private tempParameterMappings = JSON.parse(JSON.stringify(this.attributeMappings));
     private tempTypeMappings = JSON.parse(JSON.stringify(this.typeMappings));
     private showBanner: boolean = true;
+    private loadingResources: boolean = false;
 
     get fhirResourceList (): string[] { return this.$store.getters[types.Fhir.RESOURCE_LIST] }
     get fhirProfileList (): string[] { return this.$store.getters[types.Fhir.PROFILE_LIST].map(r => r.url) }
@@ -278,6 +282,7 @@ export default class FhirAttributeTable extends Vue {
     set recommendedAttributesMappings (value) { this.$store.commit(types.Fhir.SET_RECOMMENDED_ATTRIBUTES_MAPPINGS, value) }
 
     created () {
+        this.loadingResources = true;
         if (!this.currentFHIRRes && !this.noNodesLabel) {
             this.noNodesLabel = String(this.$t('LABELS.PLEASE_SELECT_A_RESOURCE'));
         }
@@ -290,13 +295,15 @@ export default class FhirAttributeTable extends Vue {
                     this.$notify.error(String(this.$t('ERROR.X_RESOURCE_ELEMENTS_COULDNT_BE_LOADED', {resource: resourceType})))
                 });
             }
+            this.loadingResources = false;
         }).catch(err => {
-            this.$notify.error(String(this.$t('ERROR.ST_WRONG_FETCHING_X', {name: 'resources'})))
+            this.$notify.error(String(this.$t('ERROR.ST_WRONG_FETCHING_X', {name: 'resources'})));
+            this.loadingResources = false;
         });
 
         // Set showBanner
-        if (sessionStorage.getItem('showBannerFhirAttribute')) {
-            this.showBanner = sessionStorage.getItem('showBannerFhirAttribute') === 'true';
+        if (localStorage.getItem(localStorageKey.SHOW_BANNER_FHIR_ATTRIBUTE)) {
+            this.showBanner = localStorage.getItem(localStorageKey.SHOW_BANNER_FHIR_ATTRIBUTE) === 'true';
         } else {
             this.showBanner = true;
         }
@@ -317,7 +324,7 @@ export default class FhirAttributeTable extends Vue {
     }
 
     setShowBanner (value: boolean) {
-            sessionStorage.setItem('showBannerFhirAttribute', String(value))
+            localStorage.setItem(localStorageKey.SHOW_BANNER_FHIR_ATTRIBUTE, String(value))
             this.showBanner = value
     }
 

@@ -40,7 +40,7 @@ export class FHIRUtils {
         });
     }
 
-    static parseElementDefinitions (node, state): Promise<any> {
+    static parseElementDefinitions (fhirService: FhirService, node, state): Promise<any> {
         return new Promise((resolve, reject) => {
             const fhirBase = localStorage.getItem(localStorageKey.FHIR_SOURCE_URL);
             const cached = JSON.parse(localStorage.getItem(fhirBase + localStorageKey.STRUCTURE_DEFINITION + node.type) || '{}');
@@ -50,7 +50,6 @@ export class FHIRUtils {
             } else {
                 if (node.type === 'Reference') resolve(node);
                 if (fhirBase) {
-                    const fhirService: FhirService = new FhirService(true, fhirBase);
                     fhirService.search('StructureDefinition', {url: environment.extendibleDataTypes[node.type]}, true)
                         .then(res => {
                             if (res.data.total) {
@@ -67,22 +66,22 @@ export class FHIRUtils {
         })
     }
 
-    static filterDataTypes (tree: fhir.ElementTree[], state): fhir.ElementTree[] {
+    static filterDataTypes (fhirService: FhirService, tree: fhir.ElementTree[], state): fhir.ElementTree[] {
         tree.map(node => {
             if (!node.type) { // DomainResource
                 node.children = node.children?.filter(child => child.label && !environment.attributesToBeFiltered.DomainResource.includes(child.label));
             } else if (environment.attributesToBeFiltered[node.type]) {
                 node.children = node.children?.filter(child => node.type && child.label && !environment.attributesToBeFiltered[node.type].includes(child.label));
             } else if (environment.extendibleDataTypes[node.type] && (!node.children || !node.children.length)) {
-                this.parseElementDefinitions(node, state).then(res => {
+                this.parseElementDefinitions(fhirService, node, state).then(res => {
                     node = res;
                     if (node.children && node.children.length) {
-                        node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);
+                        node.children = this.filterDataTypes(fhirService, JSON.parse(JSON.stringify(node.children)), state);
                     }
                 }).catch(err => err);
             }
             if (node.children && node.children.length) {
-                node.children = this.filterDataTypes(JSON.parse(JSON.stringify(node.children)), state);
+                node.children = this.filterDataTypes(fhirService, JSON.parse(JSON.stringify(node.children)), state);
             }
         });
         return tree;

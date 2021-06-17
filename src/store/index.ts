@@ -1,11 +1,16 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import fhir from './fhirStore'
+import iDB from './iDBStore'
 import { VuexStoreUtil as types } from '@/common/utils/vuex-store-util'
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+    modules: {
+        fhir,
+        iDB
+    },
     state: {
         drawerOpen: true,
         drawerMiniState: false,
@@ -36,6 +41,5 @@ export default new Vuex.Store({
             state.privacyStep = value;
         }
     },
-    actions: {},
-    modules: {fhir},
+    actions: {}
 })

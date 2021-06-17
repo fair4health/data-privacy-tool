@@ -1,11 +1,10 @@
-import {FhirService} from '@/common/services/fhir.service';
 import {environment} from '@/common/environment';
 import RandExp from 'randexp';
 import moment from 'moment-timezone';
 import {Utils} from '@/common/utils/util';
+import Vue from 'vue';
 
 export class DeidentificationService {
-    fhirService: FhirService;
     typeMappings: any;
     parameterMappings: any;
     rareValueMappings: any;
@@ -18,8 +17,13 @@ export class DeidentificationService {
     canBeAnonymizedMore: boolean;
     anonymizedData;
 
-    constructor (typeMappings: any, parameterMappings: any, rareValueMappings: any, requiredElements: string[]) {
-        this.fhirService = new FhirService(true);
+    constructor (typeMappings?: any, parameterMappings?: any, rareValueMappings?: any, requiredElements?: string[]) {
+        if (typeMappings && parameterMappings && rareValueMappings && requiredElements) {
+            this.init({typeMappings, parameterMappings, rareValueMappings, requiredElements});
+        }
+    }
+
+    init ({typeMappings, parameterMappings, rareValueMappings, requiredElements}) {
         this.typeMappings = JSON.parse(JSON.stringify(typeMappings));
         this.parameterMappings = JSON.parse(JSON.stringify(parameterMappings));
         this.rareValueMappings = JSON.parse(JSON.stringify(rareValueMappings));
@@ -32,21 +36,15 @@ export class DeidentificationService {
         this.canBeAnonymizedMore = true;
     }
 
-    getEntries (resource: string, profile: string): Promise<any> {
+    getEntries (resource: string, profile?: string, profileURL?: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.fhirService.search('StructureDefinition',
-                {_summary: 'data', base: `${environment.hl7}/StructureDefinition/${resource}`}, true)
-                .then(res => {
-                    let query = {};
-                    if (resource !== profile) { // Not a Base Profile
-                        const url = res.data.entry.find(item => item.resource.id === profile).resource.url;
-                        query = {_profile: url};
-                    }
-                    this.fhirService.search(resource, query, true)
-                        .then(response => {
-                            resolve({resource, profile, entries: response.data.entry});
-                        })
-                        .catch(err => reject(err))
+            let query = {};
+            if (profileURL) {
+                query = {_profile: profileURL};
+            }
+            Vue.prototype.$sourceFhirService.search(resource, query, true)
+                .then(response => {
+                    resolve({resource, profile, entries: response.data.entry});
                 })
                 .catch(err => reject(err))
         })
