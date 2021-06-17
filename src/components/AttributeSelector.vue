@@ -32,9 +32,9 @@
 					<q-list bordered class="rounded-borders">
 						<q-item v-for="(saved, index) of savedConfigs" :key="index" class="q-ma-sm" >
 							<q-item-section avatar top>
-								<q-icon name="save" color="black" size="26px" class="q-mt-xs" />
+								<q-icon name="save" color="grey-9" size="26px" class="q-mt-xs" />
 							</q-item-section>
-							<q-item-section top class="col-2 gt-sm">
+							<q-item-section top class="col-3 gt-sm">
 								<q-item-label class="q-mt-sm">{{saved.name}}</q-item-label>
 							</q-item-section>
 							<q-item-section top >
@@ -44,8 +44,8 @@
 							</q-item-section>
 							<q-item-section top side>
 								<div class="text-grey-8 q-gutter-xs">
-									<q-btn class="gt-xs" size="11px" flat dense round icon="fas fa-sync-alt" @click="restoreSaved(index)" />
-									<q-btn class="gt-xs" size="12px" color="negative" flat dense round icon="delete" @click="deleteSaved(index)" />
+									<q-btn class="gt-xs" size="11px" flat round icon="fas fa-sync-alt" @click="restoreSaved(index)" />
+									<q-btn class="gt-xs" size="12px" color="negative" flat round icon="delete" @click="deleteSaved(index)" />
 								</div>
 							</q-item-section>
 						</q-item>
@@ -123,6 +123,7 @@ export default class AttributeSelector extends Vue {
         this.$store.dispatch(types.Fhir.IMPORT_STATE, config.data).then(() => {
             this.$notify.success(String(this.$t('SUCCESS.CONFIGURATION_IS_LOADED')))
             this.fhirAttributeTableKey++; // in order to re-render attribute table
+            this.selectDialog = false;
         }).catch(err => {
             this.$notify.error(String(this.$t('ERROR.CONFIGURATION_NOT_LOADED')));
         });
@@ -156,12 +157,10 @@ export default class AttributeSelector extends Vue {
 </script>
 
 <style lang="stylus">
-    .saved-configs-card {
-        width: 500px
-        max-width: 80vw
-    }
-		.fhir-element-text:hover {
-				text-decoration: underline
-				cursor: pointer
-		}
+    .saved-configs-card
+        width: 900px
+        max-width: 100vw
+	.fhir-element-text:hover
+		text-decoration: underline
+		cursor: pointer
 </style>

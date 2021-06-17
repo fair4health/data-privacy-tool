@@ -327,14 +327,14 @@
 					<q-btn icon="close" flat round dense v-close-popup />
 				</q-card-section>
 				<q-separator />
-				<q-card-section v-if="selectedResource && deidentificationResults[selectedResource]" class="scroll json-resources-card-section">
+				<q-card-section v-if="selectedResource && selectedResJSONList.length && deidentificationResults[selectedResource]" class="scroll json-resources-card-section">
 					<q-item-label class="text-weight-bold q-mb-lg q-mt-sm">
 						<span class="text-primary"><q-icon name="fas fa-info" size="xs" class="q-mr-xs" />
 							<template v-if="isRestricted"> {{ $t('INFO.RESTRICTED_JSONS') }} </template>
 							<template v-else> {{ $t('INFO.DEIDENTIFIED_JSONS') }} </template>
 						</span>
 					</q-item-label>
-					<q-list class="q-mb-md bg-grey-3" bordered v-for="(entry, index) in getJsonsInPage()" :key="index">
+					<q-list class="q-mb-md bg-grey-3" bordered v-for="(entry, index) in selectedResJSONList" :key="index">
 						<q-item>
 							<tree-view class="q-mb-lg q-ml-sm" :data="entry" :options="{maxDepth: 2, link: true, rootObjectKey: getResourceNumber(index)}" />
 						</q-item>
@@ -402,6 +402,7 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     private isRestricted: boolean = true;
     private showBanner: boolean = true;
     private transformationResults: Array<{resourceType: string, transformedCount: number}> = [];
+    private selectedResJSONList = [];
 
     get attributeMappings (): any { return this.$store.getters[types.Fhir.ATTRIBUTE_MAPPINGS] }
     set attributeMappings (value) { this.$store.commit(types.Fhir.SET_ATTRIBUTE_MAPPINGS, value) }
@@ -787,23 +788,34 @@ export default class Deidentifier extends Mixins(StatusMixin) {
     }
 
     showJSONResources (resourceType: string, isRestricted: boolean) {
+        this.$q.loading.show();
+        this.selectedResJSONList = [];
         this.currentPage = 1;
-        // const length = isRestricted ? this.deidentificationResults[resourceType].restrictedEntries.length : this.deidentificationResults[resourceType].entries;
-        const length = 10;
-        this.maxPage = Math.ceil(length / environment.JSON_NUMBER_IN_A_PAGE);
+        this.maxPage = Math.ceil(10 / environment.JSON_NUMBER_IN_A_PAGE);
         this.isRestricted = isRestricted;
         this.selectedResource = resourceType;
-        this.jsonResources = true;
+        this.getJsonsInPage();
     }
 
     getJsonsInPage () {
         const totalPages = environment.JSON_NUMBER_IN_A_PAGE;
         if (this.isRestricted) {
-            return this.deidentificationResults[this.selectedResource].restrictedEntries.slice( (this.currentPage - 1) *
+            this.selectedResJSONList = this.deidentificationResults[this.selectedResource].restrictedEntries.slice( (this.currentPage - 1) *
                 totalPages, (this.currentPage - 1) * totalPages + totalPages );
+            this.jsonResources = true;
+            this.$q.loading.hide();
         } else {
-            return this.deidentificationResults[this.selectedResource].entries.slice( (this.currentPage - 1) *
-                totalPages, (this.currentPage - 1) * totalPages + totalPages );
+            this.$store.dispatch(types.IDB.GET, `validated-${this.selectedResource}`)
+                .then(res => {
+                    this.selectedResJSONList = res.entries.slice( (this.currentPage - 1) * totalPages, (this.currentPage - 1) * totalPages + totalPages );
+                    this.jsonResources = true;
+                    this.$q.loading.hide();
+                })
+                .catch(err => {
+                    this.selectedResJSONList = [];
+                    this.$notify.error(`Something went wrong while getting resource entries. ${err}`);
+                    this.$q.loading.hide();
+                });
         }
     }
 
