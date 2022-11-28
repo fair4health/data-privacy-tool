@@ -42,7 +42,8 @@
         "vue-json-tree-view": "^2.1.6",
         "vue-property-decorator": "^8.5.1",
         "vue-router": "^3.3.4",
-        "vuex": "^3.5.1"
+        "vuex": "^3.5.1",
+        "crypto-js": "4.1.1"
     },
     "devDependencies": {
         "@babel/plugin-proposal-optional-catch-binding": "^7.10.4",
