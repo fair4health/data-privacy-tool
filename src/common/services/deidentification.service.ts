@@ -3,6 +3,8 @@ import RandExp from 'randexp';
 import moment from 'moment-timezone';
 import {Utils} from '@/common/utils/util';
 import Vue from 'vue';
+import CryptoJS from 'crypto-js';
+import fs from 'fs';
 
 export class DeidentificationService {
     typeMappings: any;
@@ -455,7 +457,14 @@ export class DeidentificationService {
                 }
                 break;
             case environment.algorithms.RECOVERABLE_SUBSTITUTION.name:
-                data = btoa(data); // recover function is atob(data)
+                var plain = JSON.stringify(data, null, 3);
+                // strong hash options of CryptoJS are SHA256, SHA512, SHA3
+                var hash = CryptoJS.SHA256(plain);
+                // write to csv file
+                const entry = plain + "," + hash + "\r\n";
+                fs.appendFile('pseudonyms.csv', entry, function (err) {
+                    if (err) throw err;
+                });
                 break;
             case environment.algorithms.FUZZING.name:
                 data += this.getRandomFloat(-parameters.percentage, parameters.percentage);
